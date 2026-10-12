@@ -1,0 +1,45 @@
+{
+  "id": "frogman",
+  "licence": "MIT",
+  "notice": "The names are frogman's, from https://github.com/mattgodbolt/frogman/tree/178000d1731ab26cc4afd9663fffebd59dbab469, under this licence:\n\nMIT License\n\nCopyright (c) 1993-2026 Matt Godbolt and Richard Talbot-Watkins\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "home": "https://github.com/mattgodbolt/frogman",
+  "source": {
+    "repository": "https://github.com/mattgodbolt/frogman",
+    "commit": "178000d1731ab26cc4afd9663fffebd59dbab469",
+    "assembler": "beebasm",
+    "assemble": "frogman.asm",
+    "disc": "frogman_rebuilt.ssd"
+  },
+  "madeFrom": ["80fb4c78414a4b5b028aeab7fa8653b3", "c57cd59c0ea51159c997788201e6d50f"],
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "frogman-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Frogman",
+      "regions": [
+        {
+          "name": "engine",
+          "file": "FastI/O",
+          "to": "music_data"
+        },
+        {
+          "name": "game",
+          "file": "Gcode"
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Frogman's title screen",
+      "regions": [
+        {
+          "name": "setup",
+          "file": "Setup",
+          "overwritten": true
+        }
+      ]
+    }
+  ]
+}

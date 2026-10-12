@@ -1,0 +1,42 @@
+{
+  "id": "xmos",
+  "licence": "MIT",
+  "notice": "The names are xmos's, from https://github.com/mattgodbolt/xmos/tree/d0f9aca72c4cfd47961cb4bac75eb4493ccee002, under this licence:\n\nMIT License\n\nCopyright (c) 1992-2026 Richard Talbot-Watkins and Matt Godbolt\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "home": "https://github.com/mattgodbolt/xmos",
+  "source": {
+    "repository": "https://github.com/mattgodbolt/xmos",
+    "commit": "d0f9aca72c4cfd47961cb4bac75eb4493ccee002",
+    "assembler": "beebasm",
+    "assemble": "xmos.asm"
+  },
+  "rom": {
+    "file": "build.rom"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "xmos-check.js",
+  "sets": [
+    {
+      "id": "rom",
+      "title": "XMOS",
+      "regions": [
+        {
+          "name": "low",
+          "file": "build.rom",
+          "to": "&9000"
+        },
+        {
+          "name": "middle",
+          "file": "build.rom",
+          "from": "&9000",
+          "to": "&B000"
+        },
+        {
+          "name": "high",
+          "file": "build.rom",
+          "from": "&B000"
+        }
+      ]
+    }
+  ]
+}
