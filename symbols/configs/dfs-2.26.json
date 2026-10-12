@@ -62,7 +62,7 @@
     },
     {
       "id": "tube",
-      "title": "Acorn DFS 2.26: the Tube host",
+      "title": "Acorn Tube host",
       "moves": ["&AF13"],
       "regions": [
         {
