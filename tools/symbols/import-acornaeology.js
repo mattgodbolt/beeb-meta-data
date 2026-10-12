@@ -23,7 +23,7 @@ import { parseArgs } from "node:util";
 
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors } from "./anchor-chooser.js";
-import { checkSet, formatJson, readMosSets, SymbolsDir } from "./build-index.js";
+import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
 import { fetchRom, matchingRegions, overlappingRegions, romOf } from "./check-memory.js";
 import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 
@@ -324,14 +324,6 @@ async function fetchText(url) {
     return response.text();
 }
 
-function systemGlobalsOf() {
-    const globals = new Map();
-    for (const file of readMosSets())
-        for (const [address, name] of parseSet(JSON.parse(readFileSync(path.join(SymbolsDir, file), "utf8"))).globals)
-            globals.set(address, name);
-    return globals;
-}
-
 async function main() {
     const { values } = parseArgs({
         options: { config: { type: "string" }, verbose: { type: "boolean", short: "v", default: false } },
@@ -348,7 +340,7 @@ async function main() {
     const otherCopies = await Promise.all(
         (config.otherRoms ?? []).map(async (rom) => ({ name: romName(rom), bytes: await fetchRom(rom) })),
     );
-    const systemGlobals = systemGlobalsOf();
+    const systemNames = systemGlobals();
     const mosSets = readMosSets();
     const made = [];
     for (const [i, set] of versions.entries()) {
@@ -363,7 +355,7 @@ async function main() {
         const { json, errors, notes, dropped } = importAcornaeology(set, readDisassembly(JSON.parse(disassemblyText)), {
             rom: roms[i],
             otherRoms: [...jsbeebRoms, ...otherVersions, ...otherCopies],
-            systemGlobals,
+            systemGlobals: systemNames,
             notice,
             anchors: page === null ? null : pageAnchors(page),
         });

@@ -2,6 +2,35 @@
   "format": 1,
   "sets": [
     {
+      "url": "sets/arcadians-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "sprites": {
+          "start": "0x0c00",
+          "end": "0x0d00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0c0f", "bytes": "603000c09080" }]
+        },
+        "main": {
+          "start": "0x0e00",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1d5e", "bytes": "286ce8c44084" },
+            { "at": "0x3203", "bytes": "a981a0ffa2b6" },
+            { "at": "0x331f", "bytes": "a10085765170" },
+            { "at": "0x45aa", "bytes": "8573b940078572" }
+          ]
+        },
+        "relocate": {
+          "start": "0x60d0",
+          "end": "0x60fe",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x60d0", "bytes": "20b15da000b90019" }]
+        }
+      }
+    },
+    {
       "url": "sets/bbc-b-mos-1.20.json",
       "licence": "MIT",
       "regions": {
@@ -151,6 +180,41 @@
           "end": "0x06ce",
           "minAnchors": 1,
           "anchors": [{ "at": "0x0668", "bytes": "a20420c5069500" }]
+        }
+      }
+    },
+    {
+      "url": "sets/hopper-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0e00",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x15ef", "bytes": "040a09170306" },
+            { "at": "0x1900", "bytes": "4cf51db97023" },
+            { "at": "0x1f13", "bytes": "206f1fc9fff0a4" },
+            { "at": "0x28f3", "bytes": "648a06220400" }
+          ]
+        },
+        "page9": {
+          "start": "0x0900",
+          "end": "0x0b00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0a15", "bytes": "bdff088570a002" }]
+        },
+        "pagec": {
+          "start": "0x0c00",
+          "end": "0x0d00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0c00", "bytes": "207a0ca9008d2b04" }]
+        },
+        "startup": {
+          "start": "0x3000",
+          "end": "0x3600",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x305d", "bytes": "a570cd8030d0ee" }]
         }
       }
     },
@@ -1041,6 +1105,63 @@
           "end": "0x0deb",
           "minAnchors": 1,
           "anchors": [{ "at": "0x0ddb", "bytes": "00030c0f3033" }]
+        }
+      }
+    },
+    {
+      "url": "sets/starship-command-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0e00",
+          "end": "0x50b1",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0f06", "bytes": "20180f11709170" },
+            { "at": "0x1ec6", "bytes": "20640fa575c9c0" },
+            { "at": "0x2f8e", "bytes": "c67a20060fe67b" },
+            { "at": "0x41c4", "bytes": "a981a232a000" }
+          ]
+        },
+        "entry": {
+          "start": "0x62b1",
+          "end": "0x62f9",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x62b1", "bytes": "a900a88580a90e" }]
+        }
+      }
+    },
+    {
+      "url": "sets/super-invaders-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0e00",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0e02", "bytes": "a9004c090ea940" },
+            { "at": "0x1689", "bytes": "a57d857f204d10" },
+            { "at": "0x1f19", "bytes": "a9018d07058d0805" },
+            { "at": "0x29a6", "bytes": "1c0084888c02" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/syncron-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0300",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0315", "bytes": "a8a9f68550a918" },
+            { "at": "0x1848", "bytes": "a203bd27013004" },
+            { "at": "0x2d80", "bytes": "2b2c0d083332" },
+            { "at": "0x4a60", "bytes": "03033c3d3e3f" }
+          ]
         }
       }
     }

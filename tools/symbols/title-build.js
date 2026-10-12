@@ -1,7 +1,8 @@
 /**
  * What the corpus check and the in-memory check need from a title, whichever assembler its source is
- * for: its config's `source.assembler`, `baron` unless it says `beebasm`; or, for a config that names
- * `py8dis`, the py8dis disassembly it is.
+ * for: its config's `source.assembler`, `baron` unless it says `beebasm`; for a config that names
+ * `py8dis`, the py8dis disassembly it is; or, for one with `"importer": "level7"`, the level7 text
+ * disassembly, of which `--source` is then a local copy.
  */
 
 import { readFileSync } from "node:fs";
@@ -11,10 +12,11 @@ import * as baron from "./baron-build.js";
 import * as beebasm from "./beebasm-build.js";
 import { importBaron, withTitle as withBaronTitle } from "./import-baron.js";
 import { importBeebasm, withTitle as withBeebasmTitle } from "./import-beebasm.js";
+import { importLevel7Title, Level7, Level7Usage } from "./import-level7.js";
 import { importPy8dis, Py8disOptions, Py8disUsage, withPy8disTitle } from "./import-py8dis.js";
 
 export const BuildOptions = { ...baron.BuildOptions, ...beebasm.BuildOptions, ...Py8disOptions };
-export const BuildUsage = `[--baron <path>] [--beebasm <path>] ${Py8disUsage}`;
+export const BuildUsage = `[--baron <path>] [--beebasm <path>] ${Py8disUsage}; for a level7 title, ${Level7Usage}`;
 
 const Assemblers = [baron.Baron, beebasm.Beebasm];
 const Py8dis = "py8dis";
@@ -34,10 +36,15 @@ export function assemblerOf(config) {
     return assembler;
 }
 
-/** The importer for a config: py8dis's for one that names `py8dis`, else its assembler's. */
-export const importerOf = (config) => (config.py8dis ? Py8dis : assemblerOf(config));
+/**
+ * The importer for a config: level7's for one that says so, py8dis's for one that names `py8dis`, else
+ * its assembler's.
+ */
+export const importerOf = (config) =>
+    config.importer === Level7 ? Level7 : config.py8dis ? Py8dis : assemblerOf(config);
 
 const Importers = {
+    [Level7]: importLevel7Title,
     [Py8dis]: (configPath, options) =>
         withPy8disTitle(configPath, options, ({ config, dump, definitions }) =>
             importPy8dis(config, dump, definitions),

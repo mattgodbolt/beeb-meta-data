@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "starship-command",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/starship-command-disassembly.txt",
+    "sha256": "dff6ae478d9b26e94cfb2e5bb8b688f892e7e6593b1c3d6ce43eb2ce5a13a3d3"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Acornsoft/StarshipCommand.zip",
+    "image": "Acornsoft/StarshipCommand.ssd",
+    "key": "edda1599219229884a7eaaf96161b2c7"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "starship-command-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Starship Command",
+      "regions": [
+        { "name": "main", "from": "&0E00", "to": "&50B1" },
+        { "name": "entry", "from": "&62B1", "to": "&62F9", "overwritten": true }
+      ]
+    }
+  ]
+}
