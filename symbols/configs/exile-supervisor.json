@@ -1,0 +1,53 @@
+{
+  "importer": "level7",
+  "id": "exile-supervisor",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/exile-disk-protection-and-supervisor-disassembly.txt",
+    "sha256": "4f70d518dc5becb226052b9fe22bfbb9bad8a9331e47bbf716fc2e123b258918"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Exile.zip",
+    "image": "Superior/Exile.ssd",
+    "key": "6294d016783ec9cb02b45a3346c69652"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "exile-supervisor-check.js",
+  "sets": [
+    {
+      "id": "exilel",
+      "title": "Exile (supervisor)",
+      "regions": [
+        {
+          "name": "main",
+          "part": "ExileL",
+          "from": "&1500",
+          "to": "&5800",
+          "avoid": [
+            ["&15CA", "&15F8"],
+            ["&1A20", "&1A28"],
+            ["&1A55", "&1A60"],
+            ["&1A88", "&1BC4"],
+            ["&1BD6", "&1BD8"],
+            ["&1BFA", "&1BFB"],
+            ["&1D3A", "&1D4B"],
+            ["&1D7A", "&1D7B"],
+            ["&1D9D", "&1D9E"],
+            ["&28C5", "&28C7"],
+            ["&2C3C", "&2C3D"],
+            ["&2CB9", "&2CBB"],
+            ["&2DFA", "&2DFB"],
+            ["&3000", "&3001"],
+            ["&315E", "&319F"],
+            ["&332B", "&332F"],
+            ["&335D", "&336B"],
+            ["&3696", "&3697"],
+            ["&36DE", "&36EA"],
+            ["&3779", "&377A"]
+          ]
+        }
+      ]
+    }
+  ]
+}
