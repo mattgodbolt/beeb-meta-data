@@ -489,6 +489,23 @@
       }
     },
     {
+      "url": "sets/planb-game.json",
+      "licence": "MIT",
+      "regions": {
+        "main": {
+          "start": "0x1210",
+          "end": "0x5557",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1318", "bytes": "088002100048" },
+            { "at": "0x242c", "bytes": "3b000102030a" },
+            { "at": "0x3b8a", "bytes": "b138a43b60a437" },
+            { "at": "0x448b", "bytes": "48a500a0008402" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/repton2-game.json",
       "licence": "Unlicense",
       "regions": {

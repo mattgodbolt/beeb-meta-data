@@ -377,6 +377,14 @@ The in-memory check runs disc commands on a B1770, with and without a second pro
 Master's machines match nothing but DFS 1.2's page 5. The 8271 mode is set by hand, since Z+BREAK stops a B's MOS
 1.20 at a BRK in jsbeeb; its scenarios say which machine they want with `machines`.
 
+## Plan B
+
+`symbols/configs/planb.json` makes one set, `game`, from py8dis's example `examples/python/planb.py`, TobyLobster's
+disassembly of Bug Byte's game: one region over the binary, which runs where it loads. The disc is Stairway to Hell's
+`BugByte/PlanB.zip`, whose `PLANB` differs from the example's binary in two operands of one OSBYTE call at
+`title_and_game_loop`, which no anchor covers. TobyLobster's own PlanB repository has no licence, so the set comes
+from py8dis's copy, under py8dis's.
+
 ## Nevryon
 
 `symbols/configs/nevryon.json` makes one set, `game`, from [nevryon](https://github.com/waitingforvsync/nevryon)'s
