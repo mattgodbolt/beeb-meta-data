@@ -19,11 +19,12 @@ module and its sets, and nothing else. That's also what lets titles be added in 
 
 1. Find a source you can use. It needs a licence that allows reuse (not the GPL; see "Licensing" in [the design
    notes](media-registry-design-notes.md#licensing)), and you need to know whose names they are. Read the source's own
-   import tools and history, not just its LICENSE: acornaeology's ADFS names turned out to be mostly from two
-   unlicensed disassemblies, which is why there's no ADFS set.
+   import tools and history, not just its LICENSE: acornaeology's ADFS names were seeded partly from an
+   unlicensed disassembly, in ways its history can't separate, which is why there's no ADFS set.
 2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
    ships, or a ROM pinned by URL and key. For a ROM jsbeeb doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml`
-   hashes as a cross-check has worked every time.
+   hashes as a cross-check has
+   usually worked.
 3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
    check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load).
 4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
