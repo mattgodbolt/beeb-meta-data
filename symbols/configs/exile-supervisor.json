@@ -16,7 +16,7 @@
   "check": "exile-supervisor-check.js",
   "sets": [
     {
-      "id": "exilel",
+      "id": "menu",
       "title": "Exile (supervisor)",
       "regions": [
         {

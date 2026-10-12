@@ -6,7 +6,7 @@ const moves = ["Q", "W", "P", "L", "O", "K", "SPACE"];
 
 export const scenarios = {
     standard: playScenario({
-        loaded: ["exilel/main"],
+        loaded: ["menu/main"],
         playing: ["exile-game/main"],
         loadSecs: 30,
         start: ["F0", "N"],
@@ -15,7 +15,7 @@ export const scenarios = {
         moments: 3,
     }),
     enhanced: playScenario({
-        loaded: ["exilel/main"],
+        loaded: ["menu/main"],
         playing: ["exile-enhanced-game/main"],
         loadSecs: 30,
         start: ["F0", "Y"],
