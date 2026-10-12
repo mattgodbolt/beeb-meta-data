@@ -129,7 +129,7 @@ function regionSymbols(labels, start, end, dropped) {
 }
 
 /** The addresses as [from, to) ranges. */
-function rangesOf(addresses) {
+export function rangesOf(addresses) {
     const out = [];
     for (const address of [...addresses].sort((a, b) => a - b)) {
         if (out.length && out.at(-1)[1] === address) out.at(-1)[1] = address + 1;
@@ -143,7 +143,7 @@ function rangesOf(addresses) {
  * differs there, for its anchors to avoid so that it matches them too. An image that isn't there, or isn't
  * the same code, is an error.
  */
-function sameCodeDifferences(region, sameCode, images, errors) {
+export function sameCodeDifferences(region, sameCode, images, errors) {
     const differing = new Map();
     for (const name of sameCode) {
         const image = images.find((candidate) => candidate.name === name);
@@ -163,7 +163,7 @@ function sameCodeDifferences(region, sameCode, images, errors) {
  * Leaves out a region's names on statements another ROM it shares its code with changes, where the name
  * might not mean what it says, and notes each.
  */
-function leaveOutChanged(region, differing, statementAt, itemOf, dropped, notes) {
+export function leaveOutChanged(region, differing, statementAt, itemOf, dropped, notes) {
     for (const [name, address] of [...region.symbols]) {
         const statement = statementAt.get(itemOf.get(name));
         const changed = statement && statement.data.map((_, i) => differing.get(statement.address + i)).find(Boolean);

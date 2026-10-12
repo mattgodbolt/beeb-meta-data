@@ -25,7 +25,7 @@ import { parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { AcmeOptions, AcmeUsage, instructionOf, withAcmeBuild } from "./acme-build.js";
 import { chooseAnchors } from "./anchor-chooser.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
-import { romMatches, romName } from "./import-acornaeology.js";
+import { leaveOutChanged, rangesOf, romMatches, romName, sameCodeDifferences } from "./import-acornaeology.js";
 import { evaluate, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
 import { fetchRom, otherRomsThan, romBanks, romImages, romKey, romOf } from "./rom-images.js";
 
@@ -135,7 +135,7 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
             errors.push(
                 `${fullName}: ${spec.assemble} assembles to bytes that aren't ${romName(spec.rom)}'s at ${hex(differs[0])}`,
             );
-        return {
+        const region = {
             name: regionSpec.name,
             fullName,
             imageName: romName(spec.rom),
@@ -149,7 +149,11 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
             memory: new Map([...memory].filter(([address]) => address >= start && address < end)),
             symbols: new Map(),
             anchors: [],
+            sameCode: regionSpec.sameCodeIn ?? [],
         };
+        region.differing = sameCodeDifferences(region, region.sameCode, images, errors);
+        region.avoid = rangesOf(region.differing.keys());
+        return region;
     });
 
     const leftOut = (config.leaveOut ?? []).map((pattern) => new RegExp(pattern));
@@ -170,6 +174,10 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         if (taken) dropped.push([nameOf(name), value, `${region.name} calls it ${taken[0]}`]);
         else region.symbols.set(nameOf(name), value);
     }
+
+    const statementAt = new Map(statements.map((statement) => [statement.address, statement]));
+    const labelAt = new Map(labels.map(({ address, name }) => [name, address]));
+    for (const region of regions) leaveOutChanged(region, region.differing, statementAt, labelAt, dropped, notes);
 
     const globalRanges = (spec.globals ?? config.globals ?? []).map(({ start, end }, i) => ({
         start: parseAddress(start, `globals range ${i}'s start`),
@@ -205,7 +213,8 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
 
     const spread = { bytesPerAnchor: config.bytesPerAnchor, spreadAnchors: config.spreadAnchors };
     for (const region of regions) {
-        const chosen = chooseAnchors(region, [], images, spread);
+        const told = images.filter((image) => !region.sameCode.includes(image.name));
+        const chosen = chooseAnchors(region, [], told, spread);
         region.anchors = chosen.anchors;
         errors.push(...chosen.errors);
         notes.push(...chosen.notes);

@@ -154,6 +154,37 @@ describe("importAcmeSet", () => {
         expect(errors).toEqual([`1/high: ${Source} assembles to bytes that aren't DEMO.ROM's at &8090`]);
     });
 
+    it("matches a region's sameCodeIn too, its anchors off the bytes that differ and its names off their statements", () => {
+        const other = demoBuild().binary.slice();
+        other[1] ^= 0xff;
+        const sharing = {
+            ...spec,
+            regions: [{ ...spec.regions[0], sameCodeIn: ["OTHER.ROM"] }, spec.regions[1]],
+        };
+        const { json, errors, dropped } = importAcmeSet(config, sharing, demoBuild(), {
+            rom: demoBuild().binary,
+            otherRoms: [{ name: "OTHER.ROM", bytes: other }],
+            systemGlobals: new Map(),
+        });
+        expect(errors).toEqual([]);
+        expect(dropped).toContainEqual(["start", Base, "OTHER.ROM changes its statement"]);
+        const [low, high] = parseSet(json).regions;
+        const peek = (address) => other[address - Base];
+        expect(regionMatches(low, peek)).toBe(true);
+        expect(regionMatches(high, peek)).toBe(true);
+    });
+
+    it("refuses a sameCodeIn that isn't the same code", () => {
+        const other = demoBuild().binary.map((byte) => byte ^ 0xff);
+        const sharing = { ...spec, regions: [{ ...spec.regions[0], sameCodeIn: ["OTHER.ROM"] }] };
+        const { errors } = importAcmeSet(config, sharing, demoBuild(), {
+            rom: demoBuild().binary,
+            otherRoms: [{ name: "OTHER.ROM", bytes: other }],
+            systemGlobals: new Map(),
+        });
+        expect(errors).toContainEqual(expect.stringContaining("OTHER.ROM differs in"));
+    });
+
     it("makes a set the index accepts, matching its own ROM", () => {
         const build = demoBuild();
         const { json, errors } = importDemo({}, build);

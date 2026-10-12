@@ -352,8 +352,8 @@ A config has `"importer": "acme"`, an `id`, and
   `leaveOut` as for acornaeology and py8dis;
 - `check`, the in-memory check's scenarios;
 - `sets`, one per version, each with an `id`, a `title`, the source to `assemble`, its `rom` (jsbeeb's file, or a `url`
-  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron), and optionally its own `home`
-  and `pages`.
+  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron) and optionally a `sameCodeIn`
+  as for acornaeology, and optionally its own `home` and `pages`.
 
 The source has to assemble to the ROM's bytes in every region. Each label assembled into a region is named there, the
 last written winning where two share an address. A `=` name is a global if an instruction uses it first in a
