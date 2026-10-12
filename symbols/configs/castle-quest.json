@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "castle-quest",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/castle-quest-disassembly.txt",
+    "sha256": "c963c15be564a56ea2bab32eda6bbdc1fae340b1accf09e16e449f687a701aeb"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Micropower/CastleQuest.zip",
+    "image": "Micropower/CastleQuest.ssd",
+    "key": "2ecfe4009d6284478fb8355a45957b52"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "castle-quest-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Castle Quest",
+      "regions": [
+        {
+          "name": "page3",
+          "part": "Game disassembly",
+          "from": "&0380",
+          "to": "&0800"
+        },
+        {
+          "name": "main",
+          "part": "Game disassembly",
+          "from": "&0880",
+          "to": "&3000"
+        }
+      ]
+    }
+  ]
+}

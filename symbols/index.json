@@ -500,6 +500,29 @@
       }
     },
     {
+      "url": "sets/castle-quest-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page3": {
+          "start": "0x0380",
+          "end": "0x0800",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0380", "bytes": "a91f38e5760a" }]
+        },
+        "main": {
+          "start": "0x0880",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0b10", "bytes": "56fd509a4ae2" },
+            { "at": "0x1531", "bytes": "206a01a9508572" },
+            { "at": "0x1c60", "bytes": "c677a577186574" },
+            { "at": "0x2621", "bytes": "0a8570a9008571" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/citadel-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
