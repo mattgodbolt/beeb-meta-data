@@ -1199,6 +1199,38 @@
       }
     },
     {
+      "url": "sets/xmos-1992-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8459", "bytes": "584d4f5300a9ff" },
+            { "at": "0x883f", "bytes": "5aa904a200a000" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x900f", "bytes": "fadaa981a0ff" },
+            { "at": "0x9806", "bytes": "5aa002b1ae206e96" },
+            { "at": "0xa156", "bytes": "42524b054f52" },
+            { "at": "0xae55", "bytes": "414e44800041" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0xb001", "bytes": "ca014e4f54ac" }]
+        }
+      }
+    },
+    {
       "url": "sets/xmos-rom.json",
       "licence": "MIT",
       "regions": {

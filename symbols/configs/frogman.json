@@ -39,7 +39,9 @@
           "file": "Setup",
           "overwritten": true
         }
-      ]
+      ],
+      "madeFrom": ["80fb4c78414a4b5b028aeab7fa8653b3"]
     }
-  ]
+  ],
+  "leaveOut": ["^OS_MODE$", "^OS_CHARS_ROW$"]
 }

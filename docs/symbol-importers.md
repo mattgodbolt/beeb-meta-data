@@ -217,10 +217,11 @@ Names and anchors come out much as for baron, with these differences.
   braces with no label whose first label is exported (`{ .*routine ...}`) take its name for the labels inside.
 - A label no saved file holds (zero page workspace laid out with `ORG 0` and SKIPs) is treated as a `=` name.
 - A `=` name counts as an address when a source that defines one of the set's labels writes it first in a
-  non-immediate operand (`LDA ptr`, `STA (vec),Y`), an instruction of the set's files uses its value as a memory operand, the MOS set doesn't name that
-  address, no label of the set's regions is at it, and no other name passing the same tests has the same value. Names
-  that share a value are all left out, since the listing's operands are numbers and which name an instruction was
-  written with is never known.
+  non-immediate operand (`LDA ptr`, `STA (vec),Y`), an instruction of the set's files uses its value as a memory
+  operand, the MOS set doesn't name that address, no label of the set's regions is at it, and no other name passing
+  the same tests has the same value. Names that share a value are all left out, since the listing's operands are
+  numbers and which name an instruction was written with is never known. A ROM's set keeps no globals, since jsbeeb
+  shows them whenever the ROM is merely paged in; `leaveOut` is regular expressions for names to leave out.
 - An OS block is an `LDX #lo` beside an `LDY #hi` that make a label's address.
 - The original disc's files, where its catalogue loads them, are among the images the anchors are chosen to tell
   apart.
@@ -232,8 +233,9 @@ What it gets wrong, beyond the baron importer's list: names shared by code that 
 and a title screen's workspace at one zero page address) are left out; a `=` name used only in an expression's later
 term (`LDA base + ptr`) or a macro's argument isn't seen as an operand, and the text search takes a name in a comment
 as readily as one in code; a label in braces that don't start at it (`.routine LDA #0 : {`) loses its scope's name, and
-every label inside is left out, as are a routine's private labels in braces that start with a plain label; and a file loaded in one place and run in another is only compared with the corpus
-where it loads, so the corpus check never sees Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
+every label inside is left out, as are a routine's private labels in braces that start with a plain label; and a file
+loaded in one place and run in another is only compared with the corpus where it loads, so the corpus check never sees
+Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
 
 ## py8dis disassemblies
 
@@ -476,22 +478,25 @@ share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so th
 
 ## Frogman
 
-`symbols/configs/frogman.json` makes two sets from [frogman](https://github.com/mattgodbolt/frogman), Matt's and
-Rich's 1993 game. `game` is the engine (FastI/O, up to `music_data`, which each level's tune loads over) and Gcode,
-each where it runs. `setup` is the title screen loader the rebuilt disc runs from `&0900`, a set of its own since its
-zero page isn't the game's. The source rebuilds `frogman_rebuilt.ssd`, the disc jsbeeb's GitHub list serves; the
-original `frogman.ssd` decrypts its own loader and Gcode at run time and leaves the same engine and game in memory. The
-in-memory check plays both levels of the rebuilt disc on a Master and a B, and the original on a Master. Stairway to
+`symbols/configs/frogman.json` makes two sets from [frogman](https://github.com/mattgodbolt/frogman), Matt's and Rich's
+1993 game. `game` is the engine (FastI/O, up to `music_data`, which each level's tune loads over) and Gcode, each where
+it runs. `setup` is the title screen loader the rebuilt disc runs from `&0900`, a set of its own since its zero page
+isn't the game's. `leaveOut` drops the source's `OS_MODE` and `OS_CHARS_ROW`, which name `&0258` and `&0262` wrongly
+(they're OSBYTE `&C8`'s and `&D2`'s). The source rebuilds `frogman_rebuilt.ssd`, the disc jsbeeb's GitHub list serves;
+the original `frogman.ssd` decrypts its own loader and Gcode at run time and leaves the same engine and game in memory.
+The in-memory check plays both levels of the rebuilt disc on a Master and a B, and the original on a Master. Stairway to
 Hell's `Unreleased/Frogman-demo.zip` is the original disc byte for byte; its FastI/O differs from the source's in ten
 bytes the code writes, so the corpus check finds it 99% identical.
 
 ## XMOS
 
-`symbols/configs/xmos.json` makes one set, `rom`, from [xmos](https://github.com/mattgodbolt/xmos), Rich's and Matt's
-Master ROM, cut at `&9000` and `&B000`. The source has been fixed and improved since its `original` tag, so it no
-longer builds the repository's `original.rom` (which has no licence at that tag): the set names the ROM the source
-builds now. The in-memory check puts that ROM in a Master's sideways RAM, checks no other bank matches, and runs
-several commands; with `original.rom` there instead, nothing matches.
+`symbols/configs/xmos.json` and `xmos-1992.json` each make one set, `rom`, from
+[xmos](https://github.com/mattgodbolt/xmos), Rich's and Matt's Master ROM, cut at `&9000` and `&B000`. The source has
+been fixed and improved since 1992, so `xmos-rom` names the ROM main builds, and `xmos-1992-rom` the original, from the
+`original-licensed` branch (the `original` tag with main's licence), which rebuilds `original.rom` byte for byte.
+Neither keeps globals: XMOS is paged in at BASIC's prompt, and jsbeeb shows a ROM set's globals whenever the ROM is
+paged in. The in-memory check puts each ROM in a Master's sideways RAM, checks no other bank matches, and runs several
+commands, with both sets loaded, so each set matches nothing while the other's ROM is in.
 
 ## level7's disassemblies
 

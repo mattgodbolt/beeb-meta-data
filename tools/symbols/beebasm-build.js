@@ -195,8 +195,9 @@ function runWrapped(beebasm, workDir, runDir, buildDir, main, names) {
  * @returns {{listing: string, dump: string, saved: Map<string, Uint8Array>, names: string[],
  *     operandNames: Map<string, Set<string>>, definitions: Map<string, string[]>, exported: Set<string>}} the
  *     listing, the label dump, each SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the
- *     sources write as an instruction's memory operand with the files (from the root) that do, every place (`<file>#L<line>`, from the root) each
- *     name is defined, and the labels written `.*name`, each as definitionsIn qualifies it
+ *     sources write as an instruction's memory operand with the files (from the root) that do, every place
+ *     (`<file>#L<line>`, from the root) each name is defined, and the labels written `.*name`, each as
+ *     definitionsIn qualifies it
  */
 export function assemble(config, workDir, buildDir, beebasm) {
     const runDir = path.join(workDir, config.source.directory ?? ".");

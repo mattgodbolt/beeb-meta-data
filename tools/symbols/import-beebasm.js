@@ -325,6 +325,8 @@ class Importer {
             names.get(address).push(entry);
         };
         const holds = (region, address) => address >= region.start && address < region.end;
+        const leaveOut = (this.config.leaveOut ?? []).map((pattern) => new RegExp(pattern));
+        const leftOut = (name) => leaveOut.some((pattern) => pattern.test(name));
 
         for (const file of files) {
             for (const label of file.labels) {
@@ -334,6 +336,10 @@ class Importer {
                 }
                 if (label.inMacro) {
                     dropped.push([label.name, label.address, "made by a macro"]);
+                    continue;
+                }
+                if (leftOut(label.name)) {
+                    dropped.push([label.name, label.address, "the config leaves it out"]);
                     continue;
                 }
                 const homes = regions.filter((region) => region.file === file && holds(region, label.address));
@@ -360,6 +366,10 @@ class Importer {
         const valued = [...this.build.constants, ...this.unsavedLabels.map(({ name, address }) => [name, address])];
         for (const [name, value] of valued) {
             if (value < 0 || value >= AddressLimit || !writtenAsOperand(name)) continue;
+            if (leftOut(name)) {
+                dropped.push([name, value, "the config leaves it out"]);
+                continue;
+            }
             if (!byValue.has(value)) byValue.set(value, []);
             byValue.get(value).push(name);
         }
@@ -384,6 +394,8 @@ class Importer {
             const runs = (region, statement) => statement.section === region.file && holds(region, statement.address);
             if (inside.length === 1 && uses.every((statement) => runs(inside[0], statement)))
                 add(named.get(inside[0]), value, { name, rank: [1, order.get(name)] });
+            // jsbeeb shows a ROM set's globals whenever the ROM is merely paged in (jsbeeb#1252).
+            else if (this.config.rom) dropped.push([name, value, "a ROM's set keeps no globals"]);
             else add(globalsNamed, value, { name, rank: [uses.length, order.get(name)] });
         }
 
@@ -417,7 +429,8 @@ class Importer {
             this.notes.push(...notes);
             this.reasons.push(...reasons);
         }
-        return { json: setJson(this.config, spec, regions, globals, places), regions, dropped };
+        const madeFrom = spec.madeFrom ?? this.config.madeFrom;
+        return { json: setJson({ ...this.config, madeFrom }, spec, regions, globals, places), regions, dropped };
     }
 }
 

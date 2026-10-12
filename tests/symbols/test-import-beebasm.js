@@ -165,6 +165,24 @@ describe("beebasmBuild", () => {
         expect(file.statements.map((s) => s.address)).toEqual([0x2000, 0x2005]);
     });
 
+    it("drops a statement a SKIP listed later reaches over, up to the next statement listed", () => {
+        const skipped = {
+            ...made(),
+            listing: [
+                instruction(0x2000, [0xa9, 0x05], "LDA #&05"),
+                instruction(0x2002, [0x85, 0x70], "STA &70"),
+                "     2000",
+                instruction(0x2004, [0x60], "RTS"),
+                "Saving file 'WORK'",
+            ].join("\n"),
+            dump: "[{}]",
+            saved: new Map([["WORK", Uint8Array.from([0, 0, 0, 0, 0x60])]]),
+        };
+        const file = beebasmBuild(skipped).files.get("WORK");
+        expect(file.start).toBe(0x2000);
+        expect(file.statements.map((s) => s.address)).toEqual([0x2000, 0x2004]);
+    });
+
     it("refuses a dump that doesn't agree with the listing's labels", () => {
         expect(() => beebasmBuild({ ...made(), dump: dump.replace("'.block'", "'.blob'") })).toThrow("is .blob");
         expect(() => beebasmBuild({ ...made(), dump: "[{'.start':6400L}]" })).toThrow("labels");
@@ -329,6 +347,44 @@ describe("importBeebasm", () => {
             });
         });
 
+        it("finds a name's place by the source's braces where its last part is defined twice", () => {
+            const twoFalls = {
+                listing: [
+                    ".grav",
+                    instruction(0x2000, [0xa9, 0x05], "LDA #&05"),
+                    ".fall",
+                    instruction(0x2002, [0x85, 0x70], "STA &70"),
+                    ".other",
+                    instruction(0x2004, [0xe6, 0x71], "INC &71"),
+                    ".fall",
+                    instruction(0x2006, [0x8d, 0x00, 0x30], "STA &3000"),
+                    instruction(0x2009, [0x60], "RTS"),
+                    "Saving file 'CODE'",
+                ].join("\n"),
+                dump: "[{'.grav':8192L,'.grav.fall':8194L,'.other':8196L,'.other.fall':8198L}]",
+                saved: new Map([["CODE", Uint8Array.from([0xa9, 5, 0x85, 0x70, 0xe6, 0x71, 0x8d, 0, 0x30, 0x60])]]),
+                names: [],
+                operandNames: new Map(),
+                definitions: new Map([
+                    ["grav", ["src/a.asm#L1"]],
+                    ["grav.fall", ["src/a.asm#L3"]],
+                    ["other", ["src/a.asm#L5"]],
+                    ["other.fall", ["src/a.asm#L7"]],
+                ]),
+                exported: new Set(["grav.fall"]),
+            };
+            const regions = [{ name: "code", file: "CODE" }];
+            const { sets, errors } = importBeebasm(
+                { ...onGitHub, ...config(regions), source: onGitHub.source },
+                beebasmBuild(twoFalls),
+                {
+                    system,
+                },
+            );
+            expect(errors).toEqual([]);
+            expect(sets[0].json.places).toMatchObject({ fall: "src/a.asm#L3", "other.fall": "src/a.asm#L7" });
+        });
+
         it("fails a set with a name defined in more than one place", () => {
             expect(importBeebasm(onGitHub, beebasmBuild(made()), { system }).errors).toEqual([
                 "prog: no one place to link for buf",
@@ -380,10 +436,27 @@ describe("importBeebasm on a program with workspace it doesn't save, a macro, an
     };
 
     it("makes a label no saved file holds a global, and leaves out a macro's labels", () => {
-        const { json, dropped } = importBeebasm(romConfig, beebasmBuild(small), { system, otherRoms: [] }).sets[0];
+        const notRom = { ...romConfig, rom: undefined };
+        const { json, dropped } = importBeebasm(notRom, beebasmBuild(small), { system }).sets[0];
         expect(json.globals).toEqual({ count: "0x0070" });
         expect(json.regions.rom.symbols).toEqual({ entry: "0x8000" });
         expect(dropped).toContainEqual(["entry.inside", 0x8009, "made by a macro"]);
+    });
+
+    it("leaves out what the config's leaveOut matches", () => {
+        const leaving = { ...romConfig, rom: undefined, leaveOut: ["^count$"] };
+        const { json, dropped } = importBeebasm(leaving, beebasmBuild(small), { system }).sets[0];
+        expect(json.globals).toEqual({});
+        expect(dropped).toContainEqual(["count", 0x70, "the config leaves it out"]);
+    });
+
+    it("keeps no globals in a ROM's set, and takes a set's own madeFrom", () => {
+        const { sets } = importBeebasm(romConfig, beebasmBuild(small), { system, otherRoms: [] });
+        expect(sets[0].json.globals).toEqual({});
+        expect(sets[0].dropped).toContainEqual(["count", 0x70, "a ROM's set keeps no globals"]);
+        const own = { ...romConfig, rom: undefined, madeFrom: ["a".repeat(32)] };
+        own.sets = [{ ...own.sets[0], madeFrom: ["b".repeat(32)] }];
+        expect(importBeebasm(own, beebasmBuild(small), { system }).sets[0].json.madeFrom).toEqual(["b".repeat(32)]);
     });
 
     it("gives a ROM's set the ROM's key, and tells it apart from other ROMs", () => {

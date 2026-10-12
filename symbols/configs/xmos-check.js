@@ -1,54 +1,56 @@
 /**
  * XMOS's moments for tools/symbols/check-memory.js: a Master with the ROM the source builds in sideways
  * RAM, at BASIC's prompt and in several of its commands, then the same with the original 1992 ROM, which
- * the source no longer builds and which nothing should match.
+ * only the 1992 set (xmos-1992's) names. Each title's set has to match nothing while the other's ROM is in.
  */
 
 import { BBC } from "jsbeeb/src/keymap.js";
 import { pressKey, runSeconds, typeUntil } from "../../tools/symbols/check-memory.js";
 
-const Rom = ["rom/low", "rom/middle", "rom/high"];
 const CommandSecs = 2;
 const SidewaysRamBank = 7;
 const RomselBankMask = 0x0f;
-const ServiceEntryOperand = 0x8004;
-const ServiceCallsMost = 64;
-const CyclesPerSecond = 2000000;
-
-/** Types a line, stopping where the ROM in sideways RAM is paged in at its service entry, which other ROMs may share. */
-async function typeUntilServiceEntry(session, text) {
-    const [low, high] = session.readMemory(ServiceEntryOperand, 2, { bank: SidewaysRamBank });
-    const entry = low | (high << 8);
-    const pagedIn = () =>
-        session.registers().pc === entry && (session.pagingState().romsel & RomselBankMask) === SidewaysRamBank;
-    const id = session.addBreakpoint("execute", entry);
-    try {
-        await session.type(text);
-        for (let call = 0; call < ServiceCallsMost && !pagedIn(); call++) await session.runFor(CyclesPerSecond);
-    } finally {
-        session.removeBreakpoint(id);
-    }
-    if (!pagedIn()) throw new Error(`Typing ${text} never paged in the sideways RAM ROM's service entry`);
-}
-
 const Banks = 16;
+const Original = "xmos-1992-rom";
 
-/** Every sideways bank of the machine: only the ROM in sideways RAM matches, where `rom` (if given) is. */
-function checkEveryBank(check, moment, rom) {
-    for (let bank = 0; bank < Banks; bank++) check(moment, bank === SidewaysRamBank ? rom : [], { bank });
+/** A ROM set's regions, by its id among the sets the check has. */
+export const romRegions = (id) => [`${id}/low`, `${id}/middle`, `${id}/high`];
+
+/** Every sideways bank of the machine: only the ROM in sideways RAM matches, as `expected`. */
+export function checkEveryBank(check, moment, expected) {
+    for (let bank = 0; bank < Banks; bank++) check(moment, bank === SidewaysRamBank ? expected : [], { bank });
 }
 
 /** Whatever is paged in, as the debugger would see it at a prompt, which the MOS polls the ROMs from. */
-function checkPaged({ session, check }, moment) {
+function checkPaged({ session, check }, moment, expected) {
     const pagedIn = (session.pagingState().romsel & RomselBankMask) === SidewaysRamBank;
-    check(moment, pagedIn ? Rom : []);
+    check(moment, pagedIn ? expected : []);
 }
 
-async function command({ session, address, check }, text, region, name) {
-    await typeUntil(session, text, address("rom", region, name));
-    check(`running ${text}`, Rom);
+/** Runs several of XMOS's commands, checking the set `id` (and only it) matches while each runs. */
+export async function runCommands(context, id) {
+    const { session, address, check } = context;
+    const expected = romRegions(id);
+    const command = async (text, region, name) => {
+        await typeUntil(session, text, address(id, region, name));
+        check(`running ${text}`, expected);
+        await runSeconds(session, CommandSecs);
+    };
+    checkEveryBank(check, "BASIC's prompt", expected);
+    await command("*HELP XMOS", "low", "handle_help");
+    checkPaged(context, "back at BASIC's prompt", expected);
+    await command("*ALIAS L *LOAD %0", "middle", "cmd_alias");
+    await command("*ALIASES", "middle", "cmd_aliases");
+    await command("*KSTATUS", "low", "cmd_kstatus");
+    await command("*DIS 8000", "middle", "cmd_dis");
+    await pressKey(session, BBC.ESCAPE);
     await runSeconds(session, CommandSecs);
+    await command("*XOFF", "low", "cmd_xoff");
+    await command("*XON", "low", "cmd_xon");
+    checkPaged(context, "BASIC's prompt with extended input on", expected);
 }
+
+export const titles = ["xmos-1992"];
 
 export const machines = {
     commands: { model: "Master", autoboot: false },
@@ -56,25 +58,6 @@ export const machines = {
 };
 
 export const scenarios = {
-    async commands(context) {
-        const { session, check } = context;
-        checkEveryBank(check, "BASIC's prompt", Rom);
-        await command(context, "*HELP XMOS", "low", "handle_help");
-        checkPaged(context, "back at BASIC's prompt");
-        await command(context, "*ALIAS L *LOAD %0", "middle", "cmd_alias");
-        await command(context, "*ALIASES", "middle", "cmd_aliases");
-        await command(context, "*KSTATUS", "low", "cmd_kstatus");
-        await command(context, "*DIS 8000", "middle", "cmd_dis");
-        await pressKey(session, BBC.ESCAPE);
-        await runSeconds(session, CommandSecs);
-        await command(context, "*XOFF", "low", "cmd_xoff");
-        await command(context, "*XON", "low", "cmd_xon");
-        checkPaged(context, "BASIC's prompt with extended input on");
-    },
-
-    async original({ session, check }) {
-        checkEveryBank(check, "BASIC's prompt, the original XMOS in sideways RAM", []);
-        await typeUntilServiceEntry(session, "*HELP XMOS");
-        check("the original XMOS paged in for *HELP", []);
-    },
+    commands: (context) => runCommands(context, "rom"),
+    original: (context) => runCommands(context, Original),
 };

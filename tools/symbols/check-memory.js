@@ -9,7 +9,8 @@
  *            [--baron <path>] [--beebasm <path>] [--sets symbols/sets] [--shots DIR] [SCENARIO...]
  *
  * The config's `check` names the module of scenarios, beside it, which can also export `machines`, the
- * machine each scenario wants by its name (see startMachine). They boot `source.disc`, the original
+ * machine each scenario wants by its name (see startMachine), and `titles`, other titles whose sets are checked
+ * alongside (otherTitlesSets). They boot `source.disc`, the original
  * disc in the source repository, with the title built as its importer builds it, for the scenarios that
  * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
  * its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by
@@ -19,7 +20,7 @@
  * fresh machine. Exits 1 if any moment fails.
  */
 
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -52,17 +53,22 @@ const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")
 export const loadSets = (dir, ids) =>
     Object.fromEntries(ids.map((id) => [id, parseSet(JSON.parse(readFileSync(path.join(dir, `${id}.json`), "utf8")))]));
 
-/** A title's sets in `dir`, by set id: those whose files start with the config's id. */
-export function loadTitleSets(dir, titleId) {
-    const prefix = `${titleId}-`;
+/** A title's sets in `dir`, by set id: `<config id>-<set id>.json` for each set its config names. */
+export const loadTitleSets = (dir, { id, sets }) =>
+    Object.fromEntries(
+        sets.map((set) => [set.id, parseSet(JSON.parse(readFileSync(path.join(dir, `${id}-${set.id}.json`), "utf8")))]),
+    );
+
+/**
+ * The sets of the other titles a check module names in `titles`, by their configs beside its own, keyed
+ * `<config id>-<set id>`: for a check that one title's sets don't match another's code, and the other way.
+ */
+export function otherTitlesSets(dir, configDir, titles) {
     return Object.fromEntries(
-        readdirSync(dir)
-            .filter((name) => name.startsWith(prefix) && name.endsWith(".json"))
-            .sort()
-            .map((name) => [
-                name.slice(prefix.length, -".json".length),
-                parseSet(JSON.parse(readFileSync(path.join(dir, name), "utf8"))),
-            ]),
+        titles.flatMap((title) => {
+            const other = JSON.parse(readFileSync(path.join(configDir, `${title}.json`), "utf8"));
+            return Object.entries(loadTitleSets(dir, other)).map(([id, set]) => [`${title}-${id}`, set]);
+        }),
     );
 }
 
@@ -210,7 +216,7 @@ export async function runScript(session, commands, { shots } = {}) {
  * `address(set, region, name)` for a symbol's address, and `check(moment, expected)`, which can take `{ bank }`
  * to look at that sideways bank instead of the one paged in.
  */
-function scenarioContext(session, sets, filesDir, shots, results) {
+export function scenarioContext(session, sets, filesDir, shots, results) {
     const address = (id, regionName, name) => {
         const region = sets[id]?.regions.find((r) => r.name === regionName);
         const found = region && [...region.symbols].find(([, symbol]) => symbol === name);
@@ -323,10 +329,13 @@ async function main() {
                   values.sets,
                   config.sets.map(({ id }) => id),
               )
-            : loadTitleSets(values.sets, config.id);
-    const { scenarios, machines = {} } = await import(
-        pathToFileURL(path.resolve(path.dirname(values.config), config.check)).href
-    );
+            : loadTitleSets(values.sets, config);
+    const {
+        scenarios,
+        machines = {},
+        titles = [],
+    } = await import(pathToFileURL(path.resolve(path.dirname(values.config), config.check)).href);
+    Object.assign(sets, otherTitlesSets(values.sets, path.dirname(values.config), titles));
     const wanted = positionals.length ? positionals : Object.keys(scenarios);
     for (const name of wanted) if (!scenarios[name]) throw new Error(`There's no scenario ${name}`);
     if (values.shots) mkdirSync(values.shots, { recursive: true });

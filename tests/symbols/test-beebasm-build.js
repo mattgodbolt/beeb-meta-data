@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -25,7 +25,9 @@ echo "Including file $wrapper" >&2
 echo "Including file src/main.asm" >&2
 line=$(grep -n ', scoped$' "$wrapper" | cut -d: -f1)
 if [ -n "$line" ]; then echo "$wrapper:$line: error: Symbol not defined."; exit 1; fi
-if [ ! -f gen/MAP ]; then printf 'src/main.asm:3: error: Error opening file.\n\nPUTFILE "gen/MAP", "MAP", &3000\n' >&2; exit 1; fi
+if [ ! -f gen/MAP ]; then
+    printf 'src/main.asm:3: error: Error opening file.\n\nPUTFILE "gen/MAP", "MAP", &3000\n' >&2; exit 1
+fi
 if [ ! -d out ]; then echo "Error: out/PROG: Could not open object file for writing." >&2; exit 1; fi
 printf 'ABC' > out/PROG
 echo "[{'.start':6400L}]" > "$labels"
@@ -63,7 +65,7 @@ describe("a beebasm build", () => {
         );
     });
 
-    it("drops each name that isn't a top-level one, stands in for files it can't put, makes the directories SAVEs need, and reads the results", () => {
+    it("drops nested names, stands in for unput files, makes SAVEs' directories, reads the results", () => {
         const work = path.join(dir, "work");
         mkdirSync(path.join(work, "src"), { recursive: true });
         writeFileSync(path.join(work, "src", "main.asm"), "ptr = &70\n{\nscoped = 1\n}\n.start LDA ptr\n");
@@ -82,6 +84,34 @@ describe("a beebasm build", () => {
                 ["start", ["src/main.asm#L5"]],
             ]),
         );
+    });
+});
+
+describe("a beebasm build's stand-ins", () => {
+    let dir;
+    beforeEach(() => {
+        dir = mkdtempSync(path.join(tmpdir(), "symbols-beebasm-put-"));
+    });
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    // Acts as beebasm would on a PUTFILE of `file` that it can never open.
+    const failingPut = (file) => {
+        const stub = path.join(dir, "beebasm");
+        const error = `main.asm:3: error: Error opening file.\\n\\nPUTFILE "${file}", "MAP", &3000\\n`;
+        writeFileSync(stub, `#!/bin/sh\nprintf '${error}' >&2\nexit 1\n`);
+        chmodSync(stub, 0o755);
+        const work = path.join(dir, "work");
+        mkdirSync(work, { recursive: true });
+        return () => assemble({ source: { assemble: "main.asm" } }, work, path.join(dir, "build"), stub);
+    };
+
+    it("refuses a file it can't open though it's there", () => {
+        expect(failingPut("gen/MAP")).toThrow("beebasm can't read gen/MAP");
+    });
+
+    it("never stands in for a file outside the checkout", () => {
+        expect(failingPut("../outside/MAP")).toThrow("beebasm can't read ../outside/MAP");
+        expect(existsSync(path.join(dir, "outside"))).toBe(false);
     });
 });
 
@@ -153,7 +183,8 @@ describe("memoryOperandNames", () => {
     it("finds the first name of each operand that isn't immediate", () => {
         expect(
             memoryOperandNames(
-                ".a lda ptr+1\n  STA (vec),Y : LDX #KEY\n  JSR OSWRCH\n  ldy table, X\n  ASL A\n.inc_thing RTS\n  STZ flag\n",
+                ".a lda ptr+1\n  STA (vec),Y : LDX #KEY\n  JSR OSWRCH\n  ldy table, X\n  ASL A\n.inc_thing RTS\n" +
+                    "  STZ flag\n",
             ),
         ).toEqual(["ptr", "vec", "OSWRCH", "table", "A", "flag"]);
     });
