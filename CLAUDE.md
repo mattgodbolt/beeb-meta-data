@@ -14,8 +14,11 @@ Guidance for Claude Code in this repository. The README says what's here; this s
 
 ## The data
 
+- Before adding a title, read [Adding a title](docs/adding-a-title.md): the steps, the rules every set follows, and
+  why a title's pull request never changes the tooling.
 - A set's names are someone else's work. Use a source only under a licence that allows it, read from the source's own
-  LICENSE at the commit its config pins, and record it in the set's `licence` and `notice`. No licence means no set;
+  LICENSE at the commit its config pins (or the author's own written statement, cited in the `notice`), and record it
+  in the set's `licence` and `notice`. No licence means no set;
   asking an author for one is the maintainer's to do, not yours.
 - Link each name back to where its author defines it (a line at the pinned commit, or the author's own anchor), so
   readers go to them. Never store disc or tape images, or any binary, here.

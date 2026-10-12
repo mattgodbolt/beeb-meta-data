@@ -37,7 +37,8 @@ npm run build-index  # remake symbols/index.json after changing a set
 npm run dist         # what the deploy would publish, in dist/
 ```
 
-Adding or remaking a title's sets is in [the importers' doc](docs/symbol-importers.md).
+Adding a title is in [Adding a title](docs/adding-a-title.md), which says what order to do things in and the rules
+we settled; [the importers' doc](docs/symbol-importers.md) is the reference for each importer.
 
 CI tests every push. A push to `main`, or a manual run there, also uploads the `dist/` it built to
 `s3://bbc.xania.org/meta/`, the sets first and the index last. Nothing published is ever deleted, and files are served
@@ -46,6 +47,7 @@ with a five-minute cache lifetime, so a change is live within minutes of reachin
 ## Reference
 
 - [The registry proposal](docs/media-registry-proposal.md): keys, fingerprints, records, and the symbol-set format.
+- [Adding a title](docs/adding-a-title.md): the steps, and the rules every set follows.
 - [Symbol set importers](docs/symbol-importers.md): how each kind of source becomes sets, and each title's notes.
 - [Design notes](docs/media-registry-design-notes.md): why it's built this way, prior art, exact rules.
 - [Findings](docs/media-registry-findings.md): what surveying the archives turned up.

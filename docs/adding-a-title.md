@@ -1,0 +1,63 @@
+# Adding a title
+
+What we learned adding a big batch of games and ROMs at once, written down so the next ones are quick. The reference
+for each importer and config field is [the importers' doc](symbol-importers.md); this is the order to do things in and
+the rules we kept having to rediscover.
+
+## Data and tooling are separate pull requests
+
+Most of the cost of that batch was importer work that turned up halfway through a title: py8dis couldn't pick a piece
+by name, beebasm lost `.*` labels and macro labels, acornaeology could only do one version a config, and so on. Each
+fix then needed tests, every existing set regenerated, and a full review, all inside a pull request that was meant to
+add a game.
+
+So: if a title needs the importer or the checks to change, stop, make that change on its own (with a test, and every
+existing set regenerating unchanged), land it, and then add the title. A title's own pull request is a config, a check
+module and its sets, and nothing else. That's also what lets titles be added in parallel without stepping on each other.
+
+## The steps
+
+1. Find a source you can use. It needs a licence that allows reuse (not the GPL; see "Licensing" in [the design
+   notes](media-registry-design-notes.md#licensing)), and you need to know whose names they are. Read the source's own
+   import tools and history, not just its LICENSE: acornaeology's ADFS names turned out to be mostly from two
+   unlicensed disassemblies, which is why there's no ADFS set.
+2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
+   ships, or a ROM pinned by URL and key. For a ROM jsbeeb doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml`
+   hashes as a cross-check has worked every time.
+3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
+   check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load).
+4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
+   random play) or `typedScenario` for a text adventure, from `title-scenario.js`. A title-specific scenario is only
+   for what those can't do.
+5. Look at the screenshots (`check-memory.js --shots`). A check that passes on a demo mode or a title screen is
+   checking the wrong thing; two titles in the batch did exactly that.
+6. Run the corpus check, and explain or remove every collision.
+7. Open the pull request, saying how it was checked and that nobody has looked in a browser if nobody has.
+
+## The rules
+
+These were each settled by a review, some more than once.
+
+- Credit the person whose names they are, not just the project they came through: Plan B's and LISP's names are
+  TobyLobster's, even though they came from py8dis's examples. Link each name to its place on their site.
+- A ROM's set has no `globals` until jsbeeb scopes them
+  ([jsbeeb#1252](https://github.com/mattgodbolt/jsbeeb/issues/1252)). A set matches whenever its ROM is paged in, and a
+  filing system's ROM stays paged in while a game runs, so its workspace names land on the game's memory. The MOS's
+  set is the exception.
+- A program's globals name only its own memory. OS variables, vectors and hardware registers belong to the MOS's
+  set. A source's names for them are guesses and are often wrong (five were, across Frogman and XMOS); leave them out
+  with `leaveOut`, and fix them upstream.
+- Leave out names that aren't names: a script's placeholders (`nmi_XXX1`), and names on bytes that differ in the
+  copy a region also matches (`sameCodeIn`).
+- Cut regions at screen memory, and give run-once loader code its own `overwritten` region, or none at all if a
+  cheat disc or compilation holds its anchors.
+- Two regions of one set may share addresses, as long as their anchors tell them apart; the importer and the
+  corpus check say when they don't.
+- When two versions share code byte for byte, only one set can name it; the older version's region keeps it and
+  the newer set names only what changed (NFS 3.62, ANFS 4.26).
+
+## Reviewing
+
+A title's pull request is checked by CI (the index, the sets against jsbeeb's parser) and by its in-memory check.
+Its review can be short: the licence and credit, the screenshots, and a sample of names against the source. The full
+adversarial review is for tooling, where the bugs were.
