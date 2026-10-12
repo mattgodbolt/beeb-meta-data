@@ -6,16 +6,7 @@
     "commit": "32a089515b2e44738f9bcec4ff858e4270d92346",
     "licenceFile": "LICENSE"
   },
-  "globals": [
-    {
-      "start": "0x0090",
-      "end": "0x00a0"
-    },
-    {
-      "start": "0x0d60",
-      "end": "0x0d9f"
-    }
-  ],
+  "globals": [],
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,
   "check": "nfs-check.js",
@@ -27,10 +18,6 @@
     {
       "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS421bbc",
       "key": "54fc77feb88abee170b703c9fa8a5706"
-    },
-    {
-      "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS426RTC",
-      "key": "4b1f9e3beb7182fa26c4b2adeab7854c"
     }
   ],
   "sets": [

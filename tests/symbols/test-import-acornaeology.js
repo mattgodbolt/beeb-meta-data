@@ -320,6 +320,27 @@ describe("importAcornaeology", () => {
             expect(regionMatches(high, (address) => other[address - Base])).toBe(true);
         });
 
+        it("leaves out a name on a statement that ROM changes, and notes it", () => {
+            const json = disassemblyJson();
+            const other = romOf(json);
+            other[Base + 1 - Base] ^= 0xff;
+            const {
+                json: set,
+                errors,
+                notes,
+                dropped,
+            } = importAcornaeology(sharing(["OTHER"]), readDisassembly(json), {
+                rom: romOf(json),
+                otherRoms: [{ name: "OTHER", bytes: other }],
+                systemGlobals,
+                notice: "Notice",
+            });
+            expect(errors).toEqual([]);
+            expect(set.regions.low.symbols.entry).toBeUndefined();
+            expect(dropped).toContainEqual(["entry", Base, "OTHER changes its statement"]);
+            expect(notes).toContain("demo-1/low: left out entry at &8000, since OTHER changes its statement");
+        });
+
         it("refuses a ROM that isn't there, or isn't the same code", () => {
             const json = disassemblyJson();
             const run = (otherRoms) =>

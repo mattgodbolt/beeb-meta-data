@@ -24,15 +24,14 @@ import { parseArgs } from "node:util";
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
-import { fetchRom, matchingRegions, overlappingRegions, romOf } from "./check-memory.js";
-import { otherRomsThan, romImages, romKey } from "./rom-images.js";
+import { SameCode } from "./corpus-check.js";
+import { matchingRegions, overlappingRegions } from "./check-memory.js";
+import { fetchRom, otherRomsThan, romImages, romKey, romOf } from "./rom-images.js";
 
 const Importer = "acornaeology";
 const SchemaVersion = 4;
 const AddressLimit = 0x10000;
 const AddressAnchor = /\bid="(addr-([0-9A-Fa-f]{4}))"/g;
-// The corpus check's threshold for a copy of the same code.
-const SameCodeShare = 0.9;
 const SidewaysSize = 0x4000;
 
 const hexAddress = (address) => `0x${address.toString(16).padStart(4, "0")}`;
@@ -140,11 +139,12 @@ function rangesOf(addresses) {
 }
 
 /**
- * Where the images a region's `sameCodeIn` names differ from it, for its anchors to avoid so that it
- * matches them too. An image that isn't there, or isn't the same code, is an error.
+ * Where the images a region's `sameCodeIn` names differ from it, each address with the first image that
+ * differs there, for its anchors to avoid so that it matches them too. An image that isn't there, or isn't
+ * the same code, is an error.
  */
-function sameCodeAvoids(region, sameCode, images, errors) {
-    const differing = new Set();
+function sameCodeDifferences(region, sameCode, images, errors) {
+    const differing = new Map();
     for (const name of sameCode) {
         const image = images.find((candidate) => candidate.name === name);
         if (!image) {
@@ -152,11 +152,27 @@ function sameCodeAvoids(region, sameCode, images, errors) {
             continue;
         }
         const different = [...region.memory].filter(([address, byte]) => image.memory.get(address) !== byte);
-        if (different.length > region.memory.size * (1 - SameCodeShare))
+        if (different.length > region.memory.size * (1 - SameCode))
             errors.push(`${region.fullName}: ${name} differs in ${different.length} bytes, so isn't the same code`);
-        for (const [address] of different) differing.add(address);
+        for (const [address] of different) if (!differing.has(address)) differing.set(address, name);
     }
-    return rangesOf(differing);
+    return differing;
+}
+
+/**
+ * Leaves out a region's names on statements another ROM it shares its code with changes, where the name
+ * might not mean what it says, and notes each.
+ */
+function leaveOutChanged(region, differing, statementAt, itemOf, dropped, notes) {
+    for (const [name, address] of [...region.symbols]) {
+        const statement = statementAt.get(itemOf.get(name));
+        const changed = statement && statement.data.map((_, i) => differing.get(statement.address + i)).find(Boolean);
+        if (!changed) continue;
+        region.symbols.delete(name);
+        const why = `${changed} changes its statement`;
+        dropped.push([name, address, why]);
+        notes.push(`${region.fullName}: left out ${name} at ${hex(address)}, since ${why}`);
+    }
 }
 
 const byAddress = (names) =>
@@ -213,6 +229,8 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
     const memory = new Map(Array.from(rom, (byte, i) => [base + i, byte]));
     const images = otherImages(otherRoms, base, rom.length);
     const spread = { bytesPerAnchor: set.bytesPerAnchor, spreadAnchors: set.spreadAnchors };
+    const statementAt = new Map(statements.map((statement) => [statement.address, statement]));
+    const itemOf = new Map(labels.map((label) => [label.name, label.item]));
     const regions = set.regions.map((spec) => {
         const { start, end: regionEnd } = parseRange(spec, `region ${spec.name}`);
         const region = {
@@ -229,12 +247,15 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
             memory: new Map([...memory].filter(([address]) => address >= start && address < regionEnd)),
         };
         const sameCode = spec.sameCodeIn ?? [];
-        region.avoid = sameCodeAvoids(region, sameCode, images, errors);
+        const differing = sameCodeDifferences(region, sameCode, images, errors);
+        region.avoid = rangesOf(differing.keys());
         const told = images.filter((image) => !sameCode.includes(image.name));
         const chosen = chooseAnchors(region, [], told, spread);
         errors.push(...chosen.errors);
         notes.push(...chosen.notes);
-        return { ...region, anchors: chosen.anchors, symbols: regionSymbols(labels, start, regionEnd, dropped) };
+        const named = { ...region, anchors: chosen.anchors, symbols: regionSymbols(labels, start, regionEnd, dropped) };
+        leaveOutChanged(named, differing, statementAt, itemOf, dropped, notes);
+        return named;
     });
     for (const { address, name: label } of labels)
         if (!within(regions, address)) dropped.push([label, address, "no region holds it"]);
@@ -248,7 +269,6 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
     const pageName = page && path.posix.basename(page.pathname);
     const places = new Map();
     if (anchors) {
-        const itemOf = new Map(labels.map((label) => [label.name, label.item]));
         for (const [label, address] of [...globals, ...regions.flatMap((region) => [...region.symbols])]) {
             const id = anchors.get(address) ?? anchors.get(itemOf.get(label));
             if (id) places.set(label, `${pageName}#${id}`);
@@ -348,7 +368,8 @@ async function main() {
         const otherVersions = versions
             .map((other, k) => ({ name: romName(other.rom), bytes: roms[k] }))
             .filter(({ name }, k) => k !== i && !jsbeebRoms.some((jsbeebRom) => jsbeebRom.name === name));
-        const { json, errors, notes, dropped } = importAcornaeology(set, readDisassembly(JSON.parse(disassemblyText)), {
+        const disassembly = readDisassembly(JSON.parse(disassemblyText));
+        const { json, errors, notes, dropped } = importAcornaeology(set, disassembly, {
             rom: roms[i],
             otherRoms: [...jsbeebRoms, ...otherVersions, ...otherCopies],
             systemGlobals: systemNames,
@@ -362,21 +383,23 @@ async function main() {
             for (const [label, address, why] of dropped) console.log(`    left out ${label} ${hex(address)}: ${why}`);
         for (const note of notes) console.log(`note: ${note}`);
         for (const problem of problems) console.error(`error: ${problem}`);
-        made.push({ setFile, json, dropped, problems });
+        made.push({ setFile, json, dropped, problems, base: disassembly.base });
     }
     if (made.some(({ problems }) => problems.length)) {
         console.error("Nothing written");
         return 1;
     }
     const sets = Object.fromEntries(made.map(({ setFile, json }) => [path.basename(setFile, ".json"), parseSet(json)]));
-    const base = parseAddress(versions[0].regions[0].start, "the first region's start");
+    const base = made[0].base;
+    if (made.some((version) => version.base !== base))
+        throw new Error("The versions' ROMs don't all run at one address");
     const everyRom = [
         ...versions.map((set, i) => ({ name: romName(set.rom), bytes: roms[i] })),
         ...otherCopies,
-        ...otherRomsThan(null, SidewaysSize)
+        ...otherRomsThan(null, 1)
             .filter(({ name }) => !versions.some((set) => set.rom === name))
             .flatMap(({ name, bytes }) =>
-                Array.from({ length: bytes.length / SidewaysSize }, (_, bank) => ({
+                Array.from({ length: Math.ceil(bytes.length / SidewaysSize) }, (_, bank) => ({
                     name: bytes.length > SidewaysSize ? `${name} bank ${bank}` : name,
                     bytes: bytes.subarray(bank * SidewaysSize, (bank + 1) * SidewaysSize),
                 })),

@@ -31,8 +31,7 @@ import { parseSet } from "jsbeeb/src/symbol-sets.js";
 import { regionMatches } from "jsbeeb/src/symbol-names.js";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir } from "./build-index.js";
-import { romKey } from "./rom-images.js";
-import { RomsDir } from "../jsbeeb.js";
+import { fetchRom, romOf } from "./rom-images.js";
 import { BuildOptions, BuildUsage, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
@@ -245,22 +244,6 @@ export async function fetchDisc({ url, image, key }) {
 }
 
 /**
- * Fetches a ROM jsbeeb doesn't have, refusing it unless its key is `key`.
- * @returns {Promise<Uint8Array>}
- */
-export async function fetchRom({ url, key }) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
-    const rom = new Uint8Array(await response.arrayBuffer());
-    if (romKey(rom) !== key) throw new Error(`${url} is ROM ${romKey(rom)}, and the config names ${key}`);
-    return rom;
-}
-
-/** A ROM a config names: jsbeeb's file, or a copy by URL and key. */
-export const romOf = async (rom) =>
-    typeof rom === "string" ? new Uint8Array(readFileSync(path.join(RomsDir, rom))) : fetchRom(rom);
-
-/**
  * Runs `use` with the disc a config's scenarios boot: an assembled title's `source.disc`, in its build,
  * a disc the config's `disc` fetches from an archive, or none for a ROM's config that names none.
  */
@@ -270,7 +253,7 @@ async function withTitleDisc(config, options, use) {
             use({ disc: path.join(sourceDir, config.source.disc), filesDir }),
         );
     if (config.disc === undefined) {
-        if (config.rom === undefined && config.importer !== "acornaeology")
+        if (config.rom === undefined && !config.sets.some(({ rom }) => rom !== undefined))
             throw new Error("The config names no disc to boot, in source.disc or disc");
         return use({ disc: null });
     }

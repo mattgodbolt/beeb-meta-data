@@ -295,7 +295,8 @@ A config has `"importer": "acornaeology"` and
   - `regions`, each a `name`, `start` and `end`. A sideways ROM is cut at `&9000` and `&B000`, for the reason the
     proposal gives. A region's `sameCodeIn` names other ROMs' images (as the importer's messages do,
     `b/DFS-1.2.rom bank 0`) that hold the same code, with a few bytes changed; its anchors keep off those bytes, so it
-    matches there too, and the importer refuses an image that differs in more than a tenth of the region;
+    matches there too, and the importer refuses an image that differs in more than a tenth of the region. A name on a
+    statement such an image changes is left out, and the importer notes it;
   - `globals`, if the version's differ from the config's.
 
 Each statement's label goes to the region holding it, and so do the labels dasmos puts inside an item (`sub_labels`).
@@ -307,15 +308,16 @@ address's anchor on the version's page (`id="addr-800E"`), or a name inside an i
 anchors inside the ROM, so globals get no links, and a name in the ROM with no anchor stops the import.
 
 For anchors, the whole ROM is one section with no stores. Every bank the ROM's size of every ROM jsbeeb has, the other
-versions' ROMs and `otherRoms` are images to tell it apart from. Then every set is matched against each of those ROMs
-as if it were paged in, and the import fails if any ROM matches two regions over the same addresses; the importer
-prints what each ROM matches. The in-memory check puts the version a scenario's machine names in `sideways` into
-sideways RAM.
+versions' ROMs and `otherRoms` are images to tell it apart from. Then every set is matched against each of those ROMs,
+and every bank of every ROM jsbeeb has, as if it were paged in where the disassembly runs, and the import fails if any
+ROM matches two regions over the same addresses; the importer prints what each ROM matches. The in-memory check puts the
+version a scenario's machine names in `sideways` into sideways RAM.
 
 The sets aren't `system`, so BASIC's workspace names only name BASIC's own code's operands, and a game run from BASIC
 keeps its own names for the zero page they share. But the address column shows a matching set's globals for any
-address no other matching set names, so a ROM's `globals` must leave out memory that other ROMs on the machines carrying
-it use while it's paged in.
+address no other matching set names, and a ROM's set matches whenever the ROM is paged in, not only while its code
+runs. A filing system's ROM stays paged in while a game runs from disc, so its globals would land on the game's memory;
+such a ROM's set has none until the client can scope them (a jsbeeb issue is being filed).
 
 acornaeology's other disassemblies have no sets. ADFS 1.30 (jsbeeb's `b1770/zADFS.ROM`) took its first names from
 Dominic Beesley's ADFS-multi-target, converted by a script in the repository, and its workspace names from that
@@ -326,34 +328,33 @@ debugger doesn't show; the Econet bridge isn't a BBC Micro; and the Voltmace dri
 ## NFS and ANFS
 
 `symbols/configs/nfs.json` makes a set for each of the fourteen versions in
-[acorn-nfs](https://github.com/acornaeology/acorn-nfs), `nfs-3.34` to `nfs-3.65` (8K) and `anfs-4.08.53` to
-`anfs-4.26` (16K). jsbeeb
-has ANFS 4.25; the others come from mdfs.net, whose copies are byte for byte the repository's, except NFS 3.35D, which
-mdfs.net doesn't have, and NFS 3.62, where mdfs.net has another variant. Those two come from the repository at the
-config's commit; the BBC Micro ROM Library lists both by the same SHA-1. MAME's `bbc_rom.xml` agrees for 3.34, 3.34B
-and ANFS 4.08 to 4.25.
+[acorn-nfs](https://github.com/acornaeology/acorn-nfs), `nfs-3.34` to `nfs-3.65` (8K) and `anfs-4.08.53` to `anfs-4.26`
+(16K). jsbeeb has ANFS 4.25; the others come from mdfs.net, whose copies are byte for byte the repository's, except NFS
+3.35D, which mdfs.net doesn't have, and NFS 3.62, where mdfs.net has another variant. Those two come from the repository
+at the config's commit; the BBC Micro ROM Library lists both by the same SHA-1. MAME's `bbc_rom.xml` agrees for 3.34,
+3.34B and ANFS 4.08 to 4.25; its NFS 3.60 is another dump, with a different SHA-1.
 
 jsbeeb's `b/DFS-1.2.rom` is DNFS 1.20, whose first 8K is NFS 3.60 with a few bytes changed, and `us/USDNFS.rom` is DNFS
 1.00, holding NFS 3.40 the same way. So those two versions' `low` and `high` regions have `sameCodeIn` the DNFS, and
-`high` stops where DNFS's DFS starts, with the rest of the NFS a region of its own, `tail`. On jsbeeb's B with DFS 1.2,
-NFS 3.60's names show whenever the ROM is paged in.
+`high` stops where DNFS's DFS starts, with the rest of the NFS a region of its own, `tail`. The names on the statements
+DNFS changes (`title`, `cmd_net_str`, `service_handler` and `return_2`) are left out. On jsbeeb's B with DFS 1.2, NFS
+3.60's names show whenever the ROM is paged in.
 
-NFS 3.62 is 3.60 with a patch in the padding at the end, and ANFS 4.26 is 4.25 with one in its last bytes. Where the two
-are the same bytes, two sets' regions would both match and the debugger would show neither, so the older version's
-region names them in both: 3.62's set is its `low` region and its `patch`, with 3.60's `high` and `tail` matching it
-too, and 4.26's is `low`, `middle` and `patch`, with 4.25's `high` (cut at `&BFF7`, before the padding) matching it.
+NFS 3.62 differs from 3.60 in its version number (in two places), two bytes at `&8C57` and a routine written into the
+padding at `&9FB5`. ANFS 4.26 differs from 4.25 in six bytes below `&9500`, the OSWORD 14 routine at `&A89A-&A931`, and
+a routine in the padding at `&BFF7`. Where the two are the same bytes, two sets' regions would both match and the
+debugger would show neither, so the older version's region names them in both: 3.62's set is its `low` region and its
+`patch`, with 3.60's `high` and `tail` matching it too, and 4.26's is `low`, `middle` and `patch`, with 4.25's `high`
+(cut at `&BFF7`, before the padding) matching it.
 
-The globals are only Econet's zero page (`&90-&9F`) and NFS's workspace at `&0D60-&0D9E`. Watching which code writes
-where, on a B with DFS 1.2 (DNFS), a B1770 with DFS 2.26 and ADFS, and a Master with DFS or ADFS, the rest of what NFS
-names is used by others while NFS is paged in: `&00-&8F` and `&0400-&07FF` by BASIC, `&A0-&CF` and `&0D00-&0D5F` by
-whichever filing system has the disc and its NMIs, `&0D9F-&0DFF` by the MOS's extended vectors, `&0E00-&10FF` by DFS's
-catalogue and workspace on a B (and BASIC's program on a Master), and HAZEL at `&C000` by the Master's DFS.
+The sets have no globals, for the reason above: on jsbeeb's B with DFS 1.2, DNFS is paged in while a game runs from
+disc.
 
-`otherRoms` are mdfs.net's Electron NFS 3.35E, whose second half 3.35D's anchors otherwise matched, the B's ANFS 4.21,
-and the RTC fix of 4.26. mdfs.net's ANFS 4.25a (one byte fixed) and its NFS 3.62 match their versions' sets, rightly.
+`otherRoms` are mdfs.net's Electron NFS 3.35E, whose second half 3.35D's anchors otherwise matched, and the B's ANFS
+4.21. mdfs.net's ANFS 4.25a (one byte fixed) and its NFS 3.62 match their versions' sets, rightly.
 
 The in-memory check puts each version in sideways RAM, on a B with the 1770 DFS, or a Master for ANFS 4.21 and later,
-and stops in its service handler during `*HELP` (`*HELP NET` on the Master, where a plain `*HELP` never reaches it);
+and stops at its service entry during `*HELP` (`*HELP NET` on the Master, where a plain `*HELP` never reaches it);
 then on a B with DFS 1.2, NFS 3.60 matches in DNFS. The NFS and ANFS code each copies to the Tube host pages and zero
 page has no region; DFS 2.26's `tube` set already matches DNFS's page 5.
 

@@ -7,25 +7,7 @@
   "madeFrom": ["fbe654d93728fe9261069d05ee729bee"],
   "home": "https://acornaeology.uk/acorn-nfs/3.34B.html",
   "nameLink": "https://acornaeology.uk/acorn-nfs/{place}",
-  "globals": {
-    "escapable": "0x0097",
-    "need_release_tube": "0x0098",
-    "prot_flags": "0x0099",
-    "net_tx_ptr": "0x009a",
-    "net_tx_ptr_hi": "0x009b",
-    "net_rx_ptr": "0x009c",
-    "net_rx_ptr_hi": "0x009d",
-    "nfs_workspace": "0x009e",
-    "nfs_workspace_hi": "0x009f",
-    "pflags": "0x0d60",
-    "printer_buf_ptr": "0x0d61",
-    "tx_clear_flag": "0x0d62",
-    "prot_status": "0x0d63",
-    "rx_flags": "0x0d64",
-    "saved_jsr_mask": "0x0d65",
-    "econet_init_flag": "0x0d66",
-    "tube_flag": "0x0d67"
-  },
+  "globals": {},
   "regions": {
     "low": {
       "start": "0x8000",
