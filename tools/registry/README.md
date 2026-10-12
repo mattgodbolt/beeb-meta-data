@@ -1,8 +1,8 @@
 # Media registry experiments
 
-Prototype tooling for the [media registry proposal](../../docs/media-registry-proposal.md) (with its
-[design notes](../../docs/media-registry-design-notes.md)), and the experiments behind [its
-findings](../../docs/media-registry-findings.md). None of it is used by the emulator.
+Prototype tooling for [the media registry proposal](../../docs/media-registry-proposal.md), and the
+experiments behind [the findings](../../docs/media-registry-findings.md). No client uses any of it,
+though `check-memory.js` uses `fingerprint.js` to check a disc's key.
 
 Everything works on a corpus in `.registry-corpus/` (gitignored):
 
@@ -30,9 +30,9 @@ is where the bbcmicro.co.uk image zip was unpacked for the findings.
 
 The fingerprint and its index:
 
-- `fingerprint.js`: the fingerprint itself. Sector images are hashed from their bytes; flux images are
-  loaded with jsbeeb's disc code and decoded back into the same bytes. It also gives each flux side as a
-  filesystem addresses it, which is what catalogues are read from.
+- `fingerprint.js`: the fingerprint. Flux images are loaded with jsbeeb's disc code and decoded back into
+  the bytes a sector image would hold, and each flux side is also given as a filesystem addresses it, for
+  reading catalogues.
 - `dfs.js`: reads a DFS catalogue from a side's bytes and hashes each file.
 - `build-index.js`: one JSON line per image, with its keys, what trimming removed, what the flux decode
   dropped, and its catalogue. `--track-rule strict` and `--pitch-test headers` select the first draft's
@@ -73,7 +73,7 @@ The studies:
   files, files of one repeated byte and files catalogued to load in page zero). `--examples` lists the
   regions that match, and how much of each file matches.
 - `boot-survey.js`, `boot-survey-analyse.js`, `boot-survey-screen.js`: boots every distinct disc on a
-  Model B and a Master and records how far it gets. It takes a couple of hours:
+  Model B and a Master and records how far it gets:
 
   ```sh
   for i in $(seq 0 31); do nice -n 19 node tools/registry/boot-survey.js --shard $i/32 & done; wait

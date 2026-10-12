@@ -1,25 +1,15 @@
 # beeb-meta-data
 
-Metadata about BBC Micro software, for emulators to fetch: today, **symbol sets** that name the code and data of
-programs in a debugger; later, **records** that say what a disc or tape is (its title, which machine it needs, its
-keys). [jsbeeb](https://github.com/mattgodbolt/jsbeeb) is the first client, but nothing in the published data is
+Metadata about BBC Micro software, for emulators to fetch. Today that's **symbol sets**, which name the code and
+data of programs in a debugger; later it'll be **records** saying what a disc or tape is (its title, which machine it
+needs, its keys). [jsbeeb](https://github.com/mattgodbolt/jsbeeb) is the first client, but nothing in the data is
 specific to it.
 
-It's published as static JSON under `https://bbc.xania.org/meta/`, with CORS open to every origin; the sets'
-index is [`meta/symbols/index.json`](https://bbc.xania.org/meta/symbols/index.json).
-
-## The idea in brief
-
-- **Symbol sets** are found by what's in memory, not by which disc was loaded. Each set cuts a program into
-  **regions** (address ranges) and gives each region a few **anchors**: short runs of bytes that are always there
-  when that code is. A client fetches `meta/symbols/index.json` (every set's regions and anchors, without the names),
-  checks the anchors against memory whenever its debugger stops, and fetches a set's names only once its anchors
-  match. So the names follow the program wherever it came from: a different dump of the disc, a compilation, a
-  program loaded over the network.
-- **Names come from other people's work**: disassemblies and sources with a licence that allows reuse. Each set
-  records its `licence`, its `source` at a pinned commit, and links each name back to where its author defines it.
-- **Records** (not built yet) will be keyed by a fingerprint of the disc or tape image, so a client can look up
-  `meta/<key>.json` for any image without an index. [The proposal](docs/media-registry-proposal.md) describes them.
+It's published as static JSON under `https://bbc.xania.org/meta/`, with the sets' index at
+[`meta/symbols/index.json`](https://bbc.xania.org/meta/symbols/index.json). A set is found by anchors, short runs of
+bytes in memory, rather than by which disc was loaded, so its names turn up wherever the code came from. The overview
+at the top of [the proposal](docs/media-registry-proposal.md) explains keys, records, sets and the index in a few
+paragraphs.
 
 ## Layout
 
@@ -32,8 +22,8 @@ index is [`meta/symbols/index.json`](https://bbc.xania.org/meta/symbols/index.js
 | `docs/`           | The reference docs, below                                                                     |
 | `tests/`          | Unit tests for all of the above, and the real sets against jsbeeb's real ROMs                 |
 
-The tools use jsbeeb as a library (its symbol-set parser, its disc code and a headless machine), from the version
-`package.json` pins, so the checks here are the checks the client will make.
+The tools use jsbeeb as a library (its symbol-set parser, its disc code and a headless machine) at the version
+`package.json` pins, so the checks here are the ones the client makes.
 
 ## Working on it
 
@@ -49,9 +39,9 @@ npm run dist         # what the deploy would publish, in dist/
 
 Adding or remaking a title's sets is in [the importers' doc](docs/symbol-importers.md).
 
-Every push runs the tests in CI; a push to `main`, or a manual run there, also uploads the `dist/` it built to
-`s3://bbc.xania.org/meta/`, the sets first and the index last. Nothing published is ever deleted, and files are
-served with a five-minute cache lifetime, so a change is live within minutes of reaching `main`.
+CI tests every push. A push to `main`, or a manual run there, also uploads the `dist/` it built to
+`s3://bbc.xania.org/meta/`, the sets first and the index last. Nothing published is ever deleted, and files are served
+with a five-minute cache lifetime, so a change is live within minutes of reaching `main`.
 
 ## Reference
 
@@ -62,5 +52,5 @@ served with a five-minute cache lifetime, so a change is live within minutes of 
 
 ## Licences
 
-The tools are GPL-3.0-or-later ([LICENSE](LICENSE)). The data isn't: each symbol set carries its own `licence`,
+The tools are GPL-3.0-or-later ([LICENSE](LICENSE)). The data isn't; each symbol set carries its own `licence`,
 `source` and any `notice` its licence requires, and is used under that. Disc and tape images are never stored here.

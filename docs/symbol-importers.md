@@ -1,531 +1,371 @@
 # Symbol set importers
 
-How the symbol sets under `symbols/sets/` are made from a title's source. The format is "Symbol
-sets" in [the media registry proposal](media-registry-proposal.md); this is how a curator gets from a source
-repository to a set in that format.
+The sets under `symbols/sets/` are made from each title's source by an importer, driven by a curator's config in
+`symbols/configs/`. This is how to get from a source repository to a set in the format "Symbol sets" in
+[the media registry proposal](media-registry-proposal.md#symbol-sets) describes.
 
-## The idea
-
-A source repository never changes for the registry, and needs no build rules for it. The importers take its source
-at a commit and make what they read themselves: for a baron title, they run baron on each source with
-`--symbols` and `-vv`; for a beebasm title, beebasm with `-v` and `-dd`; for a py8dis disassembly, they run
-its control script under py8dis. Nobody has to emit registry metadata.
-
-The curator's job lives here, beside the sets: which programs make a set, where a program's memory changes
-while it runs (so where its regions are cut), and the anchors that tell the program apart in memory. Each
-input format gets an importer, and every importer feeds one anchor chooser and the index's checks.
-
-| Piece                                  | What it does                                                                                             |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `tools/symbols/baron-build.js`         | Fetches a baron title's source at the config's commit and assembles it, each source on its own           |
-| `tools/symbols/baron-listing.js`       | Reads one baron `-vv` listing: sections, statements and their bytes, labels, `=` names and scopes        |
-| `tools/symbols/import-baron.js`        | The baron importer: names from the listings, cross-checked against the `--symbols` dump; writes the sets |
-| `tools/symbols/beebasm-build.js`       | Fetches a beebasm title's source at the config's commit and assembles it, PRINTing its `=` names         |
-| `tools/symbols/beebasm-listing.js`     | Reads beebasm's `-v` listing and its `-dd` label dump                                                    |
-| `tools/symbols/import-beebasm.js`      | The beebasm importer: names from the listing, the dump and the saved files; writes the sets              |
-| `tools/symbols/py8dis-dump.py`         | Runs a py8dis control script under py8dis and prints what py8dis made of the binary, as JSON             |
-| `tools/symbols/import-py8dis.js`       | The py8dis importer: names and pieces from that dump; writes the sets                                    |
-| `tools/symbols/title-build.js`         | Builds and imports a title with whichever importer its config names                                      |
-| `tools/symbols/import-acornaeology.js` | The acornaeology importer: a ROM's set from its disassembly's JSON                                       |
-| `tools/symbols/anchor-chooser.js`      | Chooses each region's anchors from what an importer read; shared by every importer                       |
-| `tools/symbols/corpus-check.js`        | The corpus check a set's pull request carries                                                            |
-| `tools/symbols/check-memory.js`        | Checks the sets against the title running in a headless jsbeeb, at moments the curator picks             |
-| `tools/symbols/build-index.js`         | Checks every set as the registry's build will, and writes `index.json`                                   |
-| `symbols/configs/<title>.json`         | A curator's config for one title, or one ROM                                                             |
-| `symbols/configs/<title>-check.js`     | That title's moments for the in-memory check                                                             |
-
-## A title's config
-
-`symbols/configs/<title>.json` names the title's sets and says where each is cut, in the source's own names.
-Nothing in it is an address list: the names come from the build.
-
-- `id`: the prefix of the title's set files, `<id>-<set id>.json`.
-- `licence`, `notice`, `madeFrom`, and `home` if the author has a page of their own for the work: copied
-  into every set.
-- `source`: where the title's source is and what of it to assemble.
-  - `assembler`: `baron`, unless it's `beebasm`; a beebasm title's config differs as
-    [beebasm titles](#beebasm-titles) says.
-  - `repository` and `commit`: the importer, the corpus check and the in-memory check fetch that commit, or
-    take a checkout of it with nothing changed or added, and each set's `source` links the tree there. For
-    a repository on GitHub, each set's `nameLink` links a name to the line that defines it at that commit.
-  - `assemble`: globs, from the repository's root, of the sources to assemble. Every one, not only those
-    that make a set: the anchors are chosen against everything the title puts in memory.
-  - `defines`: symbols to predefine, name to a baron expression, passed as `-D name=expression`: what the
-    title's own build passes, such as a build stamp the code prints, without which the source wouldn't
-    rebuild the disc.
-  - `disc`: the original disc in the repository, the one the source rebuilds. Its image key has to be one
-    of `madeFrom`'s, and it's the disc the in-memory check boots.
-- `leftToSystemSets`: INCLUDEd files whose names a system set (the MOS's) already gives. The listing doesn't
-  mark where an INCLUDE ends, so these are the `=` names it shows straight after the INCLUDE line, before
-  any other line.
-- `bytesPerAnchor`, `spreadAnchors`: at least one anchor per this many bytes of a region, up to this many,
-  before the anchors that tell other programs apart.
-- `check`: the module of scenarios for the in-memory check, beside the config.
-- `sets`: each with an `id`, a `title`, the `sources` that make it, and its `regions`. A set can also have:
-  - `stripScope`: a scope that wraps the whole program, left off its names;
-  - `tableSizes`: tables written with an index, by name, with how far the index goes (an expression);
-  - `moves`: labels of the copies that put the program in place, whose stores don't keep anchors off what
-    they copy. A label takes the store it's on, if it is, and if a loop in its section branches back to it,
-    the loop's indexed stores up to the last branch back;
-  - `globalsSections`: sections whose labels are the program's globals (zero page, say, which holds no code
-    and which every program writes, so a region there couldn't be anchored).
-- A region is a SECTION (`section`, in `source` if not the set's first), or part of one between `from` and
-  `to`, expressions in the source's names (`pl.encrypted - 1`, `menu_screen + &700`). It can also have:
-  - `overwritten`: run-once code that something else writes over when it's done, so only its own stores
-    keep anchors off its bytes;
-  - `avoid`: `[from, to)` ranges no anchor may cover, beyond what the chooser finds itself.
+The source repository never changes for us and needs no build rules. The importer fetches it at the config's commit
+and builds it itself: baron with `--symbols` and `-vv` for a baron title, beebasm with `-v` and `-dd` for a beebasm one,
+the control script under py8dis for a py8dis disassembly. The config holds what only a curator knows, which is which
+programs make a set, where a program's memory changes while it runs (so where its regions are cut), and anything the
+anchor chooser needs told. Every importer feeds the same anchor chooser (`tools/symbols/anchor-chooser.js`) and the
+index's checks.
 
 ## Running it
 
-For a baron title, with baron on the PATH, in `$BARON`, or given as `--baron`:
+Each importer writes `<id>-<set id>.json` for every set in the config, then `build-index.js` checks them all and
+rewrites `symbols/index.json`.
 
 ```sh
 node tools/symbols/import-baron.js --config symbols/configs/pipeline.json
-node tools/symbols/build-index.js
-node tools/symbols/corpus-check.js --config symbols/configs/pipeline.json --corpus .registry-corpus/sth-disc
-node tools/symbols/check-memory.js --config symbols/configs/pipeline.json
-```
-
-Each fetches the config's commit into a temporary directory, or takes `--source`, a checkout of it, and runs
-baron there on each source on its own, as `-D name=expression` for each of the config's `defines`, then
-`-p <files> --inf --symbols <dump> -vv -log0 <listing>`. Plain `-v` cuts a statement's bytes at eight, so its
-listing can't be read for them. The importer prints the baron it ran, from `--version`.
-
-The importer, and so the corpus check, needs baron 0.5.0 or later, whose symbol dump replaced the flat one
-an older baron wrote, and refuses the flat one. The in-memory check doesn't read the dumps, so any baron that
-builds the source will do for it.
-
-The importer writes nothing if a region can't be anchored, if its anchors all match another of the build's
-images, if a set fails the index's checks, if the checkout isn't of the config's commit or has changes, or if
-the config's disc isn't one `madeFrom` names. `--verbose` lists
-every name left out, and why, and every anchor added to tell another image apart. The in-memory check takes
-scenario names to run only those, and `--shots DIR` to save the screenshots a scenario asks for.
-
-## beebasm titles
-
-`import-beebasm.js` makes a beebasm title's sets, and its config differs from a baron title's:
-
-- `source.assemble` is the one main source, and `source.directory` where beebasm runs (the repository's root
-  if it names none), since beebasm finds an INCLUDE from where it runs, not from the file that INCLUDEs it.
-- A region names a saved file, `file`, as its SAVE writes it (`"../build/CODE"`), instead of a section, and
-  can be cut with `from` and `to` as a baron region can. beebasm has no sections: a SAVE writes whatever is
-  in memory between two addresses.
-- There's no `defines`, `stripScope`, `tableSizes`, `moves`, `globalsSections` or `leftToSystemSets` yet;
-  nothing needed them.
-- **Each name's place**, for a repository on GitHub, is the line of a file beebasm INCLUDEd that defines
-  it, as a label (`.name`) or with `=`, outside strings and comments; a scoped name (`start.loop`) is found
-  by its last part. beebasm says nothing of lines, so the importer reads the sources for them, and a name
-  in a set that no line, or more than one, defines stops the import.
-
-```sh
 node tools/symbols/import-beebasm.js --config symbols/configs/nevryon.json
-```
-
-It takes `--source` as the baron importer does, and the beebasm to run as `--beebasm`, `$BEEBASM` or
-`beebasm` on the PATH. It needs beebasm 1.11 or later, the [stardot/beebasm](https://github.com/stardot/beebasm)
-release whose listing it was written against (the sets here were made with commit `ca2cc5f`); `-dd` came in
-1.10, and Ubuntu's snap of 1.10 can't write under `/tmp`, where the build runs. The corpus check and
-the in-memory check take `--beebasm` too.
-
-The build copies the checkout, since a SAVE writes wherever its source says (making the directories it
-needs), and runs beebasm on a wrapper that INCLUDEs the main source and then PRINTs each name the sources
-assign with `=`: beebasm's dumps hold labels only. A name the wrapper can't PRINT, because it was assigned
-inside braces or a loop, is dropped and the build run again.
-
-What beebasm's output gives, and what the importer makes of it:
-
-- **The listing** (`-v`) gives each instruction's address and bytes, with its operand already a number;
-  each EQUB, EQUW and EQUD value; an EQUS's or INCBIN's address and first three bytes; a SKIP's address;
-  each label's name, unscoped and without an address; and a line for each SAVE. SKIPTO, ALIGN and ORG leave
-  no line.
-- **The label dump** (`-dd -labels`) gives every label in the listing's order with its address and scopes:
-  a label just before a `{` names it, and a scope with no label of its own, a FOR loop's pass or a macro's
-  call is `_N` or `_var_value`. A label in a scope like that, one no dumped label is, is left out, as
-  baron's `@` scopes are.
-- **A saved file's address** isn't in any of it: the file starts at the address, among those listed before
-  its SAVE, from which it agrees with every statement it covers and covers the most. Its statements are
-  those in memory when it was saved, each the last listed at its address, so a block assembled over another
-  after a CLEAR belongs to the files saved after it. Its bytes are the file's: a statement the listing cuts
-  short runs to the next statement or label. Bytes no statement lists (SKIPTO and ALIGN padding) never
-  anchor.
-- **A label** goes to the file of the statement it's listed before, or, at the end of a block, of the one
-  it's listed after, then to the region holding it there.
-- **A `=` name** counts as an address when the sources write it first in a non-immediate operand
-  (`LDA ptr`, `STA (vec),Y`), an instruction of the set's files names its value as a memory operand, the MOS
-  set doesn't already name that address, no label of the set's regions is at it, and no other name that
-  passes the same tests has the same value; names that share a value are all left out. It goes to the
-  region it points into if only that region's code uses it, and to the globals otherwise. The listing's
-  operands are numbers, so which name an instruction was written with is never known: `ptr` and `ptr2`,
-  both `&70` and each used by different code, leave `&70` unnamed.
-- **An OS block** is an `LDX #lo` beside an `LDY #hi` that make a label's address.
-- **The original disc's files**, where its catalogue loads them, are among the images the anchors are chosen
-  to tell apart, besides the saved files where they run.
-
-What it gets wrong, or only roughly, beyond what the baron importer does:
-
-- **Names shared by code that doesn't run together** (a sound driver's and a title screen's workspace at the
-  same zero page address) are left out, where a baron title would keep each in its own region's code.
-- **A `=` name written in an operand only through an expression's later term** (`LDA base + ptr`) or a
-  macro's argument isn't seen as an operand, and the text search takes a name in a comment as readily as
-  in code.
-- **A label in braces that don't start at it** (`.routine LDA #0 : {`) loses its scope's name to `_N`, and
-  every label inside is left out.
-- **A file loaded in one place and run in another** is only compared with the corpus where it loads, so
-  the corpus check never sees Nevryon's CODE, which loads at `&0E00` though `*LOAD CODE 1100` puts it at
-  `&1100`.
-
-## Names
-
-- **Labels** go to the region of the section they're assembled in, qualified with their scopes
-  (`select_sprite.down_not_0f`), less the set's `stripScope`. A label at a section's exclusive end
-  (`main_code_end`) is in no region and is left out. A label inside an anonymous scope (baron's `@` names) is
-  never used.
-- **A virtual section's labels** (`SECTION zero_page, org=&00, virtual=TRUE`) are globals: the section only
-  hands out addresses for workspace and keeps no bytes, so no region holds them. A program can include
-  another's layout just to reckon offsets from it, so a label no instruction uses as a memory operand is
-  kept only if some statement mentions it (`EQUW slot_28`, `LDA #LO(io_maps)`; not a `=` line, nor a string) and
-  a statement reserving space (a SKIP, or an EQUW that keeps no bytes) starts at it; a label nothing reserves
-  space at only marks where the workspace ends.
-- **`=` names** count as addresses when an instruction uses them as a memory operand: the operand's first
-  name, not after `#`, not a FUNCTION's result, and not one `leftToSystemSets` covers. Such a name goes to
-  the region it points into if only that region's code uses it, and is a global otherwise.
-- **One name per address.** In a region, a scope's own name wins over the labels inside it (`pl` over
-  `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In the globals,
-  the `=` name or virtual section label the most instructions use as a memory operand; a label of a
-  `globalsSections` section, or a virtual one only data mentions, counts as used by none.
-- Every label the listing gives has to agree with the symbol dump, or the importer stops: the dump is what
-  baron resolved, and the listing is where the scopes, sections and bytes come from.
-- **Each name's place** is the file and line the symbol dump says defines it (`src/game.6502#L120`), in the
-  set's `places`, for the `nameLink` a GitHub repository gets. For such a repository, a name in a set that
-  the dump gives no place (any name, in a dump without lines) stops the import. A `defines` entry, like
-  Scorched Earth's `BUILD`, has no listing line, so it's never a name in a set.
-
-## Links to the author
-
-Every importer should link each name back to its author's own site wherever there is one, with the set's
-`home`, `nameLink` and `places` ("Symbol sets" in [the proposal](media-registry-proposal.md)), so that
-someone reading a name in the debugger is one click from the author's own explanation of it:
-
-- source on GitHub at a pinned commit: `places` from each name's file and line, and
-  `https://github.com/<owner>/<repo>/blob/<commit>/{place}`;
-- a disassembly published with an anchor per address, such as acornaeology's (`#addr-800E`): `places`
-  from the anchors the page has, since it has none for the addresses outside the ROM, and `home` for the
-  page;
-- a plain text disassembly with no anchors, such as level7.org.uk's: a text fragment,
-  `#:~:text={name}`, which takes a browser to the name's first appearance, and `home` for the page.
-
-Where the author has no site of their own (a name list kept inside a tool, like py8dis's `acorn.py` for the
-MOS), `source` is the link and the set has none of these.
-
-The baron, beebasm and py8dis importers link to GitHub, and the acornaeology importer to acornaeology's
-page; each section says where it finds a name's place.
-
-## Anchors
-
-Candidates are runs of 4 to 8 bytes of the region's own statements: whole instructions from an
-instruction's start (aiming for 6 bytes), or data from any byte. A candidate is out if any of its bytes is:
-
-- reached by a store whose target the instruction gives (an indexed store reaches 256 bytes, or all of zero
-  page, unless `tableSizes` gives the table's size), except that a run-once region only minds its own
-  stores, and the copies in `moves` don't count;
-- in a block the code hands the OS (`LDX #LO(block)`), which OSWORD, OSFILE and OSGBPB write results into:
-  from its label to the next one that starts code or another block, 18 bytes at most;
-- SKIP or SKIPTO padding, or under a label the source names as dead or leftover (`unused`, `leftover`, `junk`,
-  `spare`, `stray` as a word of any of its scopes), up to the next label;
-- in a BASIC program (a section saved to run at `&8023`), its first line, any line's CR, number and length,
-  or a REM's text (but for code in the REM);
-- in `&FC00-&FEFF`, or in an `avoid` range;
-
-or if the run calls into the MOS (`JSR` or `JMP` to `&C000` up: code every program shares), has two NOPs
-together (where cheats poke), has fewer than four different bytes, or appears twice in the region.
-
-From those, about one anchor per `bytesPerAnchor` of the region (`spreadAnchors` at most), spread over it,
-preferring a label, then code, then the most different bytes. Then, for every other image of the region's
-addresses in the build (every section of every source where it runs, every file where it loads):
-
-- an image that holds all the anchors and agrees with them gets another anchor where it differs, or the
-  importer fails;
-- another program's image of any part of the region gets an anchor inside that part where it differs, if
-  there is one, which is what makes a leftover stop matching once part of it is overwritten. When there
-  isn't one, the importer says so as a note.
-
-## The checks
-
-- **The corpus check** places every complete DFS file on every disc in the corpus at its load address and
-  lists, for each region, every title whose files hold all its anchors, with how much of the region they
-  hold and how much of that is identical. 90% identical or more is the same code (a crack, a compilation);
-  anything less is a collision, and the check exits 1. Files sit at their load addresses, so code a program
-  moves to where it runs is only compared with other titles' files that load there.
-- **The in-memory check** boots the title's disc (its repository's, or one its config fetches) and, at each
-  moment a scenario picks, lists the regions whose anchors all match. A moment fails unless that's exactly
-  the regions expected, and if two matching regions overlap, of one set or two, since the debugger then
-  shows neither.
-
-## What the baron importer gets wrong, or only roughly
-
-- **One program's zero page used differently in different regions** loses names, since a set's globals hold
-  one name per address: PIPELINE's game loader's `copy_return`, `copy_from` and `menu_keys` give way to the
-  main code's `monster_x`, `monster_direction` and `work0`. So does baron's `ZA_AUTO` allocator, which gives
-  routines that never run together the same zero page: Scorched Earth keeps one name for each such byte and
-  loses the rest.
-- **The operand rule misses** `=` names the code reaches only through an immediate's `LO()`/`HI()`, through
-  a FUNCTION, or through a table of addresses, and takes a name whose instruction is dead code as readily as
-  any. A virtual section's labels count any mention, so they aren't missed that way.
-- **Stores it can't see** stay unseen: through a pointer, or by the OS into blocks it was passed other than
-  with `LDX #LO(...)`. The `LDX #LO(...)` rule also over-blocks: it takes OSCLI strings, which the OS only
-  reads.
-- **Hand-written knowledge** sits in the config, by name: where to cut the regions, the table sizes, the
-  moving copies. A change to the code that moves those needs the config looked at; a misspelt name stops
-  the import.
-- **The "another program's image" rule** adds anchors for meetings that never happen: PIPELINE's MISSION
-  gets one in TITLE's unpacker page and one in the game's loader, which no route through the menu puts
-  beside it.
-- **Data anchors in text** land wherever the spread puts them; nothing makes them better than any other
-  text.
-
-What baron's output can't give the importer, and how it copes:
-
-- **The symbol each operand was written with**, and each instruction's address, as data
-  ([baron#14](https://github.com/waitingforvsync/baron/issues/14)): the importer reads operands back out of
-  the `-vv` listing's text, which is why it needs the per-source `-vv` listings and can't follow a FUNCTION.
-- **Each symbol's kind (a label, an address, a constant) and the section a label was emitted in**
-  ([baron#15](https://github.com/waitingforvsync/baron/issues/15)): baron 0.5.0's dump gives each label's
-  section and how each symbol was defined (a label, an `=`, a `ZA_AUTO`), though not whether an `=` name is
-  an address or a constant. The importer takes only values from it so far: a label's section from where the
-  listing shows it, and an `=` name as an address only when an instruction uses it as one. Moving to the
-  dump is for when baron#14 lets the importer stop reading the listing.
-- **A table's size, and where the OS or a pointer writes**: nothing in the build says these, so the config
-  gives the sizes and the chooser guesses OS blocks from `LDX #LO(...)`.
-
-## py8dis disassemblies
-
-A [py8dis](https://github.com/ZornsLemma/py8dis) disassembly is a control script that loads a binary, says
-where pieces of it are `move()`d to run, and names addresses. `py8dis-dump.py` runs the script under py8dis
-at the config's commit, lets py8dis trace and classify the binary as it would to emit assembly, and prints
-what py8dis then holds instead of the assembly: each piece of the binary where it runs (the binary where it
-loads, less what moves, and each move where it lands), every instruction and data line in it with its bytes,
-and every name the script gave, with the move it was given in. So the names and anchors never come from
-py8dis's assembly, and the output format the script was written for doesn't matter to them; only the links
-read the assembly the repository holds (`source.assembly` below).
-
-A py8dis title's config differs from a baron title's in these:
-
-- `source.script`: the control script, from the repository's root. `source.directory`, if given, is where it
-  runs, which is where the paths it loads its binary from start; else it runs in its own directory.
-- `py8dis`: the `repository` and `commit` of the py8dis to run it under.
-- `disc`: the disc the in-memory check boots, when the repository has none: the `url` of a zip, the `image`'s
-  path in it, and its `key`, which the check refuses the image without.
-- A region is `from` an address to `to` one (the end of the piece `from` is in, if not given), expressions
-  in the script's names as a baron config's are. It has to lie in one piece.
-- `moves` and `tableSizes` name their stores and tables by expressions too, since a script names few of the
-  instructions it traces (`boot_relocate_0380_loop + 3`). A table is the store's operand exactly, so
-  `STA table+1,X` is `table + 1`. A move can name a copy loop's first instruction, as a baron one names its
-  label; the loop is the one in the piece with an instruction there, or in any piece if none or several have one.
-- `source.assembly`: the assembly the repository holds, from its root (`repton2.s`), if it holds one. For
-  a repository on GitHub, each name links to the line of it that starts with the name, as a label (`name:`
-  or `.name`) or a constant (`name =`), and a name in a set that no line, or more than one, starts stops
-  the import.
-
-The importer runs it as
-
-```sh
 node tools/symbols/import-py8dis.js --config symbols/configs/repton2.json
-```
-
-taking `--source` and `--py8dis`, clean checkouts of the two commits, instead of fetching them, and
-`--python`, else `$PYTHON`, else `python3`. It runs Python with `-I` and `-B`, from a directory of its own,
-so neither checkout's files are imported by accident or gain any. The corpus check and the in-memory check
-take a py8dis title's config as they take a baron one's.
-
-Its names:
-
-- **A name** goes to the region holding its address in the piece of its move. One in a piece no region
-  holds (a loader the disassembly added that the title doesn't have) is left out; one outside every piece
-  is a global.
-- **One name per address**: the first the script gave it, so a table's name (`data_tilegraphics_indices`)
-  wins over its first entry's (`data_tile00_empty`) when the script names the table first.
-- **One address per name**: a name the script gives two addresses stops the import, even if one of them is
-  in no region, since a config expression using it couldn't say which it means.
-- **Left out**: the names py8dis makes up (`l0070`, `sub_c1234`), expressions (`zp_ptr+1`), constants, and
-  the names py8dis's `acorn.py` gives the OS and the hardware, which the system sets have.
-
-And its anchors are the chooser's, with what py8dis can't say:
-
-- Nothing marks the blocks code hands the OS, so no OS block keeps anchors off.
-- Py8dis has no SKIP: every byte in a piece is the binary's.
-- Every store is in the program, the disassembly's own loader included, unless `moves` says it's a copy.
-
-Control scripts written for py8dis in September 2021 import `trace6502` and call
-`acorn.add_standard_labels()`, which py8dis has since dropped and renamed; `py8dis-dump.py` puts them back,
-as `commands.hook_subroutine` and `acorn.mos_labels`, so such a script runs unchanged under the config's py8dis (`2a60463` for Repton 2).
-
-py8dis's own examples are disassemblies too, and the dump reads them: `examples/python/dfs226.py`,
-`planb.py` and `lisp406.py` run from `examples/` (their `source.directory`). A set for one needs a config
-like Repton 2's, its regions cut where its pieces run, and a disc or ROM to check it on. The importer can't
-make DFS 2.26's yet: it moves two pieces to `&0D00`, and a region is found by its address alone.
-
-## acornaeology's ROMs
-
-[acornaeology](https://github.com/acornaeology) publishes annotated disassemblies of Acorn's ROMs, each
-version with a JSON file that dasmos writes beside the listing (schema 4): every statement with its bytes
-and labels, and `external_labels`, the names it gives addresses outside the ROM. Its repositories for
-NFS and ANFS and for ADFS publish schema 4 JSON with the same fields, so in principle
-`tools/symbols/import-acornaeology.js` makes their sets too, each from a config like BASIC II's; only BASIC II
-has one so far. Its Tube client runs in the second processor, which the debugger's sets don't read.
-
-A config (`"importer": "acornaeology"`) has an `id`, which is also the set's file name, a `title`, the
-`licence`, and:
-
-- `source`: the `repository`, the `commit` to fetch, the `disassembly` JSON's path in it and the
-  `licenceFile` whose text becomes the set's notice.
-- `rom`: the ROM under jsbeeb's `public/roms/` the set is anchored on. The importer refuses to write a set when
-  the JSON's bytes aren't that ROM's.
-- `regions`: each a `name`, a `start` and an `end`. A sideways ROM is cut at `&9000` and `&B000`, as the
-  proposal says.
-- `globals`: the ranges whose `external_labels` become the set's globals.
-- `bytesPerAnchor`, `spreadAnchors`: as for baron.
-- `home`: the disassembly's page on acornaeology's site. The importer fetches it, and each name whose
-  address the page has an anchor for (`id="addr-800E"`) links there: its place is `2.html#addr-800E`, under
-  the page's directory (`https://acornaeology.uk/bbc-basic/{place}`). The page has anchors only inside the
-  ROM, so the globals have no links, and a name in the ROM it has no anchor for stops the import.
-
-```sh
 node tools/symbols/import-acornaeology.js --config symbols/configs/bbc-basic-2.json
 node tools/symbols/build-index.js
 ```
 
-Its names:
+Then the two checks, for any title but a ROM:
 
-- **Every label of a statement** goes to the region that holds it. dasmos gives each address one label.
-- **A name outside the ROM** is a global if it's in a `globals` range and no system set names its address:
-  the MOS's names for its vectors and pointers stay the MOS's. Where two names share an address, the one
-  the JSON's `memory_map` describes wins. The rest of `external_labels` (the hardware, the MOS's entry
-  points) are left to the MOS's set.
-- Constants and comments are never read.
+```sh
+node tools/symbols/corpus-check.js --config symbols/configs/pipeline.json --corpus .registry-corpus/sth-disc
+node tools/symbols/check-memory.js --config symbols/configs/pipeline.json
+```
 
-Its anchors come from the same chooser, with every statement of the ROM as one section and no stores,
-since nothing writes to a ROM. Every bank of every file under jsbeeb's `public/roms/` that's a whole number of the
-ROM's size is another image: a region gets another anchor where one of them would hold all its anchors,
-and the importer fails if none tells them apart.
+`tools/registry/fetch-corpus.js` downloads the corpus into `.registry-corpus/`.
 
-The set isn't `system`: BASIC's workspace names then name BASIC's own code's operands, but not another
-program's code. A game run from BASIC, with BASIC still paged in, keeps its own names for the zero page it
-shares with BASIC's in its code. An address shown on its own that the game's set and BASIC's both name,
-differently, takes the name from whichever set's code holds the PC, and neither while the MOS holds it.
+The importers fetch the config's commit into a temporary directory, or take `--source`, a clean checkout of it. Every
+importer takes `--verbose`, which lists each name left out and why, and each anchor added to tell another image apart;
+all but acornaeology's take `--out` for somewhere other than `symbols/sets`. They write nothing if a region can't be
+anchored, if its anchors all match another image in the build, if a set fails the index's checks, or if the checkout
+isn't of the config's commit or has changes.
 
-Neither check takes a ROM's config: `check-memory.js` boots a title's disc, with a `check` module of
-scenarios a ROM's config doesn't have, and `corpus-check.js` builds a title's source, so it refuses one. The
-importer's own comparison with every ROM under jsbeeb's `public/roms/` stands in for the corpus check, and
-`tests/symbols/test-shipped-rom-sets.js` checks BASIC II's set against those ROMs.
+The tools each importer needs, and where it looks for them:
+
+| Importer                 | Needs                 | Found from                                    |
+| ------------------------ | --------------------- | --------------------------------------------- |
+| `import-baron.js`        | baron 0.5.0 or later  | `--baron`, `$BARON`, else `baron`             |
+| `import-beebasm.js`      | beebasm 1.11 or later | `--beebasm`, `$BEEBASM`, else `beebasm`       |
+| `import-py8dis.js`       | Python 3, and py8dis  | `--python`, `$PYTHON`, else `python3`         |
+| `import-acornaeology.js` | the network           | jsbeeb's ROMs come from `node_modules/jsbeeb` |
+| `make-mos-set.js`        | Python 3              | `python3`                                     |
+
+Baron before 0.5.0 wrote a flat symbol dump, which the importer refuses. The in-memory check doesn't read the dumps,
+so any baron that builds the source does for that. For beebasm, the sets here were made with
+[stardot/beebasm](https://github.com/stardot/beebasm) at `ca2cc5f`; Ubuntu's snap of 1.10 can't write under `/tmp`,
+where the build runs. The corpus check and the in-memory check take the same `--source`, `--baron`, `--beebasm`,
+`--py8dis` and `--python` as the importers, since they build the title the same way (`tools/symbols/title-build.js`
+picks the importer from the config). The py8dis importer fetches py8dis at the config's commit, or takes `--py8dis`, a
+clean checkout of it. The in-memory check also takes scenario names to run only those, and `--shots DIR` to save the
+screenshots a scenario asks for.
+
+## A title's config
+
+`symbols/configs/<title>.json` names the title's sets and says where each is cut, in the source's own names. Nothing
+in it is an address list; the names come from the build. This is a baron title's; the
+[beebasm](#beebasm-titles), [py8dis](#py8dis-disassemblies) and [acornaeology](#acornaeologys-roms) sections say how
+theirs differ.
+
+- `id` is the prefix of the title's set files.
+- `licence`, `notice`, `madeFrom`, and `home` if the author has a page of their own for the work, are copied into
+  every set.
+- `source` says where the source is and what of it to assemble.
+  - `assembler` is `baron` unless it says `beebasm`.
+  - `repository` and `commit` pin the source. Each set's `source` links the tree there, and for a repository on
+    GitHub each name links to the line that defines it at that commit.
+  - `assemble` is globs, from the repository's root, of every source to assemble, not only those that make a set,
+    since the anchors are chosen against everything the title puts in memory.
+  - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
+    title's own build passes (a build stamp the code prints, say), without which the source wouldn't rebuild the disc.
+  - `disc` is the original disc in the repository, the one the source rebuilds. Its image key has to be one of
+    `madeFrom`'s, and it's the disc the in-memory check boots.
+- `leftToSystemSets` lists INCLUDEd files whose names the MOS's set already gives. The listing doesn't mark where an
+  INCLUDE ends, so these are the `=` names shown straight after the INCLUDE line.
+- `bytesPerAnchor` and `spreadAnchors` ask for at least one anchor per that many bytes of a region, up to that many,
+  before the anchors that tell other programs apart.
+- `check` is the module of scenarios for the in-memory check, `<title>-check.js` beside the config.
+- `sets` each have an `id`, a `title`, the `sources` that make it, and its `regions`, and can also have
+  - `stripScope`, a scope that wraps the whole program, left off its names;
+  - `tableSizes`, tables written with an index, by name, with how far the index goes (an expression);
+  - `moves`, labels of the copies that put the program in place, whose stores don't keep anchors off what they copy.
+    A label takes the store it's on, and if a loop in its section branches back to it, the loop's indexed stores up
+    to the last branch back;
+  - `globalsSections`, sections whose labels are the program's globals (zero page, say, which holds no code and which
+    every program writes, so couldn't be anchored).
+- A region is a SECTION (`section`, plus `source` if it's not in the set's first), or the part of one between `from`
+  and `to`, expressions in the source's names (`pl.encrypted - 1`, `menu_screen + &700`). It can also have
+  `overwritten`, for run-once code that something else writes over when it's done, so only its own stores keep
+  anchors off its bytes; and `avoid`, `[from, to)` ranges no anchor may cover beyond what the chooser finds itself.
+
+## Names
+
+How the baron importer picks names. Every label in the listing has to agree with the symbol dump, or the import stops;
+the dump is what baron resolved, and the listing is where the scopes, sections and bytes come from.
+
+- Labels go to the region of the section they're assembled in, qualified with their scopes
+  (`select_sprite.down_not_0f`), less the set's `stripScope`. A label at a section's exclusive end (`main_code_end`) is
+  in no region and is left out, as is anything in an anonymous scope (baron's `@` names).
+- A virtual section's labels (`SECTION zero_page, org=&00, virtual=TRUE`) are globals, since the section keeps no
+  bytes. A program can include another's layout just to reckon offsets from it, so a label no instruction uses as a
+  memory operand is kept only if some statement mentions it (`EQUW slot_28`, `LDA #LO(io_maps)`, but not a `=` line
+  or a string) and a statement reserving space (a SKIP, or an EQUW that keeps no bytes) starts at it.
+- `=` names count as addresses when an instruction uses them as a memory operand: the operand's first name, not after
+  `#`, not a FUNCTION's result, and not one `leftToSystemSets` covers. Such a name goes to the region it points into
+  if only that region's code uses it, and is a global otherwise.
+- There's one name per address. In a region, a scope's own name wins over the labels inside it (`pl` over
+  `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In the globals it's the `=`
+  name or virtual section label the most instructions use as a memory operand; a label of a `globalsSections`
+  section, or a virtual one only data mentions, counts as used by none.
+- Each name's place is the file and line the symbol dump says defines it (`src/game.6502#L120`), which goes in the
+  set's `places` for a GitHub repository. There, a name the dump gives no place stops the import. A `defines` entry
+  (Scorched Earth's `BUILD`) has no line, so it's never a name in a set.
+
+Every importer links names back to the author's own work where it can, with the set's `home`, `nameLink` and
+`places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
+anchors. Where the author has no site of their own (py8dis's `acorn.py` for the MOS), `source` is the only link.
+
+## Anchors
+
+Candidates are runs of 4 to 8 bytes of the region's own statements: whole instructions from an instruction's start
+(aiming for 6 bytes), or data from any byte. A candidate is out if any of its bytes is
+
+- reached by a store whose target the instruction gives (an indexed store reaches 256 bytes, or all of zero page,
+  unless `tableSizes` says otherwise), except that a run-once region only minds its own stores, and the copies in
+  `moves` don't count;
+- in a block the code hands the OS (`LDX #LO(block)`), which OSWORD, OSFILE and OSGBPB write results into, from its
+  label to the next one that starts code or another block, 18 bytes at most;
+- SKIP or SKIPTO padding, or under a label with `unused`, `leftover`, `junk`, `spare` or `stray` as a word of any of
+  its scopes, up to the next label;
+- in a BASIC program (a section saved to run at `&8023`), its first line, any line's CR, number and length, or a REM's
+  text (but not code in the REM);
+- in `&FC00-&FEFF`, or in an `avoid` range;
+
+or if the run calls into the MOS (`JSR` or `JMP` to `&C000` up), has two NOPs together (where cheats poke), has fewer
+than four different bytes, or appears twice in the region.
+
+From those it picks about one anchor per `bytesPerAnchor` of the region (`spreadAnchors` at most), spread over it,
+preferring a label, then code, then the most different bytes. Then it looks at every other image of the region's
+addresses in the build (every section of every source where it runs, every file where it loads). An image that holds
+all the anchors and agrees with them gets another anchor where it differs, or the import fails. Another program's
+image of any part of the region gets an anchor inside that part where it differs, if there is one, so that a
+leftover stops matching once part of it is overwritten; when there isn't one the importer prints a note.
+
+## The checks
+
+The corpus check places every complete DFS file on every disc in the corpus at its load address and lists, for each
+region, every title whose files hold all its anchors, with how much of the region they hold and how much of that is
+identical. 90% identical or more is the same code (a crack, a compilation); anything less is a collision, and the check
+exits 1. Since files sit at their load addresses, code a program moves to where it runs is only compared with other
+titles' files that load there.
+
+The in-memory check boots the title's disc in a headless jsbeeb and, at each moment a scenario picks, lists the regions
+whose anchors all match. A moment fails unless that's exactly the regions expected, or if two matching regions
+overlap (of one set or two), since the debugger then shows neither.
+
+Neither takes a ROM's config. For a ROM, the importer's own comparison against every ROM jsbeeb has stands in for the
+corpus check, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
+
+## What the baron importer gets wrong
+
+- A program's zero page used differently in different regions loses names, since a set's globals hold one name per
+  address. PIPELINE's game loader's `copy_return`, `copy_from` and `menu_keys` give way to the main code's
+  `monster_x`, `monster_direction` and `work0`. Baron's `ZA_AUTO`, which gives routines that never run together the
+  same zero page, does the same to Scorched Earth.
+- The operand rule misses `=` names the code reaches only through an immediate's `LO()`/`HI()`, a FUNCTION or a table
+  of addresses, and takes a name used only in dead code as readily as any other.
+- Stores through a pointer, or by the OS into a block it wasn't passed with `LDX #LO(...)`, aren't seen. The
+  `LDX #LO(...)` rule also over-blocks OSCLI strings, which the OS only reads.
+- The config's hand-written knowledge (where to cut, table sizes, moving copies) is by name, so a change to the code
+  needs the config looked at; a misspelt name stops the import.
+- The "another program's image" rule adds anchors for meetings that never happen: PIPELINE's MISSION gets one in
+  TITLE's unpacker page and one in the game's loader, which no route through the menu puts beside it.
+- Data anchors in text land wherever the spread puts them.
+
+The importer reads operands back out of the `-vv` listing's text, which is why it can't follow a FUNCTION, until
+baron gives the symbol each operand was written with ([baron#14](https://github.com/waitingforvsync/baron/issues/14)).
+
+## beebasm titles
+
+A beebasm title's config differs from a baron title's in a few ways.
+
+- `source.assemble` is the one main source, and `source.directory` is where beebasm runs (the repository's root if
+  none), since beebasm finds an INCLUDE from where it runs rather than from the file that INCLUDEs it.
+- A region names a saved file, `file`, as its SAVE writes it (`"../build/CODE"`), instead of a section, and can be cut
+  with `from` and `to`. beebasm has no sections; a SAVE writes whatever is in memory between two addresses.
+- There's no `defines`, `stripScope`, `tableSizes`, `moves`, `globalsSections` or `leftToSystemSets` yet, as nothing
+  has needed them.
+
+The build copies the checkout (a SAVE writes wherever its source says) and runs beebasm with `-v -dd -labels` on a
+wrapper that INCLUDEs the main source and then PRINTs each name the sources assign with `=`, since beebasm's dumps
+hold labels only. A name the wrapper can't PRINT, because it was assigned inside braces or a loop, is dropped and the
+build run again.
+
+Names and anchors come out much as for baron, with these differences.
+
+- beebasm doesn't say where a saved file starts, so the importer takes the address, among those listed before its
+  SAVE, from which the file agrees with every statement it covers and covers the most. Its statements are those in
+  memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it.
+  SKIPTO and ALIGN padding never anchors.
+- A label in a scope with no label of its own (a FOR loop's pass, a macro's call) is left out, as baron's `@` scopes
+  are.
+- A `=` name counts as an address when the sources write it first in a non-immediate operand (`LDA ptr`,
+  `STA (vec),Y`), an instruction of the set's files uses its value as a memory operand, the MOS set doesn't name that
+  address, no label of the set's regions is at it, and no other name passing the same tests has the same value. Names
+  that share a value are all left out, since the listing's operands are numbers and which name an instruction was
+  written with is never known.
+- An OS block is an `LDX #lo` beside an `LDY #hi` that make a label's address.
+- The original disc's files, where its catalogue loads them, are among the images the anchors are chosen to tell
+  apart.
+- Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`) or with `=`, outside strings
+  and comments; a scoped name (`start.loop`) is found by its last part. A name that no line, or more than one, defines
+  stops the import.
+
+What it gets wrong, beyond the baron importer's list: names shared by code that doesn't run together (a sound driver's
+and a title screen's workspace at one zero page address) are left out; a `=` name used only in an expression's later
+term (`LDA base + ptr`) or a macro's argument isn't seen as an operand, and the text search takes a name in a comment
+as readily as one in code; a label in braces that don't start at it (`.routine LDA #0 : {`) loses its scope's name, and
+every label inside is left out; and a file loaded in one place and run in another is only compared with the corpus
+where it loads, so the corpus check never sees Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
+
+## py8dis disassemblies
+
+A [py8dis](https://github.com/ZornsLemma/py8dis) disassembly is a control script that loads a binary, says where
+pieces of it are `move()`d to run, and names addresses. `py8dis-dump.py` runs the script under py8dis, lets it trace
+and classify the binary as it would to emit assembly, and prints what py8dis then holds as JSON: each piece where it
+runs, every instruction and data line with its bytes, and every name with the move it was given in. So the names and
+anchors never come from py8dis's assembly output. The importer runs Python with `-I` and `-B` from a directory of its
+own, so neither checkout's files get imported by accident or gain any.
+
+The config differs from a baron title's in these.
+
+- `source.script` is the control script, from the repository's root. `source.directory`, if given, is where it runs
+  (and so where the paths it loads from start); otherwise it runs in its own directory.
+- `source.assembly` is the assembly the repository holds (`repton2.s`), if any. On GitHub, each name links to the line
+  that starts with it, as a label (`name:` or `.name`) or a constant (`name =`), and a name that no line, or more than
+  one, starts stops the import.
+- `py8dis` gives the `repository` and `commit` of the py8dis to run it under.
+- `disc` is the disc the in-memory check boots, when the repository has none: the `url` of a zip, the `image`'s path
+  in it, and its `key`.
+- A region is `from` an address `to` another (the end of `from`'s piece if not given), expressions in the script's
+  names. It has to lie in one piece.
+- `moves` and `tableSizes` are expressions too, since a script names few of the instructions it traces
+  (`boot_relocate_0380_loop + 3`). A table is the store's operand exactly, so `STA table+1,X` is `table + 1`. A move
+  can name a copy loop's first instruction; the loop is the one in the piece with an instruction there, or in any
+  piece if none or several have one.
+
+A name goes to the region holding its address in its move's piece. One in a piece no region holds (a loader the
+disassembly added) is left out; one outside every piece is a global. The first name the script gives an address wins.
+A name given two addresses stops the import, since a config expression using it couldn't say which it means. The
+names py8dis makes up (`l0070`, `sub_c1234`), expressions (`zp_ptr+1`), constants, and `acorn.py`'s OS and hardware
+names are left out.
+
+For anchors, nothing marks the blocks code hands the OS, py8dis has no SKIP, and every store counts, the
+disassembly's own loader included, unless `moves` says it's a copy.
+
+Control scripts written in September 2021 import `trace6502` and call `acorn.add_standard_labels()`, which py8dis has
+since renamed; `py8dis-dump.py` puts them back so such a script runs unchanged.
+
+## acornaeology's ROMs
+
+[acornaeology](https://github.com/acornaeology) publishes annotated disassemblies of Acorn's ROMs, each with a JSON
+file (dasmos's schema 4) of every statement with its bytes and labels, plus `external_labels` for addresses outside the
+ROM. `import-acornaeology.js` makes a set from one; only BBC BASIC II has a config so far, though the NFS, ANFS and ADFS
+repositories publish the same schema.
+
+A config has `"importer": "acornaeology"`, an `id` (also the set's file name), a `title`, the `licence`, and
+
+- `source`, with the `repository`, the `commit`, the `disassembly` JSON's path in it, and the `licenceFile` whose text
+  becomes the set's notice;
+- `rom`, the file under jsbeeb's `public/roms/` the set is anchored on (from the `jsbeeb` package in
+  `node_modules`); the importer refuses a JSON whose bytes aren't that ROM's;
+- `regions`, each a `name`, `start` and `end`. A sideways ROM is cut at `&9000` and `&B000`, for the reason the
+  proposal gives;
+- `globals`, the ranges whose `external_labels` become the set's globals;
+- `bytesPerAnchor` and `spreadAnchors`, as for baron;
+- `home`, the disassembly's page on acornaeology's site. The importer fetches it, and each name whose address has an
+  anchor there (`id="addr-800E"`) links to it. The page only has anchors inside the ROM, so globals get no links, and
+  a name in the ROM with no anchor stops the import.
+
+Every label of a statement goes to the region holding it. A name outside the ROM is a global if it's in a `globals`
+range and no system set names its address, so the MOS's names for its vectors stay the MOS's; where two share an
+address, the one the JSON's `memory_map` describes wins. Constants and comments are never read. For anchors, the whole
+ROM is one section with no stores, and every bank of every ROM file jsbeeb has that's a whole number of the ROM's size
+is another image to tell it apart from.
+
+The set isn't `system`, so BASIC's workspace names only name BASIC's own code's operands, and a game run from BASIC
+keeps its own names for the zero page they share.
 
 ## PIPELINE
 
-`symbols/configs/pipeline.json` makes one set per program, from
-[pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm):
+`symbols/configs/pipeline.json` makes one set per program from
+[pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm). Each program runs on its own with its own zero page,
+so a set per program keeps the game's `&70` (`cell_x`) apart from the Graphics Designer's (`sprite_width`) and the
+GRAPHIC stub's (`sectors_this_read`). A stub and the program it loads are often in memory together, but not always,
+so they're separate sets; the three stubs are one source assembled three times, told apart by their anchor at
+`read_whole_run`. WDATA, which the Level Designer loads at its start and keeps, is a region of the Level Designer's
+set. IO, LEVEL1 and DEFAULT come in as their programs' globals, and the other data files are pictures or `*EXEC` text.
+MENU and MISSION are BASIC, but each holds labelled machine code (MENU's scroller, MISSION's scrambler in a REM), so
+each has a set.
 
-- Each program runs on its own, with its own zero page, so a set per program keeps the game's `&70`
-  (`cell_x`) apart from the Graphics Designer's (`sprite_width`) and the GRAPHIC stub's (`sectors_this_read`).
-- A stub and the program it loads are often in memory together, but not always, so they're separate sets.
-  The three stubs are one source assembled three times, told apart by their anchor at `read_whole_run`.
-- WDATA, loaded by the Level Designer at its start and kept, is a region of the Level Designer's set. The
-  other data files have no sets: IO, LEVEL1 and DEFAULT come in as their programs' globals, and the rest are
-  pictures or `*EXEC` text.
-- MENU and MISSION are BASIC, but each holds labelled machine code (MENU's scroller, MISSION's scrambler in
-  a REM), so each has a set.
+Where the regions are cut:
 
-Where the regions are cut, and why:
-
-- **The game.** The loader (H.GAME as loaded at `&3000`, which IO replaces, so `overwritten`) and the four
-  pieces it copies, each where it runs. `main_code` is cut at `SWAP_START` and `SWAP_END`, which
-  `load_mission` swaps into the screen while IO loads, and `game_start` is a region of its own: the level's
-  objects are copied over it once it has run. `tableSizes` gives the four tables in zero page and the stack
-  page that are written with an index; counted at 256 bytes their stores would leave `event_handler` nothing
-  to anchor on.
-- **The Level Designer.** `main`; `startup` (`entry` and the stored zero page, low code and font), which the
-  level being edited fills; the low code and the font where `entry` moves them (the two `moves`); and WDATA.
-  Its zero page section is `globalsSections`.
-- **TITLE**: the file as loaded, which the picture unpacks over, and `unpack`, the part it moves to `&2F18`
-  to run.
-- **PL**: the decryptor, the encrypted bytes, and the cheat they decrypt to. The decryptor's last byte, a
-  BMI opcode, is also the cheat's first instruction, so the decryptor is cut one byte early: otherwise both
-  regions match there once PL has run, and the debugger would show neither.
-- **MENU**: the BASIC program, the scroller and its message (C%), and the menu screen (S%), whose leftovers
-  past its end are `avoid`ed.
-
-The in-memory check's scenarios (`symbols/configs/pipeline-check.js`) walk the menu, TITLE, the game (to its
-loader, `game_start`, IO loading, the title screen and play, then seeded random play), the Level Designer,
-the Graphics Designer and its tours of every menu, MRUN and PL.
+- The game has its loader (H.GAME as loaded at `&3000`, `overwritten` by IO) and the four pieces it copies, each where
+  it runs. `main_code` is cut at `SWAP_START` and `SWAP_END`, which `load_mission` swaps into the screen while IO
+  loads, and `game_start` is a region of its own, since the level's objects are copied over it once it has run.
+  `tableSizes` gives the four indexed tables in zero page and the stack page; at 256 bytes each their stores would
+  leave `event_handler` nothing to anchor on.
+- The Level Designer has `main`; `startup` (`entry` and the stored zero page, low code and font), which the level being
+  edited fills; the low code and font where `entry` moves them (the two `moves`); and WDATA. Its zero page section is
+  in `globalsSections`.
+- TITLE is the file as loaded, which the picture unpacks over, and `unpack`, the part it moves to `&2F18` to run.
+- PL is the decryptor, the encrypted bytes, and the cheat they decrypt to. The decryptor's last byte, a BMI opcode, is
+  also the cheat's first instruction, so the decryptor is cut one byte early; otherwise both regions match there once
+  PL has run, and the debugger would show neither.
+- MENU is the BASIC program, the scroller and its message (C%), and the menu screen (S%), whose leftovers past its end
+  are `avoid`ed.
 
 ## Scorched Earth
 
 `symbols/configs/scorched-earth.json` makes one set, the game, from
-[beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth). INTRO, the BASIC that `!BOOT`
-chains, has no names, so no set; the in-memory check makes sure nothing matches while it runs.
+[beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth). INTRO, the BASIC that `!BOOT` chains, has
+no names and no set; the in-memory check makes sure nothing matches while it runs.
 
-- The game prints its build stamp, which its Makefile passes as `-D BUILD=...`, so the config's `defines`
-  gives the shipped disc's stamp. Without it the code after the stamp would move.
-- SCORCH loads at `&1900` and copies the game down to `&0E00`, over where it was loaded, so the loader
-  region is only its own code, from `loader`: as loaded, it would match beside the game it copied down,
-  and the debugger would show neither.
-- `startup` runs once from `skyrow` and `dirtrow`, which the first round fills. Before it calls the game it
-  copies five tables into holes below `&0E00` (the bottom of the stack page, the cassette workspace, the
-  printer buffer, the user-defined characters and the NMI area), each a region of its own. Its copy loops,
-  and the loader's, are `moves`.
-- `tableSizes` gives the per-player and per-shell arrays in the printer buffer, the user-defined characters
-  and the NMI area, which would otherwise reach over the low tables beside them and the start of the code.
-  `profile`'s is up to `fall_x`, since napalm's `liquid` is the same address and runs over three tables.
-- The workspace sections are `globalsSections`, and `defs.6502`'s OS and hardware names are left to the
-  MOS set.
+- The game prints a build stamp its Makefile passes as `-D BUILD=...`, so `defines` gives the shipped disc's stamp.
+  Without it the code after the stamp would move.
+- SCORCH loads at `&1900` and copies the game down to `&0E00`, over where it was loaded, so the loader region is only
+  its own code from `loader`. As loaded, it would match beside the game it copied down.
+- `startup` runs once from `skyrow` and `dirtrow`, which the first round fills. Before calling the game it copies five
+  tables into holes below `&0E00` (the bottom of the stack page, the cassette workspace, the printer buffer, the
+  user-defined characters and the NMI area), each a region of its own. Its copy loops, and the loader's, are `moves`.
+- `tableSizes` keeps the per-player and per-shell arrays from reaching over the low tables beside them and the start
+  of the code. `profile`'s runs up to `fall_x`, since napalm's `liquid` is the same address and runs over three tables.
+- The workspace sections are `globalsSections`, and `defs.6502`'s OS and hardware names are left to the MOS set.
 - `avoid` keeps anchors off the talk lines, which are Wendell Hicken's, not the MIT licence's.
-
-The scenarios (`symbols/configs/scorched-earth-check.js`) walk INTRO and its instructions, the loader, the
-start-up code and the setup screen, a human's turn and a computer's, and a two-round game of computers
-through its explosions, scores, shop and champion.
 
 ## Repton 2
 
 `symbols/configs/repton2.json` makes one set from George Foot's
-[repton2disassembly](https://github.com/gfoot/repton2disassembly), whose `repton2.bin` is the game's code
-as it sits in memory once loaded, with a loader of his own appended.
+[repton2disassembly](https://github.com/gfoot/repton2disassembly), whose `repton2.bin` is the game's code as it sits in
+memory once loaded, with a loader of his own appended. The repository doesn't say which py8dis made `repton2.s`, and
+none from around when it was committed remakes it; the config's py8dis (`2a60463`) runs the script, with the two names
+`py8dis-dump.py` puts back, and gives every name at the address `repton2.s` has it.
 
-- **Py8dis.** The repository doesn't say which py8dis made its `repton2.s`. Its scripts were committed on
-  15 September 2021 (`42820e4`, `26137b7`); py8dis's xa output, which the Makefile assembles, starts the
-  next day at `b75d139`, and `cf93419` on 19 September renamed `acorn.add_standard_labels()`. Every py8dis
-  commit from `b75d139` to `c32b0f9`, the last before the rename, stops on the script's `byte()`s of
-  addresses the binary doesn't load, so none remakes `repton2.s`. The config's py8dis, `2a60463`, runs it
-  with the two names `py8dis-dump.py` puts back, and gives every name at the address `repton2.s` has it.
-- **The regions** are where the game runs: `main` (`&0D00-&5FFF`, up to the screen), and the two
-  pieces the loader moves, `music` to `&0380` and `page8` to `&0880`. The loader at `&70A0` is the
-  disassembly's, not the game's, so it has no region; its copies to `&0380` and `&0880` are `moves`, or their
-  indexed stores would leave the two pieces nothing to anchor on.
-- **The disc** is Stairway to Hell's `Superior/Repton2.zip`, whose `D.REPB` is the game encrypted; once its
-  loader has run, the three regions hold `repton2.bin`'s bytes exactly.
-
-The in-memory check's scenarios (`symbols/configs/repton2-check.js`) look at the loader, `start1`, the status
-screen, play, the end of a game and the status screen again, then seeded random play.
+The regions are where the game runs: `main` (`&0D00-&5FFF`, up to the screen), and the two pieces the loader moves,
+`music` to `&0380` and `page8` to `&0880`. The loader at `&70A0` is the disassembly's, not the game's, so it has no
+region; its copies are `moves`, or their indexed stores would leave the two pieces nothing to anchor on. The disc is
+Stairway to Hell's `Superior/Repton2.zip`, whose `D.REPB` is the game encrypted; once its loader has run, the three
+regions hold `repton2.bin`'s bytes exactly.
 
 ## Nevryon
 
-`symbols/configs/nevryon.json` makes one set, `game`, from
-[nevryon](https://github.com/waitingforvsync/nevryon)'s disassembly, from the four files its master source
-saves: CODE, CODE2, CODE3 and GRAPHIX, each where the loader puts it. The repository's disc is Stairway to
-Hell's `4thDimension/Nevryon.zip`, byte for byte.
-
-- **GRAPHIX** starts 16 bytes in: CODE3 ends 16 bytes into it, and LOADER3 loads CODE3 after Loader2 has
-  loaded GRAPHIX, so in memory those bytes are CODE3's.
-- The loader's menu, which shows a picture over where GRAPHIX goes, matches nothing; the game's own title
-  screen and play match all four.
-
-The in-memory check's scenario (`symbols/configs/nevryon-check.js`) goes through the intro, the options and the
-menu, then into the game and seeded random play.
+`symbols/configs/nevryon.json` makes one set, `game`, from [nevryon](https://github.com/waitingforvsync/nevryon)'s
+disassembly, from the four files its master source saves (CODE, CODE2, CODE3 and GRAPHIX), each where the loader puts
+it. The repository's disc is Stairway to Hell's `4thDimension/Nevryon.zip`, byte for byte. GRAPHIX starts 16 bytes in,
+because CODE3 ends 16 bytes into it and LOADER3 loads CODE3 after Loader2 has loaded GRAPHIX. The loader's menu, which
+shows a picture over where GRAPHIX goes, matches nothing; the game's own title screen and play match all four.
 
 ## Daredevil Demis
 
 `symbols/configs/daredevil-demis.json` makes one set, `game`, from
-[daredevil-demis](https://github.com/mattgodbolt/daredevil-demis): one region over its one saved file, which
-runs where it loads. The repository's disc, the one jsbeeb's GitHub disc list serves, is what the source
-builds.
-
-Its modules share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so those addresses
-go unnamed. The in-memory check's scenario (`symbols/configs/daredevil-demis-check.js`) checks the title screen,
-then seeded random play.
+[daredevil-demis](https://github.com/mattgodbolt/daredevil-demis): one region over its one saved file, which runs where
+it loads. The repository's disc, the one jsbeeb's GitHub disc list serves, is what the source builds. Its modules
+share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so those addresses go unnamed.

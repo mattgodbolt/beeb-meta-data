@@ -62,8 +62,8 @@ Never write:
 - how a user might experience the bug
 - a second explanation of a rationale given elsewhere in the diff
 
-Em dashes are not used in this codebase, in comments or in prose. Use commas, parentheses or
-semicolons.
+No dashes as punctuation (em, en or `--`), in comments or in prose. Use commas, parentheses or
+full stops.
 
 Length is a smell, not a rule: if a comment runs past two lines, it is usually answering a question
 nobody asked.
