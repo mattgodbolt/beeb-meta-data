@@ -377,8 +377,9 @@ region, since every `STA zp,X` of the ROM reaches it. `tableSizes` gives the NMI
 ROM stores into with X of 0 or 3.
 
 The in-memory check runs disc commands on a B1770, with and without a second processor, and checks DFS 1.2's and a
-Master's machines match nothing but DFS 1.2's page 5. The 8271 mode is set by hand, since Z+BREAK stops a B's MOS
-1.20 at a BRK in jsbeeb; its scenarios say which machine they want with `machines`.
+Master's machines match nothing but DFS 1.2's page 5. It holds Z through a power-on reset for the 8271 mode: through
+a soft BREAK, the DFS puts its saved workspace back over the OSBYTE hook the mode has just made, and the next OSBYTE
+meets a BRK. Its scenarios say which machine they want with `machines`.
 
 ## Plan B
 

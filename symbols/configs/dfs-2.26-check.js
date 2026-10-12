@@ -3,14 +3,13 @@
  * without a second processor, and on two machines whose DFS isn't 2.26.
  */
 
+import { BBC } from "jsbeeb/src/keymap.js";
 import { runSeconds } from "../../tools/symbols/check-memory.js";
 
 const CommandSecs = 3;
 // In the loop that copies the write handler's middle over the read handler's, which the script leaves unnamed.
 const CopyingWriteHandler = 0x8fb2;
-// What holding Z through BREAK sets for drive 0, putting the DFS in its 8271 compatibility mode. Set by
-// hand, since Z+BREAK stops a B's MOS 1.20 at a BRK in jsbeeb.
-const Compatibility8271 = "?&10DE=&40";
+const ResetSecs = 2;
 const Osword7FRead = "DIM B% 20:?B%=0:B%!1=&3000:B%!3=&FFFF:B%?5=3:B%?6=&53:B%?7=0:B%?8=0:B%?9=&21";
 const CallOsword7F = "A%=&7F:X%=B%:Y%=B% DIV256:CALL &FFF1";
 
@@ -18,6 +17,21 @@ const Rom = ["rom/low", "rom/middle", "rom/high"];
 const Tube = ["tube/page4", "tube/page5"];
 
 const finish = (session) => runSeconds(session, CommandSecs);
+
+/**
+ * Holds Z through a power-on reset, which puts the DFS in its 8271 compatibility mode. Through a soft BREAK
+ * the DFS puts its saved workspace back over the OSBYTE hook it has just made, and the next OSBYTE meets a BRK.
+ */
+async function compatibility8271(session) {
+    session.keyDownRaw(BBC.Z);
+    try {
+        session.reset(true);
+        await runSeconds(session, ResetSecs);
+    } finally {
+        session.keyUpRaw(BBC.Z);
+    }
+    await runSeconds(session, ResetSecs);
+}
 
 export const machines = {
     disc: { model: "B1770", autoboot: false },
@@ -45,8 +59,9 @@ export const scenarios = {
         await session.runUntilAddress(nmi);
         check("*LOAD, in the read NMI handler", [...Rom, "rom/nmi_read"]);
         await finish(session);
+        await compatibility8271(session);
         await session.type(Osword7FRead);
-        await session.type(`${Compatibility8271}:${CallOsword7F}`);
+        await session.type(CallOsword7F);
         await session.runUntilAddress(address("rom", "middle", "nmi3_handler_rom_end"));
         await session.runUntilAddress(nmi);
         check("an 8271 read in compatibility mode, in its NMI handler", [...Rom, "rom/nmi_8271"]);
