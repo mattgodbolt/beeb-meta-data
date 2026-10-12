@@ -5,8 +5,8 @@ programs in a debugger; later, **records** that say what a disc or tape is (its 
 keys). [jsbeeb](https://github.com/mattgodbolt/jsbeeb) is the first client, but nothing in the published data is
 specific to it.
 
-It will be published as static JSON under `https://bbc.xania.org/meta/`, with CORS open to every origin, once the
-deploy has credentials.
+It's published as static JSON under `https://bbc.xania.org/meta/`, with CORS open to every origin; the sets'
+index is [`meta/symbols/index.json`](https://bbc.xania.org/meta/symbols/index.json).
 
 ## The idea in brief
 
@@ -49,8 +49,9 @@ npm run dist         # what the deploy would publish, in dist/
 
 Adding or remaking a title's sets is in [the importers' doc](docs/symbol-importers.md).
 
-Every push runs the tests in CI; a push to `main`, or a manual run there, also syncs the `dist/` it built to `s3://bbc.xania.org/meta/`,
-once the repository has AWS credentials.
+Every push runs the tests in CI; a push to `main`, or a manual run there, also uploads the `dist/` it built to
+`s3://bbc.xania.org/meta/`, the sets first and the index last. Nothing published is ever deleted, and files are
+served with a five-minute cache lifetime, so a change is live within minutes of reaching `main`.
 
 ## Reference
 
