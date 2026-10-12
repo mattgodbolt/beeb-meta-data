@@ -124,12 +124,15 @@ function piecesOf(part) {
 const labelled = (part, label) => part.statements.find((s) => s.line > label.line && s.address === label.address);
 
 /**
- * Statements with each address once: one whose bytes all repeat earlier ones' is left out; two that
- * disagree are a typo in one of their addresses, and neither is kept.
+ * Statements without repeats: one whose bytes all repeat others' is left out unless a label names it,
+ * and where a data row and code cover the same bytes the code is kept; two that disagree are a typo in
+ * one of their addresses, and neither is kept.
+ * @param {Set<object>} labelledStatements - the statements labels name
  */
-function agreeingStatements(statements) {
+function agreeingStatements(statements, labelledStatements) {
     const byAddress = new Map();
-    for (const statement of statements)
+    const codeFirst = [...statements].sort((a, b) => Number(b.code) - Number(a.code) || a.line - b.line);
+    for (const statement of codeFirst)
         statement.data.forEach((_, i) => {
             const at = statement.address + i;
             if (!byAddress.has(at)) byAddress.set(at, []);
@@ -138,7 +141,11 @@ function agreeingStatements(statements) {
     const conflicting = new Set();
     for (const [at, here] of byAddress)
         if (new Set(here.map((s) => s.data[at - s.address])).size > 1) here.forEach((s) => conflicting.add(s));
-    const repeated = new Set(statements.filter((s) => s.data.every((_, i) => byAddress.get(s.address + i)[0] !== s)));
+    const repeated = new Set(
+        statements.filter(
+            (s) => !labelledStatements.has(s) && s.data.every((_, i) => byAddress.get(s.address + i)[0] !== s),
+        ),
+    );
     return {
         statements: statements.filter((s) => !conflicting.has(s) && !repeated.has(s)),
         conflicting: statements.filter((s) => conflicting.has(s)),
@@ -218,6 +225,7 @@ class Importer {
                 .filter((piece) => piece.part === part && !leftOut.has(piece.start))
                 .flatMap((piece) => piece.statements)
                 .filter((s) => s.address >= start && s.address < end),
+            new Set(part.labels.map((label) => labelled(part, label))),
         );
         if (conflicting.length)
             this.notes.push(
@@ -380,12 +388,12 @@ class Importer {
         const byName =
             offset === undefined
                 ? undefined
-                : textFragment(this.text, this.lower, this.text.substr(offset, text.length), offset);
+                : textFragment(this.text, this.lower, this.text.slice(offset, offset + text.length), offset);
         if (byName) return byName;
         const address = hex(statement.address);
         const start = at(address, statement.line);
         return start === this.offsets[statement.line]
-            ? textFragment(this.text, this.lower, this.text.substr(start, address.length), start)
+            ? textFragment(this.text, this.lower, this.text.slice(start, start + address.length), start)
             : undefined;
     }
 

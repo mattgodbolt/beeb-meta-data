@@ -422,14 +422,14 @@ game itself" and that it's "provided for educational purposes only"; Matt agreed
 the names and linking back. So a set's `licence` is `LicenseRef-level7-educational`, and its `notice` quotes that
 paragraph from the file, which the importer refuses a file without.
 
-`level7-text.js` reads a file. A statement is a line of its address and bytes, and an instruction if a mnemonic
-follows (`&1400 a9 13    LDA #&13`); a label is a line of its own before its statement (`; entry_point`); and an
-instruction's operand is often followed by the name of what it addresses (`STA &8f ; code_address_high`). A heading
-(`Game disassembly`, underlined) or a file's header (`; HOPPER` and then `; ff0e00 ff8023 000800`) starts a part. Code
-the program moves is listed where it runs, after a note that says so, and the importer takes the note's copying
-instruction as a move (`# &3200 - &33ff is copied to &0900 - &0aff at &3011`). An instruction followed by `#
-actually` or `# or` changes as the program runs, so its bytes never anchor. An instruction whose bytes don't fit its
-operand (`STA &01A`, `LDA &....`) is read as data.
+`level7-text.js` reads a file. A statement is a line of its address and bytes, and an instruction if a mnemonic follows
+(`&1400 a9 13 LDA #&13`); a label is a line of its own before its statement (`; entry_point`); and an instruction's
+operand is often followed by the name of what it addresses (`STA &8f ; code_address_high`). A heading (`Game
+disassembly`, underlined) or a file's header (`; HOPPER` and then `; ff0e00 ff8023 000800`) starts a part. Code the
+program moves is listed where it runs, after a note that says so, and the importer takes the note's copying instruction
+as a move (`# &0585 - &059a is copied to &0100 - &0115 at &0568`), when it is a store or starts a copy loop; a copy
+through a pointer needs none. An instruction followed by `# actually` or `# or` changes as the program runs, so its
+bytes never anchor. An instruction whose bytes don't fit its operand (`STA &01A`, `LDA &....`) is read as data.
 
 A config has `"importer": "level7"`, and differs from a py8dis title's in these.
 
@@ -438,20 +438,22 @@ A config has `"importer": "level7"`, and differs from a py8dis title's in these.
   label names or addresses, and needs a part when more than one part has statements there.
 - A region's `leaveOut` names pieces of its part, by the address they start at, that aren't where it runs: a
   disassembly sometimes lists a routine "used unrelocated" at its load address amid the relocated code.
-- Two statements that disagree at an address are a typo in one address, and neither is kept.
+- Two statements that disagree at an address are a typo in one address, and neither is kept. Where a data row and
+  code agree over the same bytes, the code is kept, and a labelled statement always is.
 
 Names come from labels in the set's regions: the last before a statement wins, and a name the file gives several
-addresses (`leave`, `unused`) is left out. Globals are the names the set's own instructions give addresses outside
-its regions, below `&8000`, unless a label or the MOS's set has them; an address with several takes the one most
-instructions use. There are no anchors in a text file, so a name's place is a
-[text fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments): the name and as
-many of the words after it as make the label line the first match (`hopper-disassembly.txt#:~:text=update_object,-%23%20Called`),
-else the statement's address and the words after it; a global's is the first instruction of the set's that uses it, at its address. The files are often of the tape
-version. `tools/symbols/level7-compare.js --config <file>` boots the config's disc and says how much of each run of
-statements memory holds, which is how to choose a title and its regions.
+addresses (`leave`, `unused`) is left out. Globals are the names the set's own instructions give addresses outside its
+regions, below `&8000`, unless a label or the MOS's set has them; an address with several takes the one most
+instructions use. There are no anchors in a text file, so a name's place is a [text
+fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments): the name and as many of
+the words after it as make the label line the first match
+(`hopper-disassembly.txt#:~:text=update_object,-%23%20Called`), else the statement's address and the words after it; a
+global's is the first instruction of the set's that uses it, at its address. The files are often of the tape version.
+`tools/symbols/level7-compare.js --config <file>` boots the config's disc and says how much of each run of statements
+memory holds, which is how to choose a title and its regions.
 
 Hopper, Super Invaders, Arcadians, Starship Command and Syncron have sets. Their discs run the code the files list,
 relocated as the files list it. None loads where it runs, so the corpus check only meets the run-once regions, which
-match the original discs and a cheat disc, the same code. Each `main`
-stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians' `relocate`, Starship Command's
-`entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists unrelocated in the middle of it.
+match the original discs and a cheat disc, the same code. Each `main` stops where the screen starts, and run-once loader
+code (Hopper's `startup`, Arcadians' `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main
+leaves out the pieces the file lists unrelocated in the middle of it.

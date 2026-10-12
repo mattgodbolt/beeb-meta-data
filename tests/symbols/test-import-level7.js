@@ -200,6 +200,18 @@ describe("importLevel7", () => {
         expect(left.sets[0].json.regions.main.symbols.tape_name).toBeUndefined();
     });
 
+    it("keeps code, and any labelled statement, where a data row repeats the same bytes", () => {
+        const rows = Text.replace("; draw_entry\n", "&190b 0c 19 e6 71\n; draw_entry\n").replace(
+            "&1918 ea       NOP",
+            "&1918 ea       NOP\n; also_table\n&1912 12 34",
+        );
+        const kept = importLevel7(config, rows, { systemGlobals: new Map() });
+        expect(kept.notes.some((note) => note.includes("disagree"))).toBe(false);
+        const { symbols } = kept.sets[0].json.regions.main;
+        expect(symbols.draw).toBe("0x190d");
+        expect(symbols.also_table).toBe("0x1912");
+    });
+
     it("refuses a leaveOut outside its region, and a region whose statements all disagree", () => {
         const spec = config.sets[0];
         const outside = { ...config, sets: [{ ...spec, regions: [{ ...spec.regions[0], leaveOut: ["&0900"] }] }] };
