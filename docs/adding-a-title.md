@@ -23,8 +23,7 @@ module and its sets, and nothing else. That's also what lets titles be added in 
    unlicensed disassembly, in ways its history can't separate, which is why there's no ADFS set.
 2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
    ships, or a ROM pinned by URL and key. For a ROM jsbeeb doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml`
-   hashes as a cross-check has
-   usually worked.
+   hashes as a cross-check has usually worked.
 3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
    check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load).
 4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
@@ -45,8 +44,8 @@ These were each settled by a review, some more than once.
   ([jsbeeb#1252](https://github.com/mattgodbolt/jsbeeb/issues/1252)). A set matches whenever its ROM is paged in, and a
   filing system's ROM stays paged in while a game runs, so its workspace names land on the game's memory. The MOS's
   set is the exception.
-- A program's globals name only its own memory. OS variables, vectors and hardware registers belong to the MOS's
-  set. A source's names for them are guesses and are often wrong (five were, across Frogman and XMOS); leave them out
+- A program's globals name only its own memory. OS variables, vectors and hardware registers belong to the MOS's set. A
+  source's names for them are guesses and are often wrong (Frogman's and XMOS's sources had several); leave them out
   with `leaveOut`, and fix them upstream.
 - Leave out names that aren't names: a script's placeholders (`nmi_XXX1`), and names on bytes that differ in the
   copy a region also matches (`sameCodeIn`).
