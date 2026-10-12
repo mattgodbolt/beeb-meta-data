@@ -331,12 +331,12 @@ export function osBlockTargets(source) {
  *     `nameLink`; null for a set with no links
  */
 export function setJson(config, spec, regions, globals, places = null) {
-    const { repository, commit } = config.source;
+    const { repository, commit, link } = config.source;
     return {
         format: Format,
         title: spec.title,
         licence: config.licence,
-        source: `${repository}/tree/${commit}`,
+        source: link === undefined ? `${repository}/tree/${commit}` : `${repository}/blob/${commit}/${link}`,
         ...(config.notice !== undefined && { notice: config.notice }),
         ...(config.madeFrom !== undefined && { madeFrom: config.madeFrom }),
         ...(config.home !== undefined && { home: config.home }),

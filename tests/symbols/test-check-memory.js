@@ -1,10 +1,21 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createZipBlob } from "jsbeeb/src/archive.js";
+import { RomsDir } from "../../tools/jsbeeb.js";
 import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
-import { fetchDisc, loadTitleSets, matchingRegions, overlappingRegions } from "../../tools/symbols/check-memory.js";
+import {
+    fetchDisc,
+    fetchRom,
+    loadTitleSets,
+    matchingRegions,
+    overlappingRegions,
+    startMachine,
+    typeUntil,
+} from "../../tools/symbols/check-memory.js";
+import { romKey } from "../../tools/symbols/rom-images.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
 
 const set = (regions) => parseSet({ format: 1, title: "t", licence: "CC0-1.0", source: "s", regions });
@@ -79,5 +90,111 @@ describe("fetchDisc", () => {
         serving([{ name: image, data: disc }]);
         await expect(fetchDisc({ url, image, key: "0".repeat(32) })).rejects.toThrow(`is image ${discKey}`);
         await expect(fetchDisc({ url, image: "Other.ssd", key: discKey })).rejects.toThrow("holds no Other.ssd");
+    });
+});
+
+describe("fetchRom", () => {
+    const url = "https://example.com/demo.rom";
+    const rom = new Uint8Array(0x4000).map((_, i) => i * 3);
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it("returns the ROM when its key is the config's", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        expect(await fetchRom({ url, key: romKey(rom) })).toEqual(rom);
+    });
+
+    it("refuses a ROM whose key isn't the config's", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        await expect(fetchRom({ url, key: "0".repeat(32) })).rejects.toThrow(`is ROM ${romKey(rom)}`);
+    });
+
+    it("refuses a failed fetch", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
+        await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+    });
+});
+
+describe("startMachine", () => {
+    const RomTable = 0x02a1;
+    const SidewaysRamBank = 7;
+    const ServiceRom = 0x82;
+    // A service ROM whose service entry only returns: its header, title and copyright.
+    const rom = Uint8Array.from([
+        0x00,
+        0x00,
+        0x00,
+        0x4c,
+        0x0e,
+        0x80,
+        ServiceRom,
+        0x0f,
+        0x01,
+        ...Buffer.from("TEST"),
+        0x00,
+        0x60,
+        0x00,
+        ...Buffer.from("(C)"),
+        0x00,
+    ]);
+    const tubeSets = loadTitleSets(path.join(SymbolsDir, "sets"), "dfs-2.26");
+    const tubeRegions = (session) => matchingRegions(tubeSets, (at) => session.readMemory(at, 1)[0]);
+
+    it("puts a sideways ROM in sideways RAM, where the MOS finds it", async () => {
+        const session = await startMachine(null, { autoboot: false }, rom);
+        try {
+            expect(session.readMemory(0x8000, rom.length, { bank: SidewaysRamBank })).toEqual([...rom]);
+            expect(session.readMemory(RomTable + SidewaysRamBank, 1)).toEqual([ServiceRom]);
+        } finally {
+            session.destroy();
+        }
+    });
+
+    it("gives a B with DFS 1.2 a second processor when asked, whose Tube host DFS installs", async () => {
+        for (const [tube, expected] of [
+            [false, []],
+            [true, ["tube/page5"]],
+        ]) {
+            const session = await startMachine(null, { autoboot: false, tube });
+            try {
+                expect(session.modelName).toBe("B-DFS1.2");
+                expect(tubeRegions(session)).toEqual(expected);
+            } finally {
+                session.destroy();
+            }
+        }
+    });
+
+    it("starts the model asked for", async () => {
+        const session = await startMachine(null, { model: "B1770", autoboot: false });
+        const header = (bank) => Buffer.from(session.readMemory(0x8000, 0x20, { bank })).toString("latin1");
+        const dfs = readFileSync(path.join(RomsDir, "b1770/dfs1770.rom")).subarray(0, 0x20).toString("latin1");
+        try {
+            expect(Array.from({ length: 16 }, (_, bank) => header(bank))).toContain(dfs);
+        } finally {
+            session.destroy();
+        }
+    });
+});
+
+describe("typeUntil", () => {
+    const Routine = 0x0900;
+    const Rts = 0x60;
+    let session;
+
+    beforeAll(async () => {
+        session = await startMachine(null, { autoboot: false });
+        session.writeMemory(Routine, [Rts]);
+    });
+    afterAll(() => session.destroy());
+
+    it("stops where the typed command first reaches the address", async () => {
+        await typeUntil(session, "CALL &900", Routine);
+        expect(session.registers().pc).toBe(Routine);
+    });
+
+    it("refuses a command that never reaches it", async () => {
+        await session.runUntilPrompt(5);
+        await expect(typeUntil(session, "REM", Routine)).rejects.toThrow("Typing REM never reached &0900");
     });
 });
