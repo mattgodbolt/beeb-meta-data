@@ -117,6 +117,18 @@ function copyLoops(statements, moves) {
 }
 
 /**
+ * The zero page addresses the code's stores and read-modify-writes name, an indexed one's by its base: where
+ * a program keeps its own variables, even over the OS's. Vectors, OS workspace and I/O it writes stay the MOS's.
+ * @param {ChooserStatement[]} statements
+ * @returns {Set<number>}
+ */
+export function zeroPageStores(statements) {
+    return new Set(
+        statements.filter((s) => s.code && StoreModes.has(s.data[0]) && s.data.length === 2).map((s) => s.data[1]),
+    );
+}
+
+/**
  * Every store whose target the code gives, with how far it reaches: 256 bytes for an indexed one,
  * unless `tableSizes` gives its table's size, and none for a copy in `moves` that puts the program in
  * place.

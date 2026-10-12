@@ -25,6 +25,9 @@ node tools/symbols/import-acme.js --config symbols/configs/<title>.json
 node tools/symbols/build-index.js
 ```
 
+`npm run reimport-all` runs every config's importer and `build-index.js`, and lists the sets that changed; with
+`--check` it exits 1 if any did. It needs every importer's tools and the network.
+
 Then the two checks, for any title but a ROM:
 
 ```sh
@@ -125,6 +128,11 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 Every importer links names back to the author's own work where it can, with the set's `home`, `nameLink` and
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
 anchors. Where the author has no site of their own, `source` is the only link.
+
+The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
+system set, unless the address is in zero page and the title's own code stores to it (`zeroPageStores` in
+`anchor-chooser.js`). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
+`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
 ## Anchors
 

@@ -743,6 +743,7 @@
     "palette_state": "0x00c4",
     "smart_bomb_timer": "0x00c5",
     "players_maximum_weapon": "0x00c6",
+    "irq_accumulator": "0x00fc",
     "irq1_vector_high": "0x0205"
   },
   "places": {
@@ -867,6 +868,7 @@
     "input_block": "cyborg-warriors-disassembly.txt#:~:text=input_block,-%260787",
     "irq1_handler": "cyborg-warriors-disassembly.txt#:~:text=irq1_handler,-%261ae2",
     "irq1_vector_high": "cyborg-warriors-disassembly.txt#:~:text=irq1_vector_high",
+    "irq_accumulator": "cyborg-warriors-disassembly.txt#:~:text=irq_accumulator",
     "is_aligned": "cyborg-warriors-disassembly.txt#:~:text=is_aligned,-%26216a",
     "is_lower": "cyborg-warriors-disassembly.txt#:~:text=is_lower,-%260bbc",
     "is_player": "cyborg-warriors-disassembly.txt#:~:text=is_player,-%261be5",

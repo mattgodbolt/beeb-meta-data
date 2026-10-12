@@ -13,6 +13,7 @@ const OpcodeLdaImmediate = 0xa9;
 const OpcodeStaZeroPage = 0x85;
 const OpcodeStaAbsolute = 0x8d;
 const OpcodeRts = 0x60;
+const OpcodeLdaZeroPage = 0xa5;
 const Workspace = 0x70;
 const Io = 0xfe40;
 const Middle = 0x8080;
@@ -108,11 +109,36 @@ describe("importAcmeSet", () => {
         expect(dropped).toContainEqual(["count", 3, "no instruction uses it as a memory operand"]);
     });
 
-    it("leaves the system sets' addresses to them, unless it's a system set itself", () => {
-        const system = new Map([[Io, "via_b"]]);
-        expect(importDemo({ systemGlobals: system }).json.globals).toEqual({ work: "0x0070" });
-        const { json } = importDemo({ systemGlobals: system }, demoBuild(), { ...config, system: true });
-        expect(json.globals).toEqual({ work: "0x0070", port: "0xfe40" });
+    it("leaves the system sets' addresses to them but the zero page its code stores to, unless it's a system set itself", () => {
+        const clock = 0xfc;
+        const reading = () => {
+            const build = demoBuild();
+            build.binary.set([OpcodeLdaZeroPage, clock], 0xfc);
+            build.statements.push({
+                address: Base + 0xfc,
+                data: [OpcodeLdaZeroPage, clock],
+                text: "    lda .clock",
+                line: 300,
+            });
+            build.definitions.push({ name: ".clock", line: 6, label: false, value: clock });
+            return build;
+        };
+        const system = new Map([
+            [Workspace, "os_work"],
+            [Io, "via_b"],
+            [clock, "irq_a"],
+        ]);
+        const build = reading();
+        const { json: own, dropped } = importDemo({ systemGlobals: system, rom: build.binary }, build);
+        expect(own.globals).toEqual({ work: "0x0070" });
+        expect(dropped).toContainEqual(["port", Io, "the system sets call it via_b"]);
+        expect(dropped).toContainEqual(["clock", clock, "the system sets call it irq_a"]);
+        const systemBuild = reading();
+        const { json } = importDemo({ systemGlobals: system, rom: systemBuild.binary }, systemBuild, {
+            ...config,
+            system: true,
+        });
+        expect(json.globals).toEqual({ work: "0x0070", port: "0xfe40", clock: "0x00fc" });
         expect(json.system).toBe(true);
     });
 

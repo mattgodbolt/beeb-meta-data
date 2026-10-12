@@ -23,7 +23,7 @@ import { parseArgs } from "node:util";
 
 import { parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { AcmeOptions, AcmeUsage, instructionOf, withAcmeBuild } from "./acme-build.js";
-import { chooseAnchors } from "./anchor-chooser.js";
+import { chooseAnchors, zeroPageStores } from "./anchor-chooser.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { leaveOutChanged, rangesOf, romMatches, romName, sameCodeDifferences } from "./import-acornaeology.js";
 import { evaluate, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
@@ -184,6 +184,7 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         end: parseAddress(end, `globals range ${i}'s end`, AddressLimit),
     }));
     const uses = operandUses(statements);
+    const stored = zeroPageStores(chooserStatements);
     const candidates = new Map();
     for (const definition of kept) {
         const { name, value, label } = definition;
@@ -196,7 +197,7 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
             dropped.push([nameOf(name), value, "it's outside the globals' ranges"]);
             continue;
         }
-        if (!config.system && systemGlobals.has(value)) {
+        if (!config.system && systemGlobals.has(value) && !stored.has(value)) {
             dropped.push([nameOf(name), value, `the system sets call it ${systemGlobals.get(value)}`]);
             continue;
         }

@@ -20,7 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { chooseAnchors, storesIn } from "./anchor-chooser.js";
+import { chooseAnchors, zeroPageStores, storesIn } from "./anchor-chooser.js";
 import { BuildOptions, BuildUsage, PrintPrefix, withBeebasmBuild } from "./beebasm-build.js";
 import { exportedScopeNames, labelName, parseBeebasmListing, parseLabelDump } from "./beebasm-listing.js";
 import { readSystemSets, SymbolsDir } from "./build-index.js";
@@ -350,6 +350,7 @@ class Importer {
         }
 
         const code = files.flatMap((file) => file.statements.filter((s) => s.code && s.target !== null));
+        const stored = zeroPageStores(files.flatMap((file) => file.statements));
         const sources = new Set(
             regions
                 .flatMap((region) => [...named.get(region).values()].flat())
@@ -376,13 +377,14 @@ class Importer {
         for (const [value, names] of byValue) {
             const uses = code.filter((statement) => statement.target === value);
             if (!uses.length) continue;
-            const why = this.system.has(value)
-                ? "left to the MOS set"
-                : labelled.has(value)
-                  ? "a label names its address"
-                  : names.length > 1
-                    ? `${names.join(", ")} have the same value`
-                    : null;
+            const why =
+                this.system.has(value) && !stored.has(value)
+                    ? "left to the MOS set"
+                    : labelled.has(value)
+                      ? "a label names its address"
+                      : names.length > 1
+                        ? `${names.join(", ")} have the same value`
+                        : null;
             if (why) {
                 for (const name of names) dropped.push([name, value, why]);
                 continue;
