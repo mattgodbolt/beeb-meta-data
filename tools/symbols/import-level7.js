@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { Format } from "jsbeeb/src/symbol-sets.js";
-import { chooseAnchors, zeroPageStores, storesIn } from "./anchor-chooser.js";
+import { chooseAnchors, ownedIfStored, storesIn } from "./anchor-chooser.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { byAddress, evaluate, hexAddress, writeTitle } from "./import-baron.js";
 import { readLevel7 } from "./level7-text.js";
@@ -354,7 +354,7 @@ class Importer {
         const counts = new Map();
         const firstUses = new Map();
         const named = (statement) => regions.some((r) => r.part === statement.section && holds(r, statement.address));
-        const stored = zeroPageStores(this.parts.flatMap((part) => part.statements).filter(named));
+        const stored = ownedIfStored(this.parts.flatMap((part) => part.statements).filter(named));
         for (const reference of this.references) {
             const { name, address, statement } = reference;
             if (!named(statement)) continue;
