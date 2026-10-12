@@ -1,0 +1,52 @@
+{
+  "importer": "level7",
+  "id": "exile-enhanced",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/exile-enhanced-disassembly.txt",
+    "sha256": "37c615a54f8d6d711d4b4395c3376da74c3277a4533ef7c2c95cdc6d7d9b7f45"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Exile.zip",
+    "image": "Superior/Exile.ssd",
+    "key": "6294d016783ec9cb02b45a3346c69652"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "exile-enhanced-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Exile (Enhanced version)",
+      "regions": [
+        {
+          "name": "main",
+          "part": "ExileMC",
+          "from": "&0206",
+          "to": "&3E75",
+          "avoid": [
+            ["&07ED", "&0801"],
+            ["&082D", "&0838"],
+            ["&0862", "&0987"],
+            ["&0A23", "&0A24"],
+            ["&0A48", "&0A49"],
+            ["&0B01", "&0B78"],
+            ["&0B8A", "&0BA1"],
+            ["&11AE", "&11EE"],
+            ["&14D3", "&14D4"],
+            ["&14E5", "&14E7"],
+            ["&19CE", "&19CF"],
+            ["&1E8B", "&1E8D"],
+            ["&2907", "&2995"],
+            ["&2A05", "&2A09"],
+            ["&2C4B", "&2C4C"],
+            ["&35FF", "&3601"],
+            ["&39B5", "&39D1"],
+            ["&3C8C", "&3C91"],
+            ["&3D48", "&3D4C"]
+          ]
+        }
+      ]
+    }
+  ]
+}

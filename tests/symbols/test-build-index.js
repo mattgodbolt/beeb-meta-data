@@ -1,9 +1,17 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { parseIndex } from "jsbeeb/src/symbol-sets.js";
-import { checkSet, indexOf, readMosSets, readSets, SymbolsDir } from "../../tools/symbols/build-index.js";
+import {
+    checkSet,
+    indexOf,
+    readMosSets,
+    readSets,
+    SymbolsDir,
+    systemGlobals,
+} from "../../tools/symbols/build-index.js";
 
 const MosFile = "sets/mos.json";
 const GameFile = "sets/game.json";
@@ -174,5 +182,19 @@ describe("the symbol set build", () => {
                 ).toEqual([expect.stringContaining(message)]);
             });
         });
+    });
+});
+
+describe("systemGlobals", () => {
+    it("reads the globals of every set mos-sets.json lists", () => {
+        const dir = mkdtempSync(path.join(tmpdir(), "symbols-system-"));
+        try {
+            mkdirSync(path.join(dir, "sets"));
+            writeFileSync(path.join(dir, "mos-sets.json"), JSON.stringify([MosFile]));
+            writeFileSync(path.join(dir, MosFile), JSON.stringify({ ...good(), system: true }));
+            expect([...systemGlobals(dir)]).toEqual([[0x70, "lives"]]);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });

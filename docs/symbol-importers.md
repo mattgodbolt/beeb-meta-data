@@ -21,8 +21,12 @@ node tools/symbols/import-baron.js --config symbols/configs/pipeline.json
 node tools/symbols/import-beebasm.js --config symbols/configs/nevryon.json
 node tools/symbols/import-py8dis.js --config symbols/configs/repton2.json
 node tools/symbols/import-acornaeology.js --config symbols/configs/bbc-basic.json
+node tools/symbols/import-acme.js --config symbols/configs/<title>.json
 node tools/symbols/build-index.js
 ```
+
+`npm run reimport-all` runs every config's importer, the system sets' first, and `build-index.js`, and lists the sets
+that changed; with `--check` it exits 1 if any did. It needs every importer's tools and the network.
 
 Then the two checks, for any title but a ROM:
 
@@ -35,9 +39,9 @@ node tools/symbols/check-memory.js --config symbols/configs/pipeline.json
 
 The importers fetch the config's commit into a temporary directory, or take `--source`, a clean checkout of it. Every
 importer takes `--verbose`, which lists each name left out and why, and each anchor added to tell another image apart;
-all but acornaeology's take `--out` for somewhere other than `symbols/sets`. They write nothing if a region can't be
-anchored, if its anchors all match another image in the build, if a set fails the index's checks, or if the checkout
-isn't of the config's commit or has changes.
+all but acornaeology's take `--out` for somewhere other than `symbols/sets`, where a system set needn't be in
+`mos-sets.json` yet. They write nothing if a region can't be anchored, if its anchors all match another image in the
+build, if a set fails the index's checks, or if the checkout isn't of the config's commit or has changes.
 
 The tools each importer needs, and where it looks for them:
 
@@ -47,6 +51,7 @@ The tools each importer needs, and where it looks for them:
 | `import-beebasm.js`      | beebasm 1.11 or later | `--beebasm`, `$BEEBASM`, else `beebasm`       |
 | `import-py8dis.js`       | Python 3, and py8dis  | `--python`, `$PYTHON`, else `python3`         |
 | `import-acornaeology.js` | the network           | jsbeeb's ROMs come from `node_modules/jsbeeb` |
+| `import-acme.js`         | ACME 0.97 or later    | `--acme`, `$ACME`, else `acme`                |
 | `make-mos-set.js`        | Python 3              | `python3`                                     |
 | `import-level7.js`       | the network           | `--source`, a copy of the disassembly         |
 
@@ -125,6 +130,12 @@ Every importer links names back to the author's own work where it can, with the 
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
 anchors. Where the author has no site of their own (py8dis's `acorn.py` for the MOS), `source` is the only link.
 
+The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
+system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
+in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
+the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
+`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
+
 ## Anchors
 
 Candidates are runs of 4 to 8 bytes of the region's own statements: whole instructions from an instruction's start
@@ -165,8 +176,8 @@ checkout) and, at each moment a scenario picks, lists the regions whose anchors 
 in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
 regions overlap (of one set or two), since the debugger then shows neither.
 
-The corpus check doesn't take an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb
-has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
+The corpus check doesn't take an acornaeology or ACME config. For a ROM, the importer's own comparison against every ROM
+jsbeeb has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
 
 ## What the baron importer gets wrong
 
@@ -332,6 +343,38 @@ Dominic Beesley's ADFS-multi-target, converted by a script in the repository, an
 reassembly's `workspace.inc`; neither that nor Hoglet's ADFS130 has a licence, and which names acornaeology chose
 itself can't be told from the history. The 6502 Tube client runs in the second processor, whose memory jsbeeb's
 debugger doesn't show; the Econet bridge isn't a BBC Micro; and the Voltmace drivers are disc software.
+
+## ACME sources
+
+`import-acme.js` makes a set per version of a ROM from [ACME](https://sourceforge.net/projects/acme-crossass/) sources,
+one config per repository, such as TobyLobster's MOS reassemblies. Ubuntu's `acme` package is 0.97.
+
+The build assembles each version's source in a copy of the checkout with `-r` for the report, which gives each line's
+address and bytes, and `-l` for the symbol list. ACME lists only global symbols, and the names in such a source are
+mostly local (`.name`), so the copy it assembles has a global alias after each line that starts by defining a name.
+
+A config has `"importer": "acme"`, an `id`, and
+
+- `licence`, `notice` and `home`, copied into every set, and `system` for the MOS's sets;
+- `source`, the `repository` and `commit`;
+- `globals`, the ranges whose `=` names can be globals, and `bytesPerAnchor`, `spreadAnchors`, `otherRoms` and
+  `leaveOut` as for acornaeology and py8dis;
+- `check`, the in-memory check's scenarios;
+- `sets`, one per version, each with an `id`, a `title`, the source to `assemble`, its `rom` (jsbeeb's file, or a `url`
+  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron) and optionally a `sameCodeIn`
+  as for acornaeology, and optionally its own `home` and `pages`.
+
+The source has to assemble to the ROM's bytes in every region. Each label assembled into a region is named there, the
+last written winning where two share an address. A `=` name is a global if an instruction uses it first in a
+non-immediate operand, its address is in a `globals` range, and the system sets don't name it (unless the set is one
+of them); where several share an address, the one the most instructions use wins. Each name links to the line that
+defines it, or, for a version with `pages` (a `directory` of the checkout and the `url` it's published at), to the
+paragraph anchor (`id="SP21"`) before the line of those HTML pages that defines it. A name defined in more than one
+place, or in none of the pages, stops the import. Anchors are chosen and every ROM is matched as for acornaeology.
+
+Only the names in the source the config names are read, not those of files it includes, and a source of a program loaded
+from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the
+most instructions use.
 
 ## NFS and ANFS
 
@@ -561,14 +604,14 @@ game's turn times out stops the typing early.
 Monsters, Cyborg Warriors, Kix, Frak, Zalaga, Dare Devil Denis, Bug Eyes II, Omega Orb, Myorem, Project Thesius, The
 Last Ninja, The Sentinel, Contraption, Skirmish, Elixir, Future Shock, Kissin' Kousins, Eagle's Wing, Nightshade, Sabre
 Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR,
-Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee, 3D Pool, Atic Atac, Bonecruncher,
-Castle Quest, Citadel, Codename Droid, Doctor Who and the Mines of Terror, Doctor Who and the Warlord, Escape from
-Enthar Seven, Firetrack, Fortress, Killer Gorilla, Knight Lore, Lode Runner, Moon Raider, Palace of Magic, Ravenskull,
-Rick Hanson, Shark, Sim, Space Agent Zelda Meets the Bug Eyes, Space Hi-way, Spy Hunter, Star Wars, Starquake, Stryker's
-Run, The Hunt, The Way of the Exploding Fist and Vindaloo were added that way, with Hopper, Super Invaders, Arcadians,
-Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
-check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
-Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
+Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee, Exile, 3D Pool, Atic Atac,
+Bonecruncher, Castle Quest, Citadel, Codename Droid, Doctor Who and the Mines of Terror, Doctor Who and the Warlord,
+Escape from Enthar Seven, Firetrack, Fortress, Killer Gorilla, Knight Lore, Lode Runner, Moon Raider, Palace of Magic,
+Ravenskull, Rick Hanson, Shark, Sim, Space Agent Zelda Meets the Bug Eyes, Space Hi-way, Spy Hunter, Star Wars,
+Starquake, Stryker's Run, The Hunt, The Way of the Exploding Fist and Vindaloo were added that way, with Hopper, Super
+Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus check
+meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last Ninja 2's
+disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
 `avoid`s that half and sits in the weapon tables, which Last Ninja 2 doesn't share. Zalaga has no region for its
 run-once loader, which a cheat disc patches by a tenth while keeping its anchors.
 
@@ -583,3 +626,7 @@ two. The Hunt's file is of the tape version, whose code the disc version has mov
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
 `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists
 unrelocated in the middle of it.
+
+level7 has Exile in three files, so it has three configs: the supervisor (the menu), and the standard and enhanced
+games, which F0 and then N or Y start. All three are decrypted as they load, so the corpus check meets none of them.
+Both games' `main` starts at `&0206`, leaving page 1 to the stack and `&0204` to the MOS's `IRQ1V`.

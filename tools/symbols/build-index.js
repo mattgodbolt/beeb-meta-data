@@ -74,12 +74,14 @@ export function readMosSets(dir = SymbolsDir) {
     return JSON.parse(readFileSync(path.join(dir, MosSetsFile), "utf8"));
 }
 
+/** The sets that may be marked `system`, parsed. */
+export const readSystemSets = (dir = SymbolsDir) =>
+    readMosSets(dir).map((file) => parseSet(JSON.parse(readFileSync(path.join(dir, file), "utf8"))));
+
 /** The globals of the sets that may be marked `system`, by address. */
 export function systemGlobals(dir = SymbolsDir) {
     const globals = new Map();
-    for (const file of readMosSets(dir))
-        for (const [address, name] of parseSet(JSON.parse(readFileSync(path.join(dir, file), "utf8"))).globals)
-            globals.set(address, name);
+    for (const set of readSystemSets(dir)) for (const [address, name] of set.globals) globals.set(address, name);
     return globals;
 }
 

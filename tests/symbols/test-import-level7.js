@@ -152,11 +152,22 @@ describe("importLevel7", () => {
     });
 
     it("takes globals from the set's own operands, the most used name for an address", () => {
-        expect(set.json.globals).toEqual({ counter: "0x0070", code_address: "0x008f", workspace: "0x0a10" });
+        expect(set.json.globals).toEqual({
+            counter: "0x0070",
+            frame: "0x0071",
+            code_address: "0x008f",
+            workspace: "0x0a10",
+        });
         expect(set.dropped).toContainEqual(["other_counter", 0x70, "the globals call it counter"]);
-        expect(set.dropped).toContainEqual(["frame", 0x71, "the system sets call it os_frame"]);
         expect(set.dropped).toContainEqual(["pair", 0x72, "it names 2 addresses as often"]);
         expect(set.json.globals.via).toBeUndefined();
+    });
+
+    it("keeps a global a system set names only where the set's own code stores to it", () => {
+        const readOnly = Text.replace("&190d e6 71    INC &71 ; frame", "&190d a5 71    LDA &71 ; frame");
+        const [onlyRead] = importLevel7(config, readOnly, { systemGlobals: new Map([[0x71, "os_frame"]]) }).sets;
+        expect(onlyRead.json.globals.frame).toBeUndefined();
+        expect(onlyRead.dropped).toContainEqual(["frame", 0x71, "the system sets call it os_frame"]);
     });
 
     it("keeps anchors off padding, and tells the loader at the same address apart", () => {

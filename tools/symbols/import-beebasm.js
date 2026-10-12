@@ -20,11 +20,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { parseSet } from "jsbeeb/src/symbol-sets.js";
-import { chooseAnchors, storesIn } from "./anchor-chooser.js";
+import { chooseAnchors, ownedIfStored, storesIn } from "./anchor-chooser.js";
 import { BuildOptions, BuildUsage, PrintPrefix, withBeebasmBuild } from "./beebasm-build.js";
 import { exportedScopeNames, labelName, parseBeebasmListing, parseLabelDump } from "./beebasm-listing.js";
-import { readMosSets, SymbolsDir } from "./build-index.js";
+import { readSystemSets, SymbolsDir } from "./build-index.js";
 import { placedFiles } from "./placed-files.js";
 import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 import { evaluate, isOnGitHub, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
@@ -214,8 +213,7 @@ export function osBlockTargets(file, labelAddresses) {
 /** Every address a system set (the MOS's) names, which a title's `=` names are left to. */
 export function systemAddresses(dir = SymbolsDir) {
     const out = new Set();
-    for (const file of readMosSets(dir)) {
-        const set = parseSet(JSON.parse(readFileSync(path.join(dir, file), "utf8")));
+    for (const set of readSystemSets(dir)) {
         for (const address of set.globals.keys()) out.add(address);
         for (const region of set.regions) for (const address of region.symbols.keys()) out.add(address);
     }
@@ -352,6 +350,11 @@ class Importer {
         }
 
         const code = files.flatMap((file) => file.statements.filter((s) => s.code && s.target !== null));
+        const stored = ownedIfStored(
+            files.flatMap((file) =>
+                file.statements.filter((s) => regions.some((r) => r.file === file && holds(r, s.address))),
+            ),
+        );
         const sources = new Set(
             regions
                 .flatMap((region) => [...named.get(region).values()].flat())
@@ -378,13 +381,14 @@ class Importer {
         for (const [value, names] of byValue) {
             const uses = code.filter((statement) => statement.target === value);
             if (!uses.length) continue;
-            const why = this.system.has(value)
-                ? "left to the MOS set"
-                : labelled.has(value)
-                  ? "a label names its address"
-                  : names.length > 1
-                    ? `${names.join(", ")} have the same value`
-                    : null;
+            const why =
+                this.system.has(value) && !stored.has(value)
+                    ? "left to the MOS set"
+                    : labelled.has(value)
+                      ? "a label names its address"
+                      : names.length > 1
+                        ? `${names.join(", ")} have the same value`
+                        : null;
             if (why) {
                 for (const name of names) dropped.push([name, value, why]);
                 continue;

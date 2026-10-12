@@ -51,6 +51,14 @@ const OpcodeJmp = 0x4c;
 const OpcodeNop = 0xea;
 const IndexedReach = 0x100;
 const ZeroPageEnd = 0x100;
+// Zero page, and page 3's VDU and cassette workspace, which games take over for their own variables; but not
+// &F4 (the paged ROM copy) or &FC (the IRQ's saved A), which games write in the MOS's sense.
+const OwnedIfStoredRanges = [
+    [0x0000, 0x00f4],
+    [0x00f5, 0x00fc],
+    [0x00fd, 0x0100],
+    [0x0300, 0x0400],
+];
 // An OSFILE block, the longest the OS writes back.
 const OsBlockMost = 18;
 // BASIC II's entry, a saved BASIC program's exec address.
@@ -114,6 +122,26 @@ function copyLoops(statements, moves) {
         .filter((s) => s.code && BranchOpcodes.has(s.data[0]))
         .map((s) => ({ section: s.section, from: branchTarget(s), to: s.address }))
         .filter(({ section, from, to }) => moves.has(from) && (moves.get(from) ?? section) === section && from < to);
+}
+
+/**
+ * The addresses in OwnedIfStoredRanges the code's stores and read-modify-writes name, an indexed one's by its
+ * base: where a program keeps its own variables, even over the OS's. Vectors, the rest of the OS's workspace
+ * and I/O it writes stay the MOS's.
+ * @param {ChooserStatement[]} statements - the code the set names, in its regions
+ * @returns {Set<number>}
+ */
+export function ownedIfStored(statements) {
+    return new Set(
+        statements
+            .filter((s) => s.code && StoreModes.has(s.data[0]))
+            .map((s) =>
+                [ZeroPage, ZeroPageIndexed].includes(StoreModes.get(s.data[0]))
+                    ? s.data[1]
+                    : s.data[1] | (s.data[2] << 8),
+            )
+            .filter((address) => OwnedIfStoredRanges.some(([from, to]) => address >= from && address < to)),
+    );
 }
 
 /**

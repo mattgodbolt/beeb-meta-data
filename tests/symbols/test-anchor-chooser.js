@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { blockedAddresses, candidates, chooseAnchors, storesIn } from "../../tools/symbols/anchor-chooser.js";
+import {
+    blockedAddresses,
+    candidates,
+    chooseAnchors,
+    ownedIfStored,
+    storesIn,
+} from "../../tools/symbols/anchor-chooser.js";
 
 const Section = { name: "main" };
 const OtherSection = { name: "other" };
@@ -36,6 +42,24 @@ function region({ start, end, statements, labels = [], exec = null, ...rest }) {
 }
 
 const range = (from, to) => Array.from({ length: to - from }, (_, i) => from + i);
+
+describe("ownedIfStored", () => {
+    it("gives the zero page and page 3 addresses stores name, by an indexed one's base, but not the MOS's", () => {
+        const code = (address, data) => ({ address, data, code: true });
+        const statements = [
+            code(0x1900, [0x85, 0xde]),
+            code(0x1902, [0x9d, 0x80, 0x03]),
+            code(0x1902, [0x8d, 0x04, 0x02]),
+            code(0x1902, [0x8d, 0x40, 0xfe]),
+            code(0x1902, [0x85, 0xfc]),
+            code(0x1902, [0x85, 0xff]),
+            code(0x1905, [0xf6, 0xd9]),
+            code(0x1907, [0xa5, 0xfc]),
+            { address: 0x1909, data: [0x85, 0xff], code: false },
+        ];
+        expect([...ownedIfStored(statements)]).toEqual([0xde, 0x0380, 0xff, 0xd9]);
+    });
+});
 
 describe("storesIn", () => {
     it("reaches a direct store's byte, and 256 bytes or all of zero page for an indexed one", () => {
