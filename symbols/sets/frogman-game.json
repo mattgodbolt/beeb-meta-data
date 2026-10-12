@@ -400,11 +400,13 @@
     "zp_snd_data_lo": "0x0090",
     "zp_snd_data_hi": "0x0091",
     "IRQ1V_HI": "0x0205",
-    "LEVEL_NUM": "0x0430"
+    "LEVEL_NUM": "0x0430",
+    "VIA_ORA": "0xfe41"
   },
   "places": {
     "IRQ1V_HI": "constants.asm#L27",
     "LEVEL_NUM": "constants.asm#L28",
+    "VIA_ORA": "constants.asm#L13",
     "anim_apply": "engine.asm#L264",
     "anim_apply_data": "engine.asm#L207",
     "anim_frame_data": "engine.asm#L175",

@@ -728,9 +728,7 @@
     "pocket_to_empty": "0x009b",
     "carrying": "0x009c",
     "screen_scrolling_direction": "0x009d",
-    "player_facing": "0x009e",
-    "os_most_recently_pressed_key": "0x00ec",
-    "os_first_pressed_key": "0x00ed"
+    "player_facing": "0x009e"
   },
   "places": {
     "above_slope": "castle-quest-disassembly.txt#:~:text=above_slope,-%261c31",
@@ -1051,8 +1049,6 @@
     "offset_object_Y_from_object_X": "castle-quest-disassembly.txt#:~:text=offset_object_Y_from_object_X,-%262edc",
     "offset_to_left": "castle-quest-disassembly.txt#:~:text=offset_to_left",
     "offset_to_right": "castle-quest-disassembly.txt#:~:text=offset_to_right,-%262f11",
-    "os_first_pressed_key": "castle-quest-disassembly.txt#:~:text=os_first_pressed_key",
-    "os_most_recently_pressed_key": "castle-quest-disassembly.txt#:~:text=os_most_recently_pressed_key",
     "pick_up_object": "castle-quest-disassembly.txt#:~:text=pick_up_object,-%262f68",
     "play_game": "castle-quest-disassembly.txt#:~:text=play_game,-%261531",
     "play_sound": "castle-quest-disassembly.txt#:~:text=play_sound,-%260a35",

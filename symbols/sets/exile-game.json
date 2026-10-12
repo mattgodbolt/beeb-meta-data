@@ -1568,8 +1568,7 @@
     "rnd_state": "0x00d9",
     "player_object_held": "0x00dd",
     "player_angle": "0x00de",
-    "player_facing": "0x00df",
-    "irq_accumulator": "0x00fc"
+    "player_facing": "0x00df"
   },
   "places": {
     "accelerate_all_objects": "exile-standard-disassembly.txt#:~:text=accelerate_all_objects",
@@ -2045,7 +2044,6 @@
     "invert_if_negative": "exile-standard-disassembly.txt#:~:text=invert_if_negative,-%263256",
     "invert_if_positive": "exile-standard-disassembly.txt#:~:text=invert_if_positive,-%26324c",
     "irq1_handler": "exile-standard-disassembly.txt#:~:text=irq1_handler,-%2612a6",
-    "irq_accumulator": "exile-standard-disassembly.txt#:~:text=irq_accumulator",
     "is_able_to_see_target": "exile-standard-disassembly.txt#:~:text=is_able_to_see_target",
     "is_above_bottom_of_screen": "exile-standard-disassembly.txt#:~:text=is_above_bottom_of_screen,-%262063",
     "is_accelerating_in_y": "exile-standard-disassembly.txt#:~:text=is_accelerating_in_y,-%2637f8",

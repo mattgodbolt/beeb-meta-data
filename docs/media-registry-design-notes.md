@@ -418,7 +418,8 @@ ADFS and the Atom's ROMs, but almost all state no licence, and their authors are
 at `&0200-&0235`, the entry points at `&FFB9-&FFF7`, some of zero page, and the FRED, JIM and SHEILA registers
 of the B, the Electron and the Master. Our MOS sets start from that and Acorn's documentation: CC0 where they
 come from the documentation alone, MIT with its `notice` where they take from `acorn.py`, since MIT asks for
-it in every copy and sets are fetched one at a time.
+it in every copy and sets are fetched one at a time. The BBC Micro's MOS sets have since been remade from TobyLobster's
+reassemblies, under the CC BY-NC licence he gave them.
 
 Which keys a game uses is a fact, so `controls` records it along with where it came from, but the text of the
 instructions, like a screenshot, has a copyright of its own.

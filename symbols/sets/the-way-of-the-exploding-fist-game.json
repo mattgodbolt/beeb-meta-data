@@ -624,7 +624,6 @@
     "offensive_move_offset": "0x0101",
     "players_flip_for_movement_purposes": "0x017e",
     "irq2_vector_high": "0x0207",
-    "os_paged_rom_type_table": "0x02a1",
     "players_buffer": "0x5a80"
   },
   "places": {
@@ -882,7 +881,6 @@
     "one_player_round_won_by_human_player": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=one_player_round_won_by_human_player,-%260960",
     "one_player_round_won_by_human_player_on_points": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=one_player_round_won_by_human_player_on_points",
     "os_envelope_storage": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=os_envelope_storage",
-    "os_paged_rom_type_table": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=%261eda",
     "os_sound_workspace": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=os_sound_workspace",
     "other_player_frame_for_computer": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=other_player_frame_for_computer",
     "other_player_move_for_computer": "the-way-of-the-exploding-fist-disassembly.txt#:~:text=other_player_move_for_computer",

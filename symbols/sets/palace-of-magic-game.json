@@ -431,10 +431,7 @@
     "objects_room_x": "0x0300",
     "objects_room_y": "0x0301",
     "objects_screen_address_low": "0x0302",
-    "objects_screen_address_high": "0x0303",
-    "objects_sprite": "0x0304",
-    "objects_palette": "0x0305",
-    "objects_room_block": "0x0306"
+    "objects_screen_address_high": "0x0303"
   },
   "places": {
     "add_to_score": "palace-of-magic-disassembly.txt#:~:text=add_to_score,-%262a18",
@@ -631,13 +628,10 @@
     "object_dropped_in_the_west_exit": "palace-of-magic-disassembly.txt#:~:text=object_dropped_in_the_west_exit,-%262baf",
     "object_dropped_in_the_west_tower_middle": "palace-of-magic-disassembly.txt#:~:text=object_dropped_in_the_west_tower_middle,-%262b47",
     "object_dropped_in_the_west_tower_top": "palace-of-magic-disassembly.txt#:~:text=object_dropped_in_the_west_tower_top,-%262bfe",
-    "objects_palette": "palace-of-magic-disassembly.txt#:~:text=objects_palette",
-    "objects_room_block": "palace-of-magic-disassembly.txt#:~:text=objects_room_block",
     "objects_room_x": "palace-of-magic-disassembly.txt#:~:text=objects_room_x",
     "objects_room_y": "palace-of-magic-disassembly.txt#:~:text=objects_room_y",
     "objects_screen_address_high": "palace-of-magic-disassembly.txt#:~:text=objects_screen_address_high",
     "objects_screen_address_low": "palace-of-magic-disassembly.txt#:~:text=objects_screen_address_low",
-    "objects_sprite": "palace-of-magic-disassembly.txt#:~:text=objects_sprite",
     "packed_address_high": "palace-of-magic-disassembly.txt#:~:text=packed_address_high",
     "packed_address_low": "palace-of-magic-disassembly.txt#:~:text=packed_address_low",
     "packed_background_sprite_data": "palace-of-magic-disassembly.txt#:~:text=packed_background_sprite_data",

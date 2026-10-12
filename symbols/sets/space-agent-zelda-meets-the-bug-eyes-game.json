@@ -321,7 +321,6 @@
     "repeat_x_count": "0x009a",
     "key_right": "0x00a8",
     "key_left": "0x00a9",
-    "os_most_recently_pressed_key": "0x00ec",
     "objects_data": "0x7f00"
   },
   "places": {
@@ -447,7 +446,6 @@
     "object_appearing_or_disappearing_sound": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=object_appearing_or_disappearing_sound,-%3B",
     "object_offset": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=object_offset,-%262251",
     "objects_data": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=objects_data",
-    "os_most_recently_pressed_key": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=os_most_recently_pressed_key",
     "play_level": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=play_level,-%261e7f",
     "play_level_return_address_high": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=play_level_return_address_high",
     "play_level_return_address_low": "space-agent-zelda-meets-the-bug-eyes-disassembly.txt#:~:text=play_level_return_address_low",

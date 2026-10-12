@@ -499,13 +499,11 @@
     "target_y": "0x00e2",
     "screen_address_low": "0x00e3",
     "screen_address_high": "0x00eb",
-    "address_of_byte_after_BRK": "0x00fd",
     "pitch_of_sound_7": "0x0174",
     "scenery_twopixel_table": "0x0180"
   },
   "places": {
     "add_y_to_a_and_x": "sabrewulf-disassembly.txt#:~:text=add_y_to_a_and_x,-%26471a",
-    "address_of_byte_after_BRK": "sabrewulf-disassembly.txt#:~:text=address_of_byte_after_BRK",
     "alternate_sprite_plotting_shift_instructions": "sabrewulf-disassembly.txt#:~:text=alternate_sprite_plotting_shift_instructions,-%263e88",
     "amulet_color_table": "sabrewulf-disassembly.txt#:~:text=amulet_color_table,-%3B",
     "amulet_part_colour": "sabrewulf-disassembly.txt#:~:text=amulet_part_colour,-%2638e3",

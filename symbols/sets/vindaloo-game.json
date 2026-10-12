@@ -380,7 +380,6 @@
     "repeat_y_count": "0x009b",
     "repeat_initial_x_count": "0x009c",
     "sprite_height_for_repeat": "0x009d",
-    "os_most_recently_pressed_key": "0x00ec",
     "objects_data": "0x0440"
   },
   "places": {
@@ -555,7 +554,6 @@
     "object_offset": "vindaloo-disassembly.txt#:~:text=object_offset,-%26230f",
     "objects_data": "vindaloo-disassembly.txt#:~:text=objects_data",
     "os_envelope_data": "vindaloo-disassembly.txt#:~:text=os_envelope_data",
-    "os_most_recently_pressed_key": "vindaloo-disassembly.txt#:~:text=os_most_recently_pressed_key",
     "os_sound_buffers": "vindaloo-disassembly.txt#:~:text=os_sound_buffers",
     "os_sound_workspace": "vindaloo-disassembly.txt#:~:text=os_sound_workspace",
     "palette_block": "vindaloo-disassembly.txt#:~:text=palette_block,-%260bc6",

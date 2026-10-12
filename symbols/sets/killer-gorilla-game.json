@@ -421,8 +421,7 @@
     "sprite_offset": "0x0085",
     "enemy_offset": "0x0086",
     "height_low": "0x0087",
-    "height_high": "0x0088",
-    "os_flags": "0x00ff"
+    "height_high": "0x0088"
   },
   "places": {
     "add_eight_rows_to_ladder_screen_address": "killer-gorilla-disassembly.txt#:~:text=add_eight_rows_to_ladder_screen_address,-%26265a",
@@ -618,7 +617,6 @@
     "odd_platforms": "killer-gorilla-disassembly.txt#:~:text=odd_platforms",
     "offset_of_last_fireball": "killer-gorilla-disassembly.txt#:~:text=offset_of_last_fireball",
     "on_lift": "killer-gorilla-disassembly.txt#:~:text=on_lift",
-    "os_flags": "killer-gorilla-disassembly.txt#:~:text=os_flags",
     "outside_lift_shaft": "killer-gorilla-disassembly.txt#:~:text=outside_lift_shaft,-%262176",
     "pie_on_left_half_of_platform_three": "killer-gorilla-disassembly.txt#:~:text=pie_on_left_half_of_platform_three,-%2625a4",
     "pie_on_platform_one": "killer-gorilla-disassembly.txt#:~:text=pie_on_platform_one,-%23",
