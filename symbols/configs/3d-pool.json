@@ -1,0 +1,52 @@
+{
+  "importer": "level7",
+  "id": "3d-pool",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/3d-pool-disassembly.txt",
+    "sha256": "485def27e89f181c621a66f9200540769bca9a205aed2e6f29b576b2e6ac376f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Firebird/3DPool.zip",
+    "image": "Firebird/3DPool.ssd",
+    "key": "673bb12c97e5de5ef7f08068e4877399"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "3d-pool-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "3D Pool",
+      "regions": [
+        {
+          "name": "pagec",
+          "from": "&0C00",
+          "to": "&0CCE",
+          "overwritten": true,
+          "avoid": [
+            ["&0C45", "&0C46"],
+            ["&0C63", "&0C6B"],
+            ["&0CA0", "&0CA1"],
+            ["&0CCA", "&0CCB"]
+          ]
+        },
+        {
+          "name": "main",
+          "from": "&1056",
+          "to": "&3EFD",
+          "avoid": [
+            ["&167C", "&16C4"],
+            ["&1E8E", "&1EAF"],
+            ["&243C", "&2453"],
+            ["&2EB8", "&2EB9"],
+            ["&2EE0", "&2F0D"],
+            ["&30D9", "&30DB"],
+            ["&3219", "&324D"],
+            ["&339D", "&3EFD"]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "spy-hunter",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/spy-hunter-disassembly.txt",
+    "sha256": "e8515bbafe191d7265126b857e664d342dfec0d90bf8fcfe63495943fe908e1d"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/USGold/SpyHunter.zip",
+    "image": "USGold/SpyHunter.ssd",
+    "key": "acf12ce1b9ac9f42cf9d913e611e9631"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "spy-hunter-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Spy Hunter",
+      "regions": [{ "name": "main", "from": "&0C00", "to": "&5800" }]
+    }
+  ]
+}

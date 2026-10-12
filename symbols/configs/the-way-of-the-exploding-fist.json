@@ -1,0 +1,55 @@
+{
+  "importer": "level7",
+  "id": "the-way-of-the-exploding-fist",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/the-way-of-the-exploding-fist-disassembly.txt",
+    "sha256": "4a6d137779d5d5de362f2314b0892e6eaf5d92e177e6ec28f1898790a59dc06f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/MelbourneHouse/WayOfTheExplodingFistV2.zip",
+    "image": "MelbourneHouse/WayOfTheExplodingFistV2.ssd",
+    "key": "6a35d7f51daedc4013eebece6b641ee3"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "the-way-of-the-exploding-fist-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "The Way of the Exploding Fist",
+      "regions": [
+        {
+          "name": "main",
+          "part": "GAME1",
+          "from": "&0400",
+          "to": "&2D00",
+          "avoid": [
+            ["&06CE", "&06CF"],
+            ["&0805", "&087E"],
+            ["&0AEC", "&0AF4"],
+            ["&0D00", "&0D01"],
+            ["&0D80", "&0DA1"],
+            ["&0DE4", "&0DFE"],
+            ["&0E89", "&0E90"],
+            ["&1E61", "&1E70"],
+            ["&25EA", "&25EB"],
+            ["&2600", "&2601"]
+          ]
+        },
+        {
+          "name": "game2",
+          "part": "GAME2",
+          "from": "&2D00",
+          "to": "&468A"
+        },
+        {
+          "name": "sprite_17_data",
+          "from": "&47DD",
+          "to": "&5800",
+          "avoid": [["&54E1", "&54FE"]]
+        }
+      ]
+    }
+  ]
+}

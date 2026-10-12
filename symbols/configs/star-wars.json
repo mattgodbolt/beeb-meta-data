@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "star-wars",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/star-wars-disassembly.txt",
+    "sha256": "524f9d311d8834ea483ef122fb7916932af1554578c0d38de22449643dc6f874"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Domark/StarWars.zip",
+    "image": "Domark/StarWars.ssd",
+    "key": "0b45194fbcd9728841633da816ea2170"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "star-wars-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Star Wars",
+      "regions": [
+        {
+          "name": "main",
+          "part": "SWCODE",
+          "from": "&0400",
+          "to": "&4707",
+          "avoid": [
+            ["&2400", "&2480"],
+            ["&24BE", "&2500"],
+            ["&26A8", "&26A9"]
+          ]
+        },
+        { "name": "shields_string", "from": "&4878", "to": "&5000", "avoid": [["&4F73", "&4F7F"]] }
+      ]
+    }
+  ]
+}

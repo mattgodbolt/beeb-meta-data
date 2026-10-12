@@ -1,0 +1,40 @@
+{
+  "importer": "level7",
+  "id": "doctor-who-and-the-warlord-part-b",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/doctor-who-and-the-warlord-part-b-disassembly.txt",
+    "sha256": "7e6df1a8e9158f9759879c5155733f3f935dd4e4e4e18810a9fe8ba375c53347"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/BBCSoft/DrWhoAndTheWarlord.zip",
+    "image": "BBCSoft/DrWhoAndTheWarlord.ssd",
+    "key": "5c61847667f5593cb334161da9b6b9fc"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "doctor-who-and-the-warlord-part-b-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Doctor Who and the Warlord (Part B)",
+      "regions": [
+        {
+          "name": "main",
+          "part": "who-b",
+          "from": "&0400",
+          "to": "&7C00",
+          "avoid": [
+            ["&0619", "&0620"],
+            ["&06C4", "&06C5"],
+            ["&0700", "&070A"],
+            ["&0807", "&0810"],
+            ["&083D", "&0840"],
+            ["&0875", "&0878"],
+            ["&63CC", "&6434"]
+          ]
+        }
+      ]
+    }
+  ]
+}

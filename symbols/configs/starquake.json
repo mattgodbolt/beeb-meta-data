@@ -1,0 +1,51 @@
+{
+  "importer": "level7",
+  "id": "starquake",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/starquake-disassembly.txt",
+    "sha256": "9272e43141e882272aeaa7375b7a7da489d7176f10b7df129a86a11289750762"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Bubblebus/Starquake.zip",
+    "image": "Bubblebus/Starquake.ssd",
+    "key": "65763764faf2db5997062c4fbdf80996"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "starquake-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Starquake",
+      "regions": [
+        {
+          "name": "page9",
+          "from": "&0900",
+          "to": "&0C00",
+          "avoid": [["&0BF5", "&0BF7"]]
+        },
+        {
+          "name": "main",
+          "part": "(no filename)",
+          "from": "&0E00",
+          "to": "&6C00",
+          "avoid": [
+            ["&0F34", "&0F3C"],
+            ["&0FB3", "&0FC2"],
+            ["&14FC", "&151C"],
+            ["&33CC", "&33CF"],
+            ["&33FF", "&3402"],
+            ["&3503", "&3508"],
+            ["&38F0", "&3900"],
+            ["&3CE0", "&3D00"],
+            ["&4FA0", "&5000"],
+            ["&5E04", "&5F04"],
+            ["&62AB", "&62AF"],
+            ["&63F6", "&63FA"]
+          ]
+        }
+      ]
+    }
+  ]
+}

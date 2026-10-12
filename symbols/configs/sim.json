@@ -1,0 +1,74 @@
+{
+  "importer": "level7",
+  "id": "sim",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/sim-disassembly.txt",
+    "sha256": "bc4774d62b568c89184afc77b1443e442386e81782e41a8ec54df11193150292"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/CSM/Sim.zip",
+    "image": "CSM/Sim.ssd",
+    "key": "f0ae8ccaddcdd70b69423bcc7a2ff3e5"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "sim-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Sim",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&0D00",
+          "to": "&2FFF",
+          "avoid": [
+            ["&0E34", "&0E5E"],
+            ["&0E9F", "&0ED5"],
+            ["&0EF4", "&0F12"],
+            ["&0F6F", "&0FB8"],
+            ["&0FEE", "&1000"],
+            ["&10B6", "&10D4"],
+            ["&1106", "&111F"],
+            ["&1156", "&1180"],
+            ["&11B0", "&11C2"],
+            ["&122C", "&1239"],
+            ["&1258", "&125E"],
+            ["&1296", "&12B4"],
+            ["&12D9", "&12DF"],
+            ["&1307", "&1325"],
+            ["&136E", "&137F"],
+            ["&13A7", "&13B9"],
+            ["&13ED", "&13F3"],
+            ["&141F", "&1455"],
+            ["&1495", "&149B"],
+            ["&14C5", "&14CB"],
+            ["&1518", "&1536"],
+            ["&1576", "&158D"],
+            ["&15BC", "&15DA"],
+            ["&1619", "&161F"],
+            ["&1870", "&187D"],
+            ["&19E6", "&19E7"],
+            ["&231F", "&2321"],
+            ["&2377", "&2379"],
+            ["&281D", "&2831"],
+            ["&295C", "&295D"]
+          ]
+        },
+        {
+          "name": "page9",
+          "from": "&0900",
+          "to": "&0BFF",
+          "avoid": [
+            ["&094A", "&0957"],
+            ["&096E", "&096F"],
+            ["&0996", "&0997"],
+            ["&0A00", "&0A41"],
+            ["&0AFF", "&0B00"]
+          ]
+        }
+      ]
+    }
+  ]
+}

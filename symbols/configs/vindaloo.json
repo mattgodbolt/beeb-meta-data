@@ -1,0 +1,44 @@
+{
+  "importer": "level7",
+  "id": "vindaloo",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/vindaloo-disassembly.txt",
+    "sha256": "67fcbf6d6c5f636569bd941b1a75f19550edeae6abb97333a7521355bb6fbe33"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Tynesoft/Vindaloo.zip",
+    "image": "Tynesoft/Vindaloo.ssd",
+    "key": "a1f2c1ae98e097d883ce3b8eb5787c63"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "vindaloo-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Vindaloo",
+      "regions": [
+        {
+          "name": "main",
+          "part": "ALLGAME",
+          "from": "&0600",
+          "to": "&3000",
+          "avoid": [
+            ["&0807", "&0824"],
+            ["&0878", "&087B"],
+            ["&093F", "&094A"],
+            ["&0CFA", "&0E00"],
+            ["&0EFF", "&0F00"],
+            ["&0FFF", "&1000"],
+            ["&1040", "&1100"],
+            ["&1194", "&11B0"],
+            ["&11CB", "&11CC"],
+            ["&14D4", "&14D5"],
+            ["&2442", "&245B"]
+          ]
+        }
+      ]
+    }
+  ]
+}
