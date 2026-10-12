@@ -678,7 +678,9 @@ describe("the curator configs", () => {
         for (const { id, source, sets } of configs)
             for (const spec of sets) {
                 const json = JSON.parse(readFileSync(path.join(SetsDir, `${id}-${spec.id}.json`), "utf8"));
-                expect(json.source, `${id}-${spec.id}`).toBe(`${source.repository}/tree/${source.commit}`);
+                const pinned =
+                    source.link === undefined ? `tree/${source.commit}` : `blob/${source.commit}/${source.link}`;
+                expect(json.source, `${id}-${spec.id}`).toBe(`${source.repository}/${pinned}`);
                 expect(checkSet(json, { file: `sets/${id}-${spec.id}.json`, mosSets: readMosSets() })).toEqual([]);
             }
     });

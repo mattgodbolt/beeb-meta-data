@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { checkSet } from "../../tools/symbols/build-index.js";
 import { assemblyDefinitions, importPy8dis, readDump } from "../../tools/symbols/import-py8dis.js";
+import { romKey } from "../../tools/symbols/rom-images.js";
 
 const code = (at, bytes) => ({ at, bytes, code: true });
 const data = (at, bytes) => ({ at, bytes, code: false });
@@ -108,6 +109,16 @@ describe("readDump", () => {
         expect(jsr.section).toBe(pieces[0]);
         expect(pieces[2].statements.at(-1).base).toBeUndefined();
     });
+
+    it("adds the binary where it loads, holding every piece's statements there and the unmoved labels", () => {
+        const { loaded } = readDump(dump);
+        expect(loaded).toMatchObject({ start: 0x2000, end: 0x2028, move: 0 });
+        expect(loaded.statements.find(({ address }) => address === 0x2018)).toMatchObject({
+            data: [0xa5, 0x70],
+            section: loaded,
+        });
+        expect(loaded.labels.map(({ name }) => name)).toEqual(["start", "entry", "loop", "relocate", "relocate_store"]);
+    });
 });
 
 describe("importPy8dis", () => {
@@ -133,6 +144,13 @@ describe("importPy8dis", () => {
             ["relocate", 0x2010, "in no region"],
             ["relocate_store", 0x2013, "in no region"],
         ]);
+    });
+
+    it("leaves out the names the config's leaveOut patterns match, so a later name at the address can win", () => {
+        const placeholder = { ...dump, labels: [{ name: "start_XXX", address: 0x2000, move: 0 }, ...dump.labels] };
+        const { sets } = importPy8dis({ ...config(), leaveOut: ["XXX"] }, placeholder);
+        expect(sets[0].json.regions.main.symbols.start).toBe("0x2000");
+        expect(sets[0].dropped).toContainEqual(["start_XXX", 0x2000, "the config leaves it out"]);
     });
 
     it("cuts a region where the config's expressions say", () => {
@@ -206,6 +224,96 @@ describe("importPy8dis", () => {
         expect(() => importPy8dis(config({ regions: [{ name: "long", from: "bump", to: "&0A00" }] }), dump)).toThrow(
             "isn't inside piece 2",
         );
+    });
+
+    describe("two pieces run at one address", () => {
+        const overlay = {
+            binary: 0x2028,
+            runtime: 0x0900,
+            length: 0x08,
+            move: 2,
+            statements: [
+                code(0x0900, [0xa9, 0x42]),
+                code(0x0902, [0x8d, 0x00, 0x30]),
+                code(0x0905, [0x4c, 0x00, 0x09]),
+            ],
+        };
+        const both = {
+            pieces: [...dump.pieces, overlay],
+            labels: [...dump.labels, { name: "other", address: 0x0900, move: 2 }],
+        };
+        const regions = [
+            { name: "low", piece: "bump" },
+            { name: "other", piece: "other" },
+        ];
+
+        it("takes each region's piece from a name in it", () => {
+            const { sets, errors } = importPy8dis(config({ regions }), both);
+            expect(errors).toEqual([]);
+            const { low, other } = sets[0].json.regions;
+            expect(low).toMatchObject({ start: "0x0900", end: "0x0910", symbols: { bump: "0x0900", table: "0x090a" } });
+            expect(other).toMatchObject({ start: "0x0900", end: "0x0908", symbols: { other: "0x0900" } });
+            expect(other.anchors.length).toBeGreaterThan(0);
+        });
+
+        it("refuses a region that says both loaded and piece", () => {
+            expect(() =>
+                importPy8dis(config({ regions: [{ name: "low", loaded: true, piece: "bump" }] }), both),
+            ).toThrow("prog/low: says both loaded and piece");
+        });
+
+        it("refuses a region that names no piece where two run", () => {
+            expect(() => importPy8dis(config({ regions: [{ name: "low", from: "&0900" }] }), both)).toThrow(
+                "2 pieces of the binary run at &0900; name one with piece",
+            );
+            expect(() => importPy8dis(config({ regions: [{ name: "low", piece: "screen" }] }), both)).toThrow(
+                "no piece of the binary holds screen",
+            );
+        });
+    });
+
+    it("makes a region of the binary where it loads, with the names no move() gave", () => {
+        const { sets, errors } = importPy8dis(config({ regions: [{ name: "file", loaded: true }] }), dump);
+        expect(errors).toEqual([]);
+        expect(sets[0].json.regions.file).toMatchObject({
+            start: "0x2000",
+            end: "0x2028",
+            symbols: { start: "0x2000", loop: "0x200c", relocate: "0x2010", relocate_store: "0x2013" },
+        });
+        expect(sets[0].dropped).toContainEqual(["bump", 0x0900, "in no region"]);
+    });
+
+    describe("a ROM", () => {
+        const rom = Uint8Array.from(readDump(dump).loaded.statements.flatMap(({ data }) => data));
+        const romConfig = config({ moves: [], regions: [{ name: "rom", loaded: true }] });
+
+        it("is anchored apart from other ROMs, and made from the ROM's key", () => {
+            const nearly = Uint8Array.from(rom);
+            nearly[0x0e] ^= 0xff;
+            const { sets, errors, reasons } = importPy8dis(romConfig, dump, null, {
+                rom,
+                otherRoms: [{ name: "nearly.rom", bytes: nearly }],
+            });
+            expect(errors).toEqual([]);
+            expect(sets[0].json.madeFrom).toEqual([romKey(rom)]);
+            expect(reasons).toEqual(["prog/rom: an anchor at &200C for nearly.rom"]);
+        });
+
+        it("takes the binary as a ROM jsbeeb doesn't have, if its key is the config's", () => {
+            const byUrl = (key) => ({ ...romConfig, rom: { url: "https://example.com/demo.rom", key } });
+            expect(importPy8dis(byUrl(romKey(rom)), dump).sets[0].json.madeFrom).toEqual([romKey(rom)]);
+            expect(() => importPy8dis(byUrl("0".repeat(32)), dump)).toThrow(
+                `The binary is ROM ${romKey(rom)}, and the config names ${"0".repeat(32)}`,
+            );
+        });
+
+        it("refuses a binary that isn't the ROM", () => {
+            const other = Uint8Array.from(rom);
+            other[3] ^= 0xff;
+            expect(() =>
+                importPy8dis({ ...romConfig, rom: "demo.rom" }, dump, null, { rom: other, otherRoms: [] }),
+            ).toThrow("The binary, where it loads, isn't demo.rom");
+        });
     });
 
     it("refuses a name given to two addresses, even where one is in no region", () => {

@@ -81,6 +81,115 @@
       }
     },
     {
+      "url": "sets/dfs-2.26-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8023", "bytes": "203880004469" },
+            { "at": "0x8fd2", "bytes": "48ad84fe2918" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9067", "bytes": "48ad84fe291b" },
+            { "at": "0x994c", "bytes": "a203a9ff5d6510" },
+            { "at": "0xa002", "bytes": "acc210b91711" },
+            { "at": "0xaea9", "bytes": "c909d02a9848" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb1b1", "bytes": "205d9648aaa5b8" },
+            { "at": "0xbedd", "bytes": "4cb1b1c92bd0f9" }
+          ]
+        },
+        "nmi_read": {
+          "start": "0x0d00",
+          "end": "0x0d5e",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x0d42", "bytes": "d003ee3e0dc6a6" },
+            { "at": "0x0d52", "bytes": "ad87fe6840a900" }
+          ]
+        },
+        "nmi_8271": {
+          "start": "0x0d00",
+          "end": "0x0d94",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x0d33", "bytes": "6840c9fef004" },
+            { "at": "0x0d41", "bytes": "ed87fe85b5a93b" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/dfs-2.26-tube.json",
+      "licence": "MIT",
+      "regions": {
+        "page4": {
+          "start": "0x0400",
+          "end": "0x04fc",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x0435", "bytes": "087884138612" },
+            { "at": "0x0482", "bytes": "286058b00ad003" }
+          ]
+        },
+        "page5": {
+          "start": "0x0500",
+          "end": "0x06ce",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0668", "bytes": "a20420c5069500" }]
+        }
+      }
+    },
+    {
+      "url": "sets/lisp-4.06-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8060", "bytes": "ac2b04c8c88c2c04" },
+            { "at": "0x8818", "bytes": "b93300913088" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9000", "bytes": "b17cd031203d90" },
+            { "at": "0x981e", "bytes": "a200204498205384" },
+            { "at": "0xa002", "bytes": "2025a0a0100672" },
+            { "at": "0xa80e", "bytes": "000aac0c0000" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb420", "bytes": "005854414280" },
+            { "at": "0xb800", "bytes": "02d705d750d7" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/nevryon-game.json",
       "licence": "MIT",
       "regions": {
@@ -411,6 +520,23 @@
           "end": "0x2f79",
           "minAnchors": 1,
           "anchors": [{ "at": "0x2f18", "bytes": "a900aaa88570" }]
+        }
+      }
+    },
+    {
+      "url": "sets/planb-game.json",
+      "licence": "MIT",
+      "regions": {
+        "main": {
+          "start": "0x1210",
+          "end": "0x5557",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1318", "bytes": "088002100048" },
+            { "at": "0x242c", "bytes": "3b000102030a" },
+            { "at": "0x3b8a", "bytes": "b138a43b60a437" },
+            { "at": "0x448b", "bytes": "48a500a0008402" }
+          ]
         }
       }
     },

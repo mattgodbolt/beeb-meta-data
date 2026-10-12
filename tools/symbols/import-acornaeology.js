@@ -14,8 +14,7 @@
  * in the ROM, or if the set fails the index's checks.
  */
 
-import { createHash } from "node:crypto";
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -23,11 +22,11 @@ import { parseArgs } from "node:util";
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir } from "./build-index.js";
+import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 import { RomsDir } from "../jsbeeb.js";
 
 const Importer = "acornaeology";
 const SchemaVersion = 4;
-const KeyHexDigits = 32;
 const AddressLimit = 0x10000;
 const AddressAnchor = /\bid="(addr-([0-9A-Fa-f]{4}))"/g;
 
@@ -66,17 +65,6 @@ export function readDisassembly(json) {
  */
 export function pageAnchors(html) {
     return new Map([...html.matchAll(AddressAnchor)].map(([, id, digits]) => [parseInt(digits, 16), id]));
-}
-
-/** Every bank the ROM's size of the other images, placed where the ROM runs. */
-function imagesOf(otherRoms, base, size) {
-    return otherRoms.flatMap(({ name, bytes }) =>
-        Array.from({ length: Math.floor(bytes.length / size) }, (_, bank) => ({
-            name: bytes.length > size ? `${name} bank ${bank}` : name,
-            memory: new Map(Array.from({ length: size }, (_, i) => [base + i, bytes[bank * size + i]])),
-            program: false,
-        })),
-    );
 }
 
 /** One name per address outside the ROM: the one the memory map describes, else the only one. */
@@ -142,7 +130,7 @@ export function importAcornaeology(config, disassembly, { rom, otherRoms, system
     const section = {};
     const sectionInfo = { org: base, end, exec: null, statements, labels };
     const memory = new Map(Array.from(rom, (byte, i) => [base + i, byte]));
-    const images = imagesOf(otherRoms, base, rom.length);
+    const images = romImages(otherRoms, base, rom.length);
     const spread = { bytesPerAnchor: config.bytesPerAnchor, spreadAnchors: config.spreadAnchors };
     const regions = config.regions.map((spec) => {
         const { start, end: regionEnd } = parseRange(spec, `region ${spec.name}`);
@@ -190,7 +178,7 @@ export function importAcornaeology(config, disassembly, { rom, otherRoms, system
         licence: config.licence,
         source: `${repository}/blob/${commit}/${file}`,
         notice,
-        madeFrom: [createHash("sha256").update(rom).digest("hex").slice(0, KeyHexDigits)],
+        madeFrom: [romKey(rom)],
         ...(config.home !== undefined && { home: config.home }),
         ...(anchors && { nameLink: `${new URL(".", page)}{place}` }),
         globals: byAddress(globals),
@@ -218,17 +206,6 @@ async function fetchText(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
     return response.text();
-}
-
-/** Every file under jsbeeb's public/roms/ that holds one or more whole banks the ROM's size, but the ROM. */
-function otherRomsThan(romFile, size) {
-    const files = readdirSync(RomsDir, { recursive: true })
-        .map(String)
-        .filter((name) => name !== romFile && statSync(path.join(RomsDir, name)).isFile())
-        .sort();
-    return files
-        .map((name) => ({ name, bytes: readFileSync(path.join(RomsDir, name)) }))
-        .filter(({ bytes }) => bytes.length > 0 && bytes.length % size === 0);
 }
 
 function systemGlobalsOf() {

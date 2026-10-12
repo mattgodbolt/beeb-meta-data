@@ -1,0 +1,156 @@
+{
+  "format": 1,
+  "title": "Acorn DFS 2.26",
+  "licence": "MIT",
+  "source": "https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py",
+  "notice": "The names are from py8dis's example disassembly at https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py, under this licence:\n\nMIT License\n\nCopyright (c) 2021 Steven Flintham\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "madeFrom": ["83d97c7170b35c26597896a2c0c202d6"],
+  "nameLink": "https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/{place}",
+  "regions": {
+    "low": {
+      "start": "0x8000",
+      "end": "0x9000",
+      "minAnchors": 2,
+      "anchors": [
+        { "at": "0x8023", "bytes": "203880004469" },
+        { "at": "0x8fd2", "bytes": "48ad84fe2918" }
+      ],
+      "symbols": {
+        "generate_error_precheck_disc": "0x8023",
+        "generate_error_precheck_bad": "0x802e",
+        "generate_error_precheck": "0x8038",
+        "generate_error": "0x8048",
+        "generate_error2": "0x804f",
+        "print_inline_l809f_top_bit_clear": "0x8077",
+        "inc16_ae": "0x83dc",
+        "opt4_table": "0x85d3",
+        "command_table": "0x861c",
+        "clc_jmp_gsinit": "0x874c",
+        "nmi_handler_rom_start": "0x8fd2"
+      }
+    },
+    "middle": {
+      "start": "0x9000",
+      "end": "0xb000",
+      "minAnchors": 4,
+      "anchors": [
+        { "at": "0x9067", "bytes": "48ad84fe291b" },
+        { "at": "0x994c", "bytes": "a203a9ff5d6510" },
+        { "at": "0xa002", "bytes": "acc210b91711" },
+        { "at": "0xaea9", "bytes": "c909d02a9848" }
+      ],
+      "symbols": {
+        "nmi_handler_rom_end": "0x9030",
+        "nmi3_handler_rom_end": "0x903e",
+        "nmi_handler2_rom_start": "0x9067",
+        "nmi_handler2_rom_end": "0x90fb",
+        "set_c_iff_have_fdc": "0x9104",
+        "nmi_and_table": "0x912d",
+        "pla_rts": "0x96c1",
+        "invert_l1065": "0x994c",
+        "generate_error_precheck_locked": "0x9a55",
+        "osbyte_read": "0x9ae5",
+        "generate_error_precheck_disc_changed": "0x9c00",
+        "generate_error_precheck_open": "0x9c82",
+        "osbyte_write_0": "0x9e4d",
+        "print_inline_osasci_top_bit_clear": "0xa99c",
+        "tube_host_code2": "0xacdb",
+        "service_handler_help_and_tube": "0xaea9",
+        "tube_banner_loop": "0xaee8",
+        "service_handler_tube_main_init": "0xaef8",
+        "lda_0_rts": "0xaf35",
+        "just_rts": "0xaf37",
+        "tube_host_code3": "0xaf38",
+        "tube_host_code1": "0xaf79"
+      }
+    },
+    "high": {
+      "start": "0xb000",
+      "end": "0xc000",
+      "minAnchors": 2,
+      "anchors": [
+        { "at": "0xb1b1", "bytes": "205d9648aaa5b8" },
+        { "at": "0xbedd", "bytes": "4cb1b1c92bd0f9" }
+      ],
+      "symbols": {
+        "general_service_handler": "0xb1b1",
+        "sram_table": "0xba30",
+        "general_service_handler_indirect": "0xbedd"
+      }
+    },
+    "nmi_read": {
+      "start": "0x0d00",
+      "end": "0x0d5e",
+      "minAnchors": 2,
+      "anchors": [
+        { "at": "0x0d42", "bytes": "d003ee3e0dc6a6" },
+        { "at": "0x0d52", "bytes": "ad87fe6840a900" }
+      ],
+      "symbols": {
+        "nmi_handler_ram": "0x0d00",
+        "nmi_and_imm": "0x0d04",
+        "nmi_beq": "0x0d08",
+        "nmi_lda_zp": "0x0d16",
+        "nmi_cmp_imm_or_bcs": "0x0d18",
+        "nmi_sta_abs": "0x0d3c"
+      }
+    },
+    "nmi_8271": {
+      "start": "0x0d00",
+      "end": "0x0d94",
+      "minAnchors": 2,
+      "anchors": [
+        { "at": "0x0d33", "bytes": "6840c9fef004" },
+        { "at": "0x0d41", "bytes": "ed87fe85b5a93b" }
+      ],
+      "symbols": { "nmi_bcs": "0x0d0d", "nmi_sta_abs2": "0x0d15" }
+    }
+  },
+  "globals": {},
+  "places": {
+    "clc_jmp_gsinit": "examples/known_good/dfs226_beebasm.asm#L1612",
+    "command_table": "examples/known_good/dfs226_beebasm.asm#L1431",
+    "general_service_handler": "examples/known_good/dfs226_beebasm.asm#L8464",
+    "general_service_handler_indirect": "examples/known_good/dfs226_beebasm.asm#L10784",
+    "generate_error": "examples/known_good/dfs226_beebasm.asm#L358",
+    "generate_error2": "examples/known_good/dfs226_beebasm.asm#L363",
+    "generate_error_precheck": "examples/known_good/dfs226_beebasm.asm#L341",
+    "generate_error_precheck_bad": "examples/known_good/dfs226_beebasm.asm#L334",
+    "generate_error_precheck_disc": "examples/known_good/dfs226_beebasm.asm#L327",
+    "generate_error_precheck_disc_changed": "examples/known_good/dfs226_beebasm.asm#L5159",
+    "generate_error_precheck_locked": "examples/known_good/dfs226_beebasm.asm#L4888",
+    "generate_error_precheck_open": "examples/known_good/dfs226_beebasm.asm#L5235",
+    "inc16_ae": "examples/known_good/dfs226_beebasm.asm#L1055",
+    "invert_l1065": "examples/known_good/dfs226_beebasm.asm#L4715",
+    "just_rts": "examples/known_good/dfs226_beebasm.asm#L8161",
+    "lda_0_rts": "examples/known_good/dfs226_beebasm.asm#L8158",
+    "nmi3_handler_rom_end": "examples/known_good/dfs226_beebasm.asm#L3187",
+    "nmi_and_imm": "examples/known_good/dfs226_beebasm.asm#L3050",
+    "nmi_and_table": "examples/known_good/dfs226_beebasm.asm#L3387",
+    "nmi_bcs": "examples/known_good/dfs226_beebasm.asm#L3227",
+    "nmi_beq": "examples/known_good/dfs226_beebasm.asm#L3055",
+    "nmi_cmp_imm_or_bcs": "examples/known_good/dfs226_beebasm.asm#L3075",
+    "nmi_handler2_rom_end": "examples/known_good/dfs226_beebasm.asm#L3350",
+    "nmi_handler2_rom_start": "examples/known_good/dfs226_beebasm.asm#L3216",
+    "nmi_handler_ram": "examples/known_good/dfs226_beebasm.asm#L3046",
+    "nmi_handler_rom_end": "examples/known_good/dfs226_beebasm.asm#L3160",
+    "nmi_handler_rom_start": "examples/known_good/dfs226_beebasm.asm#L3041",
+    "nmi_lda_zp": "examples/known_good/dfs226_beebasm.asm#L3070",
+    "nmi_sta_abs": "examples/known_good/dfs226_beebasm.asm#L3111",
+    "nmi_sta_abs2": "examples/known_good/dfs226_beebasm.asm#L3239",
+    "opt4_table": "examples/known_good/dfs226_beebasm.asm#L1391",
+    "osbyte_read": "examples/known_good/dfs226_beebasm.asm#L5001",
+    "osbyte_write_0": "examples/known_good/dfs226_beebasm.asm#L5544",
+    "pla_rts": "examples/known_good/dfs226_beebasm.asm#L4292",
+    "print_inline_l809f_top_bit_clear": "examples/known_good/dfs226_beebasm.asm#L391",
+    "print_inline_osasci_top_bit_clear": "examples/known_good/dfs226_beebasm.asm#L7176",
+    "service_handler_help_and_tube": "examples/known_good/dfs226_beebasm.asm#L8080",
+    "service_handler_tube_main_init": "examples/known_good/dfs226_beebasm.asm#L8123",
+    "set_c_iff_have_fdc": "examples/known_good/dfs226_beebasm.asm#L3358",
+    "sram_table": "examples/known_good/dfs226_beebasm.asm#L9956",
+    "tube_banner_loop": "examples/known_good/dfs226_beebasm.asm#L8114",
+    "tube_host_code1": "examples/known_good/dfs226_beebasm.asm#L8241",
+    "tube_host_code2": "examples/known_good/dfs226_beebasm.asm#L7756",
+    "tube_host_code3": "examples/known_good/dfs226_beebasm.asm#L8165"
+  }
+}

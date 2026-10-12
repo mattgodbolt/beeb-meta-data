@@ -70,8 +70,9 @@ theirs differ.
   every set.
 - `source` says where the source is and what of it to assemble.
   - `assembler` is `baron` unless it says `beebasm`.
-  - `repository` and `commit` pin the source. Each set's `source` links the tree there, and for a repository on
-    GitHub each name links to the line that defines it at that commit.
+  - `repository` and `commit` pin the source. Each set's `source` links the tree there, or the file `link` names
+    where the work is one file of a bigger repository, and for a repository on GitHub each name links to the line
+    that defines it at that commit.
   - `assemble` is globs, from the repository's root, of every source to assemble, not only those that make a set,
     since the anchors are chosen against everything the title puts in memory.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
@@ -157,12 +158,13 @@ identical. 90% identical or more is the same code (a crack, a compilation); anyt
 exits 1. Since files sit at their load addresses, code a program moves to where it runs is only compared with other
 titles' files that load there.
 
-The in-memory check boots the title's disc in a headless jsbeeb and, at each moment a scenario picks, lists the regions
+The in-memory check boots the title's disc in a headless jsbeeb (a B with DFS 1.2 unless the scenarios' `machines`
+names another model, a second processor, or no SHIFT+BREAK) and, at each moment a scenario picks, lists the regions
 whose anchors all match. A moment fails unless that's exactly the regions expected, or if two matching regions
 overlap (of one set or two), since the debugger then shows neither.
 
-Neither takes a ROM's config. For a ROM, the importer's own comparison against every ROM jsbeeb has stands in for the
-corpus check, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
+Neither takes an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb has stands in
+for the corpus check, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
 
 ## What the baron importer gets wrong
 
@@ -246,17 +248,24 @@ The config differs from a baron title's in these.
 - `disc` is the disc the in-memory check boots, when the repository has none: the `url` of a zip, the `image`'s path
   in it, and its `key`.
 - A region is `from` an address `to` another (the end of `from`'s piece if not given), expressions in the script's
-  names. It has to lie in one piece.
+  names. It has to lie in one piece: the one running at `from`, else the one holding the name `piece` gives, where two
+  run at the same address (`from` is then the piece's start if not given). With `loaded`, it's the binary where it
+  loads instead, as a ROM sits in memory.
+- `rom`, for a ROM, is its file under jsbeeb's `public/roms/`, or for one jsbeeb doesn't have, the `url` of a copy
+  and its `key`, which the in-memory check fetches and puts in sideways RAM. The binary has to be that ROM, which gives
+  the sets' `madeFrom`, and the anchors tell it apart from every other ROM jsbeeb has and from their own copies of the
+  code it moves (the same Tube host at `&0400`, say), found by the runs of 8 bytes they share.
+- `leaveOut` is regular expressions for names to leave out, such as a script's placeholders (`XXX` in DFS 2.26's).
 - `moves` and `tableSizes` are expressions too, since a script names few of the instructions it traces
   (`boot_relocate_0380_loop + 3`). A table is the store's operand exactly, so `STA table+1,X` is `table + 1`. A move
   can name a copy loop's first instruction; the loop is the one in the piece with an instruction there, or in any
   piece if none or several have one.
 
-A name goes to the region holding its address in its move's piece. One in a piece no region holds (a loader the
-disassembly added) is left out; one outside every piece is a global. The first name the script gives an address wins.
-A name given two addresses stops the import, since a config expression using it couldn't say which it means. The
-names py8dis makes up (`l0070`, `sub_c1234`), expressions (`zp_ptr+1`), constants, and `acorn.py`'s OS and hardware
-names are left out.
+A name goes to the region holding its address in its move's piece, or in the binary as loaded for a name no move gave.
+One in a piece no region holds (a loader the disassembly added) is left out; one outside every piece is a global. The
+first name the script gives an address wins. A name given two addresses stops the import, since a config expression
+using it couldn't say which it means. The names py8dis makes up (`l0070`, `sub_c1234`), expressions (`zp_ptr+1`),
+constants, and `acorn.py`'s OS and hardware names are left out.
 
 For anchors, nothing marks the blocks code hands the OS, py8dis has no SKIP, and every store counts, the
 disassembly's own loader included, unless `moves` says it's a copy.
@@ -354,6 +363,40 @@ The regions are where the game runs: `main` (`&0D00-&5FFF`, up to the screen), a
 region; its copies are `moves`, or their indexed stores would leave the two pieces nothing to anchor on. The disc is
 Stairway to Hell's `Superior/Repton2.zip`, whose `D.REPB` is the game encrypted; once its loader has run, the three
 regions hold `repton2.bin`'s bytes exactly.
+
+## DFS 2.26
+
+`symbols/configs/dfs-2.26.json` makes two sets from py8dis's own example, `examples/python/dfs226.py`, whose binary is
+jsbeeb's `b1770/dfs1770.rom` (and `bp/dfs.rom`, the same bytes). `rom` is the ROM, cut at `&9000` and `&B000`, and
+the two NMI handlers it copies to `&0D00` that can be anchored: the read handler, and the one its 8271 compatibility
+mode (Z+BREAK) reads with. The write handler copies 14 bytes over the read handler's middle; its only bytes that
+differ from the Master's DFS 2.24 are three the 4 byte minimum can't reach, so it has no region, and the read handler
+has an anchor there so as not to match while it's in place. `tube` is the Tube host at `&0400` and `&0500`, a set of
+its own since DFS 1.2 installs the same page 5, which it rightly matches. The zero page part of the Tube host has no
+region, since every `STA zp,X` of the ROM reaches it. `tableSizes` gives the NMI handler's address operands, which the
+ROM stores into with X of 0 or 3.
+
+The in-memory check runs disc commands on a B1770, with and without a second processor, and checks DFS 1.2's and a
+Master's machines match nothing but DFS 1.2's page 5. It holds Z through a power-on reset for the 8271 mode: through
+a soft BREAK, the DFS puts its saved workspace back over the OSBYTE hook the mode has just made, and the next OSBYTE
+meets a BRK. Its scenarios say which machine they want with `machines`.
+
+## Plan B
+
+`symbols/configs/planb.json` makes one set, `game`, from py8dis's example `examples/python/planb.py`, TobyLobster's
+disassembly of Bug Byte's game: one region over the binary, which runs where it loads. The disc is Stairway to Hell's
+`BugByte/PlanB.zip`, whose `PLANB` differs from the example's binary in two operands of one OSBYTE call at
+`title_and_game_loop`, which no anchor covers. TobyLobster's own PlanB repository has no licence, so the set comes
+from py8dis's copy, under py8dis's.
+
+## LISP 4.06
+
+`symbols/configs/lisp-4.06.json` makes one set, `rom`, from py8dis's example `examples/python/lisp406.py`,
+TobyLobster's disassembly with Acornsoft's own label names, cut at `&9000` and `&B000`. jsbeeb doesn't have the ROM.
+The example's binary is byte for byte the `LISP406` on mdfs.net, whose SHA-1 MAME's `bbc_rom.xml` also lists for LISP
+4.06, so the config names that copy. The in-memory check puts it in sideways RAM on a B, and checks it matches only
+while LISP is paged in. Stairway to Hell's `Lisp_B` tape is an earlier version that loads into RAM, and shares little
+with it.
 
 ## Nevryon
 
