@@ -131,9 +131,9 @@ anchors. Where the author has no site of their own, `source` is the only link.
 
 The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
 system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
-in `anchor-chooser.js`). `&F4` and `&FC-&FF` don't count, since games write them in the MOS's sense (the paged ROM copy,
-the IRQ's saved A, the error pointer and the escape flag). The baron and py8dis importers have no such rule: baron
-leaves names from INCLUDEd OS files by `leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
+in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
+the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
+`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
 ## Anchors
 

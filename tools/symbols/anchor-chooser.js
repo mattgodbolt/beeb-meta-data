@@ -52,10 +52,11 @@ const OpcodeNop = 0xea;
 const IndexedReach = 0x100;
 const ZeroPageEnd = 0x100;
 // Zero page, and page 3's VDU and cassette workspace, which games take over for their own variables; but not
-// the paged ROM copy at &F4 or &FC-&FF (IRQ A save, error pointer, escape flag), which games write in the MOS's sense.
+// &F4 (the paged ROM copy) or &FC (the IRQ's saved A), which games write in the MOS's sense.
 const OwnedIfStoredRanges = [
     [0x0000, 0x00f4],
     [0x00f5, 0x00fc],
+    [0x00fd, 0x0100],
     [0x0300, 0x0400],
 ];
 // An OSFILE block, the longest the OS writes back.
