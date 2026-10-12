@@ -8,8 +8,10 @@ import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { decodeTape, tapeKey } from "../../tools/registry/tape.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
+    bootsTape,
     fetchDisc,
     fetchTape,
+    holdUntil,
     loadSets,
     loadTitleSets,
     matchingRegions,
@@ -23,7 +25,7 @@ import {
     typeUntil,
 } from "../../tools/symbols/check-memory.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
-import { fileBlocks, plainUef } from "../registry/tape-images.js";
+import { basicTape, TapeLoadCycles } from "../registry/tape-images.js";
 
 const set = (regions) => parseSet({ format: 1, title: "t", licence: "CC0-1.0", source: "s", regions });
 const anchored = (start, end, at, bytes) => ({
@@ -103,12 +105,9 @@ describe("fetchDisc", () => {
     });
 });
 
-// A BASIC program on tape, `10 ?&900=&42`, as CHAIN"" loads it.
 const Poked = 0x0900;
 const PokedValue = 0x42;
-const pokeLine = [...Buffer.from("?&900=&42")];
-const pokeProgram = [0x0d, 0x00, 0x0a, pokeLine.length + 4, ...pokeLine, 0x0d, 0xff];
-const pokeTape = plainUef(fileBlocks("POKE", pokeProgram, { load: 0xffff1900, exec: 0xffff8023 }));
+const pokeTape = basicTape("?&900=&42");
 
 describe("fetchTape", () => {
     const url = "https://example.com/demo.zip";
@@ -123,6 +122,10 @@ describe("fetchTape", () => {
         );
         expect(await fetchTape({ url, image, key })).toEqual(pokeTape);
         await expect(fetchTape({ url, image, key: "0".repeat(32) })).rejects.toThrow(`is tape ${key}`);
+    });
+
+    it("refuses a tape image jsbeeb can't load", async () => {
+        await expect(fetchTape({ url, image: "Games/Demo.csw", key })).rejects.toThrow("only UEF tapes");
     });
 });
 
@@ -184,10 +187,10 @@ describe("startMachine", () => {
         }
     });
 
-    it("runs a tape's first program", async () => {
+    it("runs a tape's first program", { timeout: 60000 }, async () => {
         const session = await startMachine(null, {}, null, { name: "poke.uef", data: pokeTape });
         try {
-            await session.runFor(20 * 2000000);
+            await session.runFor(TapeLoadCycles);
             expect(session.readMemory(Poked, 1)).toEqual([PokedValue]);
         } finally {
             session.destroy();
@@ -281,13 +284,18 @@ describe("scenarioContext's check", () => {
 });
 
 describe("runScript", () => {
-    const recording = () => {
+    const recording = ({ reaches = true } = {}) => {
         const calls = [];
         return {
             calls,
             keyDown: (code) => calls.push(`down ${code}`),
             keyUp: (code) => calls.push(`up ${code}`),
-            runUntilAddress: async (address) => calls.push(`until ${address}`),
+            keyDownRaw: (key) => calls.push(`down ${key}`),
+            keyUpRaw: (key) => calls.push(`up ${key}`),
+            runUntilAddress: async (address) => {
+                calls.push(`until ${address}`);
+                if (!reaches) throw new Error("did not hit appropriate breakpoint");
+            },
         };
     };
 
@@ -299,6 +307,23 @@ describe("runScript", () => {
 
     it("refuses an address that isn't &hex", async () => {
         await expect(runScript(recording(), ["until 1F00"])).rejects.toThrow("not 1F00");
+    });
+
+    it("lets go of a held key when the PC never gets there, as holdUntil does", async () => {
+        const session = recording({ reaches: false });
+        await expect(runScript(session, ["hold Space &1F00"])).rejects.toThrow("breakpoint");
+        await expect(holdUntil(session, "SPACE", 0x1f00)).rejects.toThrow("breakpoint");
+        expect(session.calls.filter((call) => call.startsWith("up"))).toEqual(["up Space", "up SPACE"]);
+    });
+});
+
+describe("bootsTape", () => {
+    it("boots the tape when there's no disc or it's asked for, and refuses to when there's none", () => {
+        expect(bootsTape(true, true)).toBe(false);
+        expect(bootsTape(false, true)).toBe(true);
+        expect(bootsTape(true, true, true)).toBe(true);
+        expect(bootsTape(true, false)).toBe(false);
+        expect(() => bootsTape(true, false, true)).toThrow("the config names none");
     });
 });
 

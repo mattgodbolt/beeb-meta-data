@@ -8,6 +8,7 @@
 import { BBC } from "jsbeeb/src/keymap.js";
 import {
     FramesPerSecond,
+    hexAddress,
     holdUntil,
     pressKey,
     pressRandomKeys,
@@ -34,13 +35,14 @@ const ReplySecs = 2;
  * `NAME:&ADDRESS`, held until the PC reaches the address.
  */
 export function keyStep(text, frames) {
-    const [name, hold] = text.split(":");
+    const [name, hold, ...rest] = text.split(":");
     if (BBC[name] === undefined) throw new Error(`There's no key ${name} in jsbeeb's BBC keymap`);
     if (hold === undefined) return { key: BBC[name], frames };
-    if (hold.startsWith("&")) return { key: BBC[name], until: parseInt(hold.slice(1), 16) };
-    const secs = Number(hold);
-    if (!(secs > 0)) throw new Error(`${text} holds ${name} for a number of seconds above 0, or until an &address`);
-    return { key: BBC[name], frames: Math.round(secs * FramesPerSecond) };
+    const shapes = `${text} isn't KEY, KEY:SECS or KEY:&ADDRESS`;
+    if (rest.length) throw new Error(shapes);
+    if (hold.startsWith("&")) return { key: BBC[name], until: hexAddress(hold) };
+    if (!/^\d+(\.\d+)?$/.test(hold) || !(Number(hold) > 0)) throw new Error(shapes);
+    return { key: BBC[name], frames: Math.round(Number(hold) * FramesPerSecond) };
 }
 
 export async function pressStep(session, { key, frames, until }) {
@@ -55,8 +57,8 @@ export async function pressStep(session, { key, frames, until }) {
 export async function pressUntil(session, steps, address) {
     for (let tries = 0; tries < StartTries; tries++)
         for (const step of steps) {
-            await pressStep(session, step);
             try {
+                await pressStep(session, step);
                 await session.runUntilAddress(address, StartWaitSecs);
                 return;
             } catch (error) {

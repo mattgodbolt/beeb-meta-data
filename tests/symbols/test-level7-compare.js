@@ -1,13 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { createZipBlob } from "jsbeeb/src/archive.js";
+import { decodeTape, tapeKey } from "../../tools/registry/tape.js";
 import {
     compareWithMemory,
     differingSpans,
     draftCheck,
     draftConfig,
     inGameLabel,
+    main,
     proposeRegions,
 } from "../../tools/symbols/level7-compare.js";
+import { BasicPage, basicLine, basicTape } from "../registry/tape-images.js";
 import { readLevel7 } from "../../tools/symbols/level7-text.js";
 
 const Text = `Game disassembly
@@ -38,7 +46,7 @@ describe("compareWithMemory", () => {
 });
 
 const statement = (address, labels) =>
-    `${labels.map((label) => `; ${label}\n`).join("")}&${address.toString(16)} ${"ea ".repeat(16).trim()}`;
+    `${labels.map((label) => `; ${label}\n`).join("")}&${address.toString(16).padStart(4, "0")} ${"ea ".repeat(16).trim()}`;
 
 // Code at &1000-&1400, a gap, more at &1480-&1500, a loader at &2000-&2100 and a lone label at &3000.
 const Program = `Game disassembly
@@ -108,7 +116,7 @@ ${run(0x1200, 0x10, "loader").join("\n")}
         ]);
     });
 
-    it("cuts a few bytes off a region that overlaps a bigger one at its end, rather than leaving it out", () => {
+    it("cuts a few bytes off a region that overlaps a bigger one at its start, rather than leaving it out", () => {
         const { regions } = held(`${heading("Game")}
 ${run(0x1000, 0x40, "code").join("\n")}
 ${heading("Loader")}
@@ -117,6 +125,18 @@ ${run(0x13e0, 0x20, "loader").join("\n")}
         expect(regions.map(({ name, part, from, to }) => ({ name, part, from, to }))).toEqual([
             { name: "main", part: "Game", from: "&1000", to: "&1400" },
             { name: "page14", part: undefined, from: "&1400", to: "&15E0" },
+        ]);
+    });
+
+    it("cuts a few bytes off a region that overlaps a bigger one at its end", () => {
+        const { regions } = held(`${heading("Game")}
+${run(0x1000, 0x40, "code").join("\n")}
+${heading("Loader")}
+${run(0x0f00, 0x12, "loader").join("\n")}
+`);
+        expect(regions.map(({ name, from, to }) => ({ name, from, to }))).toEqual([
+            { name: "main", from: "&1000", to: "&1400" },
+            { name: "pagef", from: "&0F00", to: "&1000" },
         ]);
     });
 });
@@ -185,5 +205,67 @@ describe("differingSpans", () => {
             ["&1004", "&1011"],
             ["&1100", "&1102"],
         ]);
+    });
+});
+
+describe("main", () => {
+    const Program = "?&900=&42:REM a program of more than sixteen bytes";
+    const tape = basicTape(Program);
+    const listing = `Game disassembly
+================
+; program
+&${BasicPage.toString(16)} ${basicLine(Program)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join(" ")}
+`;
+    let temp;
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        if (temp) rmSync(temp, { recursive: true, force: true });
+    });
+
+    const configWithTape = () => {
+        temp = mkdtempSync(path.join(tmpdir(), "level7-compare-test-"));
+        const source = path.join(temp, "listing.txt");
+        writeFileSync(source, listing);
+        const config = path.join(temp, "config.json");
+        writeFileSync(
+            config,
+            JSON.stringify({
+                id: "hopper",
+                source: {
+                    disassembly: "https://example.com/listing.txt",
+                    sha256: createHash("sha256").update(listing).digest("hex"),
+                },
+                tape: { url: "https://example.com/prog.zip", image: "prog.uef", key: tapeKey(decodeTape(tape).files) },
+                sets: [{ id: "game" }],
+            }),
+        );
+        vi.spyOn(globalThis, "fetch").mockImplementation(
+            async () => new Response(createZipBlob([{ name: "prog.uef", data: tape }])),
+        );
+        return ["--config", config, "--source", source];
+    };
+
+    it(
+        "boots a config's tape on the model asked for, runs a script, and reports each moment",
+        { timeout: 60000 },
+        async () => {
+            const log = vi.spyOn(console, "log").mockImplementation(() => {});
+            const args = [...configWithTape(), "--model", "B-DFS1.2", "--seconds", "20", "--script", "wait 1; report"];
+            expect(await main(args)).toBe(0);
+            const printed = log.mock.calls.map(([line]) => line);
+            expect(printed.filter((line) => /^After/.test(line))).toHaveLength(2);
+            expect(printed).toContain(
+                `    &${BasicPage.toString(16).toUpperCase()}-&${(BasicPage + basicLine(Program).length - 1).toString(16).toUpperCase()} (line 4): 100%`,
+            );
+        },
+    );
+
+    it("refuses to draft from a script", async () => {
+        await expect(main([...configWithTape(), "--script", "report", "--draft", "test"])).rejects.toThrow(
+            "--draft needs --keys",
+        );
     });
 });
