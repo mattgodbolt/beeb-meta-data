@@ -12,6 +12,7 @@ import {
     loadTitleSets,
     matchingRegions,
     overlappingRegions,
+    romOf,
     startMachine,
     typeUntil,
 } from "../../tools/symbols/check-memory.js";
@@ -112,6 +113,17 @@ describe("fetchRom", () => {
     it("refuses a failed fetch", async () => {
         vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
         await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+    });
+});
+
+describe("romOf", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it("reads jsbeeb's ROM by its file, and fetches any other by URL and key", async () => {
+        expect(await romOf("BASIC.ROM")).toEqual(new Uint8Array(readFileSync(path.join(RomsDir, "BASIC.ROM"))));
+        const rom = new Uint8Array(0x2000).fill(0x60);
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        expect(await romOf({ url: "https://example.com/demo.rom", key: romKey(rom) })).toEqual(rom);
     });
 });
 

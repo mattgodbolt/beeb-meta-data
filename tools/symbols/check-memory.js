@@ -13,7 +13,8 @@
  * disc in the source repository, with the title built as its importer builds it, for the scenarios that
  * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
  * its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by
- * URL and key, is put in sideways RAM. With no SCENARIO, it runs them all, each on a fresh machine. Exits
+ * URL and key, is put in sideways RAM; for an acornaeology config, the ROM of the version a scenario's machine
+ * names in `sideways`. With no SCENARIO, it runs them all, each on a fresh machine. Exits
  * 1 if any moment fails.
  */
 
@@ -31,6 +32,7 @@ import { regionMatches } from "jsbeeb/src/symbol-names.js";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir } from "./build-index.js";
 import { romKey } from "./rom-images.js";
+import { RomsDir } from "../jsbeeb.js";
 import { BuildOptions, BuildUsage, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
@@ -250,6 +252,10 @@ export async function fetchRom({ url, key }) {
     return rom;
 }
 
+/** A ROM a config names: jsbeeb's file, or a copy by URL and key. */
+export const romOf = async (rom) =>
+    typeof rom === "string" ? new Uint8Array(readFileSync(path.join(RomsDir, rom))) : fetchRom(rom);
+
 /**
  * Runs `use` with the disc a config's scenarios boot: an assembled title's `source.disc`, in its build,
  * a disc the config's `disc` fetches from an archive, or none for a ROM's config that names none.
@@ -260,7 +266,8 @@ async function withTitleDisc(config, options, use) {
             use({ disc: path.join(sourceDir, config.source.disc), filesDir }),
         );
     if (config.disc === undefined) {
-        if (config.rom === undefined) throw new Error("The config names no disc to boot, in source.disc or disc");
+        if (config.rom === undefined && config.importer !== "acornaeology")
+            throw new Error("The config names no disc to boot, in source.disc or disc");
         return use({ disc: null });
     }
     const temp = mkdtempSync(path.join(tmpdir(), "symbols-disc-"));
@@ -293,11 +300,17 @@ async function main() {
     for (const name of wanted) if (!scenarios[name]) throw new Error(`There's no scenario ${name}`);
     if (values.shots) mkdirSync(values.shots, { recursive: true });
     const results = [];
-    const sideways = typeof config.rom === "object" ? await fetchRom(config.rom) : null;
+    const configRom = typeof config.rom === "object" ? await fetchRom(config.rom) : null;
+    const sidewaysFor = (machine) => {
+        if (machine?.sideways === undefined) return configRom;
+        const version = config.sets.find(({ id }) => id === machine.sideways);
+        if (!version) throw new Error(`There's no version ${machine.sideways} to put in sideways RAM`);
+        return romOf(version.rom);
+    };
     await withTitleDisc(config, values, async ({ disc, filesDir }) => {
         for (const name of wanted) {
             console.log(`-- ${name}`);
-            const session = await startMachine(disc, machines[name], sideways);
+            const session = await startMachine(disc, machines[name], await sidewaysFor(machines[name]));
             try {
                 await scenarios[name](scenarioContext(session, sets, filesDir, values.shots, results));
             } finally {
