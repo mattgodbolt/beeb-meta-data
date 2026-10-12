@@ -119,7 +119,7 @@ export async function startMachine(
     await session.boot(BootTimeoutSecs);
     if (disc) session.loadDisc(disc);
     if (tape) {
-        // MachineSession has no way to put a tape in.
+        // MachineSession has no way to put a tape in (jsbeeb#1258).
         const processor = session._machine.processor;
         processor.acia.setTape(await loadTapeFromData(tape.name, tape.data, processor.model));
         if (!autoboot) return session;
@@ -193,10 +193,11 @@ export async function pressRandomKeys(session, keys, random, frames) {
     }
 }
 
-const scriptAddress = (text) => {
-    if (!/^&[0-9a-f]{1,4}$/i.test(text ?? "")) throw new Error(`A script's address is hex, &1F00, not ${text}`);
+/** An address as scripts and key steps give it, `&1F00`. */
+export function hexAddress(text) {
+    if (!/^&[0-9a-f]{1,4}$/i.test(text ?? "")) throw new Error(`An address is hex, &1F00, not ${text}`);
     return parseInt(text.slice(1), 16);
-};
+}
 
 /**
  * Runs a little script of host keys, each command one of: `wait SECS`, `key CODE [FRAMES]` (pressed and
@@ -226,13 +227,13 @@ export async function runScript(session, commands, { shots } = {}) {
             case "hold":
                 session.keyDown(args[0]);
                 try {
-                    await session.runUntilAddress(scriptAddress(args[1]));
+                    await session.runUntilAddress(hexAddress(args[1]));
                 } finally {
                     session.keyUp(args[0]);
                 }
                 break;
             case "until":
-                await session.runUntilAddress(scriptAddress(args[0]));
+                await session.runUntilAddress(hexAddress(args[0]));
                 break;
             case "shot":
                 if (shots) writeFileSync(path.join(shots, `${args[0]}.png`), await session.screenshotActive());
@@ -302,6 +303,7 @@ export async function fetchDisc({ url, image, key }) {
 
 /** The same for a tape image, by its tape key. */
 export async function fetchTape({ url, image, key }) {
+    if (!/\.uef$/i.test(image)) throw new Error(`jsbeeb loads only UEF tapes, and ${image} isn't one`);
     const tape = await fetchZipMember(url, image);
     const found = tapeKey(decodeTape(tape).files);
     if (found !== key) throw new Error(`${image} in ${url} is tape ${found}, and the config names ${key}`);
@@ -352,6 +354,12 @@ export async function sidewaysRom(config, saved) {
     return typeof config.rom === "object" ? fetchRom(config.rom) : null;
 }
 
+/** Whether a title with a disc and a tape (either or both) boots the tape: when it has no disc, or that's asked for. */
+export function bootsTape(hasDisc, hasTape, wantsTape = false) {
+    if (wantsTape && !hasTape) throw new Error("The tape is asked for, and the config names none");
+    return hasTape && (wantsTape || !hasDisc);
+}
+
 /**
  * What a scenario's machine boots: the title's disc and ROM, unless its `machines` entry names a `disc`
  * or a `rom` of the title's checkout instead (the original release beside the rebuilt one, say). The
@@ -360,8 +368,7 @@ export async function sidewaysRom(config, saved) {
 export function scenarioMedia(machine, sourceDir, disc, rom, tape = null) {
     if ((machine.disc !== undefined || machine.rom !== undefined) && sourceDir === undefined)
         throw new Error("Only an assembled title's scenarios can boot a disc or ROM of its checkout");
-    if (machine.tape && !tape) throw new Error("The scenario wants the tape, and the config names none");
-    const fromTape = tape !== null && (machine.tape || !disc);
+    const fromTape = bootsTape(disc !== null, tape !== null, machine.tape);
     return {
         disc: fromTape ? null : machine.disc === undefined ? disc : path.join(sourceDir, machine.disc),
         rom: machine.rom === undefined ? rom : readFileSync(path.join(sourceDir, machine.rom)),
