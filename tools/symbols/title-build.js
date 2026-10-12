@@ -40,6 +40,9 @@ export function assemblerOf(config) {
  * The importer for a config: level7's for one that says so, py8dis's for one that names `py8dis`, else
  * its assembler's.
  */
+/** Whether a config's title is built by an assembler, rather than read from a disassembly. */
+export const isAssembled = (config) => config.importer === undefined && !config.py8dis;
+
 export const importerOf = (config) =>
     config.importer === Level7 ? Level7 : config.py8dis ? Py8dis : assemblerOf(config);
 

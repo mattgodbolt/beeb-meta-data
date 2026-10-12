@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { environmentWithoutGit } from "../../tools/symbols/baron-build.js";
-import { assemblerOf, importerOf, withTitleSource } from "../../tools/symbols/title-build.js";
+import { assemblerOf, importerOf, isAssembled, withTitleSource } from "../../tools/symbols/title-build.js";
 
 const IsolatedGitConfig = [
     "-c",
@@ -67,6 +67,16 @@ describe("importerOf", () => {
         expect(importerOf({ ...config(undefined), py8dis: { repository: "r", commit: "c" } })).toBe("py8dis");
         expect(importerOf(config(undefined))).toBe("baron");
         expect(importerOf(config("beebasm"))).toBe("beebasm");
+    });
+});
+
+describe("isAssembled", () => {
+    it("is true for a baron or beebasm title, and false for the importers that read a disassembly", () => {
+        expect(isAssembled(config(undefined))).toBe(true);
+        expect(isAssembled(config("beebasm"))).toBe(true);
+        expect(isAssembled({ ...config(undefined), importer: "acornaeology" })).toBe(false);
+        expect(isAssembled({ ...config(undefined), importer: "level7" })).toBe(false);
+        expect(isAssembled({ ...config(undefined), py8dis: { repository: "r", commit: "c" } })).toBe(false);
     });
 });
 

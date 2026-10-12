@@ -8,16 +8,15 @@
  * Usage: node tools/symbols/check-memory.js --config symbols/configs/pipeline.json [--source <checkout>]
  *            [--baron <path>] [--beebasm <path>] [--sets symbols/sets] [--shots DIR] [SCENARIO...]
  *
- * The config's `check` names the module of scenarios, beside it, which can also export `machines`, the
- * machine each scenario wants by its name (see startMachine), and `titles`, other titles whose sets are checked
- * alongside (otherTitlesSets). They boot `source.disc`, the original
- * disc in the source repository, with the title built as its importer builds it, for the scenarios that
- * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
- * its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by
- * URL and key, or as the `file` an assembled title's build saves, is put in sideways RAM; for an acornaeology
- * config, the ROM of the version a scenario's machine names in `sideways`. An assembled title's scenario can boot
- * another `disc` or `rom` of its checkout instead (scenarioMedia). With no SCENARIO, it runs them all, each on a
- * fresh machine. Exits 1 if any moment fails.
+ * The config's `check` names the module of scenarios, beside it, which can also export `machines`, the machine each
+ * scenario wants by its name (see startMachine), and `titles`, other titles whose sets are checked alongside
+ * (otherTitlesSets). They boot `source.disc`, the original disc in the source repository, with the title built as its
+ * importer builds it, for the scenarios that read its files; or `disc`, a disc image in a zip the config names by its
+ * URL, its path in the zip and its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's
+ * `rom` gives by URL and key, or as the `file` an assembled title's build saves, is put in sideways RAM; for an
+ * acornaeology config, the ROM of the version a scenario's machine names in `sideways`. An assembled title's scenario
+ * can boot another `disc` or `rom` of its checkout instead (scenarioMedia). With no SCENARIO, it runs them all, each on
+ * a fresh machine. Exits 1 if any moment fails.
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -34,7 +33,7 @@ import { regionMatches } from "jsbeeb/src/symbol-names.js";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir } from "./build-index.js";
 import { fetchRom, romOf } from "./rom-images.js";
-import { Assemblers, BuildOptions, BuildUsage, importerOf, withTitleSource } from "./title-build.js";
+import { BuildOptions, BuildUsage, isAssembled, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
 const Model = "B-DFS1.2";
@@ -261,7 +260,7 @@ export async function fetchDisc({ url, image, key }) {
  * for a ROM's config that names none.
  */
 async function withTitleDisc(config, options, use) {
-    if (Assemblers.includes(importerOf(config))) {
+    if (isAssembled(config)) {
         if (config.source.disc === undefined && config.rom === undefined)
             throw new Error("The config names no disc to boot in source.disc, and no rom");
         return withTitleSource(config, options, ({ sourceDir, filesDir, saved }) =>
