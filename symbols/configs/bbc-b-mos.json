@@ -1,0 +1,135 @@
+{
+  "id": "bbc-b-mos",
+  "importer": "acme",
+  "licence": "CC-BY-NC-4.0",
+  "notice": "The names are Toby Nelson's (TobyLobster), from his MOS reassembly at https://github.com/TobyLobster/mos/tree/c3f39cd93d50381fe6be34666fdcfc3d3ffa3d48. He gave its licence, CC BY-NC, at https://stardot.org.uk/forums/viewtopic.php?p=494593#p494593. The licence is at https://creativecommons.org/licenses/by-nc/4.0/.",
+  "home": "https://tobylobster.github.io/mos/",
+  "source": {
+    "repository": "https://github.com/TobyLobster/mos",
+    "commit": "c3f39cd93d50381fe6be34666fdcfc3d3ffa3d48"
+  },
+  "system": true,
+  "globals": [
+    {
+      "start": "0x00d0",
+      "end": "0x0100"
+    },
+    {
+      "start": "0x0200",
+      "end": "0x0400"
+    },
+    {
+      "start": "0x0d00",
+      "end": "0x0e00"
+    },
+    {
+      "start": "0xfc00",
+      "end": "0xff00"
+    }
+  ],
+  "leaveOut": ["^mosVariablesMinus\\d+$"],
+  "bytesPerAnchor": 4096,
+  "spreadAnchors": 4,
+  "check": "bbc-b-mos-check.js",
+  "sets": [
+    {
+      "id": "1.20",
+      "title": "BBC Micro MOS 1.20",
+      "assemble": "docs/mos/os120_acme.a",
+      "rom": "os.rom",
+      "home": "https://tobylobster.github.io/mos/mos/index.html",
+      "pages": {
+        "directory": "docs/mos",
+        "url": "https://tobylobster.github.io/mos/mos/"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "from": "&C000",
+          "to": "&C310"
+        },
+        {
+          "name": "middle",
+          "from": "&C310",
+          "to": "&DB67",
+          "sameCodeIn": ["deos.rom"]
+        },
+        {
+          "name": "boot",
+          "from": "&DB67",
+          "to": "&DB6E"
+        },
+        {
+          "name": "high",
+          "from": "&DB6E",
+          "to": "&FC00",
+          "sameCodeIn": ["deos.rom"]
+        },
+        {
+          "name": "top-page",
+          "from": "&FF00",
+          "to": "&10000",
+          "sameCodeIn": ["deos.rom"]
+        }
+      ]
+    },
+    {
+      "id": "1.20-us",
+      "title": "BBC Micro MOS 1.20 (US)",
+      "assemble": "docs/os120us_acme.a",
+      "rom": "usmos.rom",
+      "home": "https://tobylobster.github.io/mos/mos120us.html",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&C000",
+          "to": "&FC00"
+        },
+        {
+          "name": "top-page",
+          "from": "&FF00",
+          "to": "&10000"
+        }
+      ]
+    },
+    {
+      "id": "1.20-de",
+      "title": "BBC Micro MOS 1.20 (German)",
+      "assemble": "docs/os120de_acme.a",
+      "rom": "deos.rom",
+      "home": "https://tobylobster.github.io/mos/mos120de.html",
+      "globals": [],
+      "regions": [
+        {
+          "name": "low",
+          "from": "&C000",
+          "to": "&C310"
+        },
+        {
+          "name": "boot",
+          "from": "&DB67",
+          "to": "&DB6E"
+        }
+      ]
+    },
+    {
+      "id": "0.10",
+      "title": "BBC Micro MOS 0.10",
+      "assemble": "docs/os010_acme.a",
+      "rom": "os01.rom",
+      "home": "https://tobylobster.github.io/mos/mos010.html",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&C000",
+          "to": "&FC00"
+        },
+        {
+          "name": "top-page",
+          "from": "&FF00",
+          "to": "&10000"
+        }
+      ]
+    }
+  ]
+}

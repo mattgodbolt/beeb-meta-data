@@ -49,7 +49,6 @@ The tools each importer needs, and where it looks for them:
 | `import-py8dis.js`       | Python 3, and py8dis  | `--python`, `$PYTHON`, else `python3`         |
 | `import-acornaeology.js` | the network           | jsbeeb's ROMs come from `node_modules/jsbeeb` |
 | `import-acme.js`         | ACME 0.97 or later    | `--acme`, `$ACME`, else `acme`                |
-| `make-mos-set.js`        | Python 3              | `python3`                                     |
 | `import-level7.js`       | the network           | `--source`, a copy of the disassembly         |
 
 Baron before 0.5.0 wrote a flat symbol dump, which the importer refuses. The in-memory check doesn't read the dumps,
@@ -125,7 +124,7 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 
 Every importer links names back to the author's own work where it can, with the set's `home`, `nameLink` and
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
-anchors. Where the author has no site of their own (py8dis's `acorn.py` for the MOS), `source` is the only link.
+anchors. Where the author has no site of their own, `source` is the only link.
 
 ## Anchors
 
@@ -366,6 +365,22 @@ place, or in none of the pages, stops the import. Anchors are chosen and every R
 Only the names in the source the config names are read, not those of files it includes, and a source of a program loaded
 from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the
 most instructions use.
+
+## The MOS
+
+`symbols/configs/bbc-b-mos.json` makes the B's MOS sets, `bbc-b-mos-1.20` (the one jsbeeb's B runs), `1.20-us`,
+`1.20-de` and `0.10`, and `bbc-bplus-mos.json` the B+'s `bbc-bplus-mos-2.00`, from Toby Nelson's reassemblies, each
+against the ROM jsbeeb has. 1.20 is built from `docs/mos/os120_acme.a`, the source of the annotated pages its names link
+to. 2.00's source fills `&FC00-&FEFF`, which jsbeeb's copy of the ROM leaves as `&FF` and no region covers.
+
+The German MOS differs from 1.20 in its boot message, at `&C303-&C30F`, and one byte at `&DB6D`, where its offset is
+loaded. So 1.20's set is cut there into `low` (to `&C310`, since the font before the message is the same in every other
+MOS jsbeeb has and can't be anchored on its own), `middle`, `boot` (`&DB67-&DB6E`), `high` and `top-page`, and its
+`middle`, `high` and `top-page` have `sameCodeIn` the German ROM, matching it too. The German set is only `low` and
+`boot`, with no globals, which 1.20's give it.
+
+jsbeeb has no model with the US, German, 0.10 or B+ MOS, so their in-memory checks only show them matching nowhere
+else; `tests/symbols/test-shipped-rom-sets.js` puts each ROM at `&C000` and checks which sets it matches.
 
 ## NFS and ANFS
 

@@ -407,9 +407,7 @@
     "bottom_rows": "0x008c",
     "top_rows": "0x008d",
     "bottom_screen_address": "0x008e",
-    "irq2_vector_high": "0x0207",
-    "event_vector_high": "0x0221",
-    "os_paged_rom_type_table": "0x02a1"
+    "irq2_vector_high": "0x0207"
   },
   "places": {
     "add_enemy_projectile": "yie-ar-kung-fu-disassembly.txt#:~:text=add_enemy_projectile,-%261bf7",
@@ -468,7 +466,6 @@
     "enemy_type": "yie-ar-kung-fu-disassembly.txt#:~:text=enemy_type",
     "energy_string": "yie-ar-kung-fu-disassembly.txt#:~:text=energy_string",
     "event_handler": "yie-ar-kung-fu-disassembly.txt#:~:text=event_handler,-%262447",
-    "event_vector_high": "yie-ar-kung-fu-disassembly.txt#:~:text=event_vector_high,-%2623f9",
     "feedle_sprites_data": "yie-ar-kung-fu-disassembly.txt#:~:text=feedle_sprites_data,-%23",
     "flip_enemy_velocity": "yie-ar-kung-fu-disassembly.txt#:~:text=flip_enemy_velocity,-%2619c3",
     "flip_enemy_velocity_or_stop_flying_buchu_and_plot_enemy": "yie-ar-kung-fu-disassembly.txt#:~:text=flip_enemy_velocity_or_stop_flying_buchu_and_plot_enemy,-%2619b9",
@@ -550,7 +547,6 @@
     "opponent_names": "yie-ar-kung-fu-disassembly.txt#:~:text=opponent_names",
     "os_envelope_data": "yie-ar-kung-fu-disassembly.txt#:~:text=os_envelope_data",
     "os_font_data": "yie-ar-kung-fu-disassembly.txt#:~:text=os_font_data",
-    "os_paged_rom_type_table": "yie-ar-kung-fu-disassembly.txt#:~:text=os_paged_rom_type_table",
     "os_sound_buffers": "yie-ar-kung-fu-disassembly.txt#:~:text=os_sound_buffers",
     "os_sound_workspace": "yie-ar-kung-fu-disassembly.txt#:~:text=os_sound_workspace",
     "palette_colours": "yie-ar-kung-fu-disassembly.txt#:~:text=palette_colours,-%260a23",

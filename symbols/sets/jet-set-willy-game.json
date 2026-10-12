@@ -893,9 +893,7 @@
     "player_not_plotted": "0x009c",
     "out_of_time": "0x009d",
     "house_clear": "0x009e",
-    "player_rope_pixel": "0x009f",
-    "irq_accumulator": "0x00fc",
-    "melody_active": "0x028a"
+    "player_rope_pixel": "0x009f"
   },
   "places": {
     "add_background_tile": "jet-set-willy-disassembly.txt#:~:text=add_background_tile,-%2613b1",
@@ -1440,7 +1438,6 @@
     "initialise_room": "jet-set-willy-disassembly.txt#:~:text=initialise_room,-%26111b",
     "initialise_room_background_tiles_and_title": "jet-set-willy-disassembly.txt#:~:text=initialise_room_background_tiles_and_title,-%260f1c",
     "initialise_room_data": "jet-set-willy-disassembly.txt#:~:text=initialise_room_data,-%26112c",
-    "irq_accumulator": "jet-set-willy-disassembly.txt#:~:text=irq_accumulator",
     "irq_counter": "jet-set-willy-disassembly.txt#:~:text=irq_counter,-%2608bf",
     "irq_routine": "jet-set-willy-disassembly.txt#:~:text=irq_routine,-%260786",
     "is_1b_1c_1d_1e_or_1f": "jet-set-willy-disassembly.txt#:~:text=is_1b_1c_1d_1e_or_1f,-%260f68",
@@ -1466,7 +1463,6 @@
     "life_y": "jet-set-willy-disassembly.txt#:~:text=life_y",
     "lower_case": "jet-set-willy-disassembly.txt#:~:text=lower_case,-%260fa6",
     "mark_enemies_that_overlap_player": "jet-set-willy-disassembly.txt#:~:text=mark_enemies_that_overlap_player,-%23",
-    "melody_active": "jet-set-willy-disassembly.txt#:~:text=melody_active",
     "melody_duration_table": "jet-set-willy-disassembly.txt#:~:text=melody_duration_table,-%2607ce",
     "melody_pitch_table": "jet-set-willy-disassembly.txt#:~:text=melody_pitch_table,-%2607a8",
     "melody_sound": "jet-set-willy-disassembly.txt#:~:text=melody_sound,-%3B",
