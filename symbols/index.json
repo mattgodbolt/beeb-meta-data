@@ -2194,12 +2194,6 @@
             { "at": "0x1b31", "bytes": "863d843ea000" },
             { "at": "0x25b7", "bytes": "8af0b320c925" }
           ]
-        },
-        "loader": {
-          "start": "0x4522",
-          "end": "0x481b",
-          "minAnchors": 1,
-          "anchors": [{ "at": "0x4522", "bytes": "78a9408d000d" }]
         }
       }
     }

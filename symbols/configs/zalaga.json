@@ -19,8 +19,12 @@
       "id": "game",
       "title": "Zalaga",
       "regions": [
-        { "name": "main", "part": "?", "from": "&0643", "to": "&2FE8" },
-        { "name": "loader", "from": "&4522", "to": "&481B", "overwritten": true }
+        {
+          "name": "main",
+          "part": "?",
+          "from": "&0643",
+          "to": "&2FE8"
+        }
       ]
     }
   ]

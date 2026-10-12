@@ -564,8 +564,8 @@ Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung 
 Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission and Bruce Lee were added that way, with Hopper,
 Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
 check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
-Ninja 2's disc holds half of The Last Ninja's `page9`, identically; one cheat disc patches a tenth of Zalaga's `loader`,
-the one region the check calls a collision.
+Ninja 2's disc holds half of The Last Ninja's `page9`, identically. Zalaga has no region for its run-once loader,
+which a cheat disc patches by a tenth while keeping its anchors.
 
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians' `relocate`,
 Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists unrelocated in

@@ -4,7 +4,7 @@ import { playScenario } from "../../tools/symbols/title-scenario.js";
 
 export const scenarios = {
     game: playScenario({
-        loaded: ["game/loader"],
+        loaded: [],
         playing: ["game/main"],
         loadSecs: 30,
         start: ["SPACE"],
