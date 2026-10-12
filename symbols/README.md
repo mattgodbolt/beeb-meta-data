@@ -16,6 +16,7 @@ describes. None of this data is under this repository's GPL; each set has its ow
 | --------------------------- | ----------------------------------------------------------------------------- | ------------------------ |
 | `bbc-b-mos-1.20.json`       | py8dis's `acorn.py`, and jsbeeb's `os.rom`                                    | `make-mos-set.js`        |
 | `bbc-basic-2.json`          | [acornaeology's BBC BASIC II](https://github.com/acornaeology/bbc-basic)      | `import-acornaeology.js` |
+| `nfs-*.json`, `anfs-*.json` | [acornaeology's NFS and ANFS](https://github.com/acornaeology/acorn-nfs)      | `import-acornaeology.js` |
 | `pipeline-*.json`           | [PIPELINE's source](https://github.com/mattgodbolt/pipeline-disasm)           | `import-baron.js`        |
 | `scorched-earth-game.json`  | [Scorched Earth's source](https://github.com/mattgodbolt/beeb-scorched-earth) | `import-baron.js`        |
 | `nevryon-game.json`         | [Nevryon's disassembly](https://github.com/waitingforvsync/nevryon)           | `import-beebasm.js`      |

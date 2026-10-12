@@ -8,14 +8,13 @@ import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
     fetchDisc,
-    fetchRom,
+    loadSets,
     loadTitleSets,
     matchingRegions,
     overlappingRegions,
     startMachine,
     typeUntil,
 } from "../../tools/symbols/check-memory.js";
-import { romKey } from "../../tools/symbols/rom-images.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
 
 const set = (regions) => parseSet({ format: 1, title: "t", licence: "CC0-1.0", source: "s", regions });
@@ -93,25 +92,11 @@ describe("fetchDisc", () => {
     });
 });
 
-describe("fetchRom", () => {
-    const url = "https://example.com/demo.rom";
-    const rom = new Uint8Array(0x4000).map((_, i) => i * 3);
-
-    afterEach(() => vi.restoreAllMocks());
-
-    it("returns the ROM when its key is the config's", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
-        expect(await fetchRom({ url, key: romKey(rom) })).toEqual(rom);
-    });
-
-    it("refuses a ROM whose key isn't the config's", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
-        await expect(fetchRom({ url, key: "0".repeat(32) })).rejects.toThrow(`is ROM ${romKey(rom)}`);
-    });
-
-    it("refuses a failed fetch", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
-        await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+describe("loadSets", () => {
+    it("loads the sets with the ids given, by their files' names", () => {
+        const loaded = loadSets(path.join(SymbolsDir, "sets"), ["bbc-basic-2"]);
+        expect(Object.keys(loaded)).toEqual(["bbc-basic-2"]);
+        expect(loaded["bbc-basic-2"].title).toBe("BBC BASIC II");
     });
 });
 
