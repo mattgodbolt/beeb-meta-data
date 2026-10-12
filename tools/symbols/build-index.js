@@ -74,21 +74,14 @@ export function readMosSets(dir = SymbolsDir) {
     return JSON.parse(readFileSync(path.join(dir, MosSetsFile), "utf8"));
 }
 
-/**
- * The sets that may be marked `system`, parsed, but those in `writing`, which an importer is about to
- * remake and which needn't exist yet.
- * @param {{writing?: string[]}} [options] - paths as mos-sets.json gives them
- */
-export const readSystemSets = (dir = SymbolsDir, { writing = [] } = {}) =>
-    readMosSets(dir)
-        .filter((file) => !writing.includes(file))
-        .map((file) => parseSet(JSON.parse(readFileSync(path.join(dir, file), "utf8"))));
+/** The sets that may be marked `system`, parsed. */
+export const readSystemSets = (dir = SymbolsDir) =>
+    readMosSets(dir).map((file) => parseSet(JSON.parse(readFileSync(path.join(dir, file), "utf8"))));
 
-/** The globals of the sets that may be marked `system`, by address, as readSystemSets reads them. */
-export function systemGlobals(dir = SymbolsDir, options = {}) {
+/** The globals of the sets that may be marked `system`, by address. */
+export function systemGlobals(dir = SymbolsDir) {
     const globals = new Map();
-    for (const set of readSystemSets(dir, options))
-        for (const [address, name] of set.globals) globals.set(address, name);
+    for (const set of readSystemSets(dir)) for (const [address, name] of set.globals) globals.set(address, name);
     return globals;
 }
 

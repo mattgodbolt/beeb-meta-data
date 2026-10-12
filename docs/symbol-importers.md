@@ -25,6 +25,9 @@ node tools/symbols/import-acme.js --config symbols/configs/<title>.json
 node tools/symbols/build-index.js
 ```
 
+`npm run reimport-all` runs every config's importer, the system sets' first, and `build-index.js`, and lists the sets
+that changed; with `--check` it exits 1 if any did. It needs every importer's tools and the network.
+
 Then the two checks, for any title but a ROM:
 
 ```sh
@@ -126,6 +129,12 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 Every importer links names back to the author's own work where it can, with the set's `home`, `nameLink` and
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
 anchors. Where the author has no site of their own (py8dis's `acorn.py` for the MOS), `source` is the only link.
+
+The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
+system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
+in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
+the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
+`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
 ## Anchors
 
@@ -352,8 +361,8 @@ A config has `"importer": "acme"`, an `id`, and
   `leaveOut` as for acornaeology and py8dis;
 - `check`, the in-memory check's scenarios;
 - `sets`, one per version, each with an `id`, a `title`, the source to `assemble`, its `rom` (jsbeeb's file, or a `url`
-  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron), and optionally its own `home`
-  and `pages`.
+  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron) and optionally a `sameCodeIn`
+  as for acornaeology, and optionally its own `home` and `pages`.
 
 The source has to assemble to the ROM's bytes in every region. Each label assembled into a region is named there, the
 last written winning where two share an address. A `=` name is a global if an instruction uses it first in a

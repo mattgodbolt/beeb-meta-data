@@ -19,6 +19,7 @@ const RomSize = 0x100;
 const Pairs = 51;
 const OpcodeLdaImmediate = 0xa9;
 const OpcodeStaAbsolute = 0x8d;
+const OpcodeStaZeroPage = 0x85;
 const OpcodeRts = 0x60;
 const PairBytes = 5;
 const StaOffset = 2;
@@ -109,6 +110,15 @@ const systemGlobals = new Map([[0xf2, "os_text_ptr"]]);
 function imported({ json = disassemblyJson(), rom = romOf(json), otherRoms = [] } = {}) {
     return importAcornaeology(version, readDisassembly(json), { rom, otherRoms, systemGlobals, notice: "Notice" });
 }
+
+describe("importAcornaeology's globals", () => {
+    it("keeps a name for zero page a system set also names when the ROM's code stores to it", () => {
+        const json = disassemblyJson();
+        json.items[0] = { ...json.items[0], bytes: [OpcodeStaZeroPage, 0xf2], mnemonic: "sta" };
+        expect(imported({ json }).json.globals).toMatchObject({ os_text_ptr: "0x00f2" });
+        expect(imported().json.globals.os_text_ptr).toBeUndefined();
+    });
+});
 
 describe("readDisassembly", () => {
     it("reads the statements, the labels and the names outside the ROM", () => {

@@ -186,14 +186,13 @@ describe("the symbol set build", () => {
 });
 
 describe("systemGlobals", () => {
-    it("reads every set mos-sets.json lists, but those an importer says it's about to write", () => {
+    it("reads the globals of every set mos-sets.json lists", () => {
         const dir = mkdtempSync(path.join(tmpdir(), "symbols-system-"));
         try {
             mkdirSync(path.join(dir, "sets"));
-            writeFileSync(path.join(dir, "mos-sets.json"), JSON.stringify([MosFile, "sets/new-mos.json"]));
+            writeFileSync(path.join(dir, "mos-sets.json"), JSON.stringify([MosFile]));
             writeFileSync(path.join(dir, MosFile), JSON.stringify({ ...good(), system: true }));
-            expect(() => systemGlobals(dir)).toThrow("new-mos.json");
-            expect([...systemGlobals(dir, { writing: ["sets/new-mos.json"] })]).toEqual([[0x70, "lives"]]);
+            expect([...systemGlobals(dir)]).toEqual([[0x70, "lives"]]);
         } finally {
             rmSync(dir, { recursive: true, force: true });
         }

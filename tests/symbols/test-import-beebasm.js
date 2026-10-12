@@ -255,6 +255,13 @@ describe("importBeebasm", () => {
         expect(dropped.map(([name]) => name)).not.toContain("KEY");
     });
 
+    it("keeps a name for zero page the MOS set also names when the set's code stores to it", () => {
+        const build = beebasmBuild(made());
+        expect(importBeebasm(config(), build, { system: new Set([0xffee, 0x70]) }).sets[0].json.globals).toEqual({
+            ptr: "0x0070",
+        });
+    });
+
     it("takes such a name only from a source that defines one of the set's labels", () => {
         const build = beebasmBuild(made());
         build.operandNames.set("ptr", new Set(["src/elsewhere.asm"]));

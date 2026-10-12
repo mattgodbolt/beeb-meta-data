@@ -13,6 +13,7 @@ const OpcodeLdaImmediate = 0xa9;
 const OpcodeStaZeroPage = 0x85;
 const OpcodeStaAbsolute = 0x8d;
 const OpcodeRts = 0x60;
+const OpcodeLdaZeroPage = 0xa5;
 const Workspace = 0x70;
 const Io = 0xfe40;
 const Middle = 0x8080;
@@ -108,11 +109,36 @@ describe("importAcmeSet", () => {
         expect(dropped).toContainEqual(["count", 3, "no instruction uses it as a memory operand"]);
     });
 
-    it("leaves the system sets' addresses to them, unless it's a system set itself", () => {
-        const system = new Map([[Io, "via_b"]]);
-        expect(importDemo({ systemGlobals: system }).json.globals).toEqual({ work: "0x0070" });
-        const { json } = importDemo({ systemGlobals: system }, demoBuild(), { ...config, system: true });
-        expect(json.globals).toEqual({ work: "0x0070", port: "0xfe40" });
+    it("leaves the system sets' addresses to them but the zero page its code stores to, unless it's a system set itself", () => {
+        const clock = 0xfc;
+        const reading = () => {
+            const build = demoBuild();
+            build.binary.set([OpcodeLdaZeroPage, clock], 0xfc);
+            build.statements.push({
+                address: Base + 0xfc,
+                data: [OpcodeLdaZeroPage, clock],
+                text: "    lda .clock",
+                line: 300,
+            });
+            build.definitions.push({ name: ".clock", line: 6, label: false, value: clock });
+            return build;
+        };
+        const system = new Map([
+            [Workspace, "os_work"],
+            [Io, "via_b"],
+            [clock, "irq_a"],
+        ]);
+        const build = reading();
+        const { json: own, dropped } = importDemo({ systemGlobals: system, rom: build.binary }, build);
+        expect(own.globals).toEqual({ work: "0x0070" });
+        expect(dropped).toContainEqual(["port", Io, "the system sets call it via_b"]);
+        expect(dropped).toContainEqual(["clock", clock, "the system sets call it irq_a"]);
+        const systemBuild = reading();
+        const { json } = importDemo({ systemGlobals: system, rom: systemBuild.binary }, systemBuild, {
+            ...config,
+            system: true,
+        });
+        expect(json.globals).toEqual({ work: "0x0070", port: "0xfe40", clock: "0x00fc" });
         expect(json.system).toBe(true);
     });
 
@@ -152,6 +178,37 @@ describe("importAcmeSet", () => {
         rom[0x90] ^= 0xff;
         const { errors } = importDemo({ rom });
         expect(errors).toEqual([`1/high: ${Source} assembles to bytes that aren't DEMO.ROM's at &8090`]);
+    });
+
+    it("matches a region's sameCodeIn too, its anchors off the bytes that differ and its names off their statements", () => {
+        const other = demoBuild().binary.slice();
+        other[1] ^= 0xff;
+        const sharing = {
+            ...spec,
+            regions: [{ ...spec.regions[0], sameCodeIn: ["OTHER.ROM"] }, spec.regions[1]],
+        };
+        const { json, errors, dropped } = importAcmeSet(config, sharing, demoBuild(), {
+            rom: demoBuild().binary,
+            otherRoms: [{ name: "OTHER.ROM", bytes: other }],
+            systemGlobals: new Map(),
+        });
+        expect(errors).toEqual([]);
+        expect(dropped).toContainEqual(["start", Base, "OTHER.ROM changes its statement"]);
+        const [low, high] = parseSet(json).regions;
+        const peek = (address) => other[address - Base];
+        expect(regionMatches(low, peek)).toBe(true);
+        expect(regionMatches(high, peek)).toBe(true);
+    });
+
+    it("refuses a sameCodeIn that isn't the same code", () => {
+        const other = demoBuild().binary.map((byte) => byte ^ 0xff);
+        const sharing = { ...spec, regions: [{ ...spec.regions[0], sameCodeIn: ["OTHER.ROM"] }] };
+        const { errors } = importAcmeSet(config, sharing, demoBuild(), {
+            rom: demoBuild().binary,
+            otherRoms: [{ name: "OTHER.ROM", bytes: other }],
+            systemGlobals: new Map(),
+        });
+        expect(errors).toContainEqual(expect.stringContaining("OTHER.ROM differs in"));
     });
 
     it("makes a set the index accepts, matching its own ROM", () => {
