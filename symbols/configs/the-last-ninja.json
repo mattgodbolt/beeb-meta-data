@@ -19,7 +19,7 @@
       "id": "game",
       "title": "The Last Ninja",
       "regions": [
-        { "name": "page9", "from": "&0900", "to": "&0D00" },
+        { "name": "page9", "from": "&0900", "to": "&0D00", "avoid": [["&0900", "&0B00"]] },
         { "name": "page11", "from": "&1100", "to": "&2DA0" },
         { "name": "main", "from": "&2DA0", "to": "&4C20" },
         { "name": "page4", "part": "1.LEVEL-A", "from": "&0400", "to": "&0800" },

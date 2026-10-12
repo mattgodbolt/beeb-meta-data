@@ -31,7 +31,7 @@ import { format, resolveConfig } from "prettier";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { fetchDisc, loadTitleSets, pressKey, runSeconds, startMachine } from "./check-memory.js";
-import { hex, importLevel7, level7Text, partCalled } from "./import-level7.js";
+import { hex, importLevel7, Level7, level7Text, partCalled } from "./import-level7.js";
 import { readLevel7 } from "./level7-text.js";
 
 const MemoryTop = 0x8000;
@@ -57,6 +57,10 @@ const Jsr = 0x20;
 const AvoidGap = 16;
 const FetchAttempts = 3;
 const GameLoopNames = ["update_player", "main_game_loop"];
+const DraftSetId = "game";
+const DraftLicence = "LicenseRef-level7-educational";
+const DraftBytesPerAnchor = 2048;
+const DraftSpreadAnchors = 4;
 const RegionObject = /\{\n\s*("name": [^{}]*?)\n\s*\}/g;
 
 /**
@@ -254,19 +258,20 @@ export function differingSpans(region, moments) {
     return spans.map(([from, to]) => [hex(from), hex(to)]);
 }
 
-function draftConfig(id, title, config, regions) {
+/** A draft config from `proposeRegions`' regions, each with its `avoid` from `differingSpans`. */
+export function draftConfig(id, title, config, regions) {
     return {
-        importer: "level7",
+        importer: Level7,
         id,
-        licence: "LicenseRef-level7-educational",
+        licence: DraftLicence,
         source: config.source,
         disc: config.disc,
-        bytesPerAnchor: 2048,
-        spreadAnchors: 4,
+        bytesPerAnchor: DraftBytesPerAnchor,
+        spreadAnchors: DraftSpreadAnchors,
         check: `${id}-check.js`,
         sets: [
             {
-                id: "game",
+                id: DraftSetId,
                 title,
                 regions: regions.map(({ name, part, from, to, heldAt, avoid }) => ({
                     name,
@@ -281,29 +286,33 @@ function draftConfig(id, title, config, regions) {
     };
 }
 
-/**
- * Code for the check to wait for in a game, as `[set, region, name]`: a routine of the usual name for
- * the game's main loop if the draft's set has one, else the first of `hot` it names, so that it's a
- * name the import keeps; or undefined, saying why, if the draft doesn't import.
- */
-function inGameLabel(draft, text, hot, regionOf, regions) {
+/** The draft's set as the importer makes it, or undefined, saying why, if the draft doesn't import. */
+function importedDraftSet(draft, text) {
     try {
-        const [set] = importLevel7(draft, text, { systemGlobals: systemGlobals() }).sets;
-        const playing = set.regions.filter((r) => regions.find((p) => p.name === r.name).heldAt.at(-1));
-        for (const name of GameLoopNames) {
-            const region = playing.find((r) => r.symbols.has(name));
-            if (region) return ["game", region.name, name];
-        }
-        const label = hot.find((l) => set.regions.find((r) => r.name === regionOf(l).name).symbols.has(l.name));
-        return label && ["game", regionOf(label).name, label.name];
+        return importLevel7(draft, text, { systemGlobals: systemGlobals() }).sets[0];
     } catch (error) {
         console.log(`The draft doesn't import: ${error.message}`);
         return undefined;
     }
 }
 
+/**
+ * Code for the check to wait for in a game, as `[set, region, name]`: a routine of the usual name for
+ * the game's main loop if `set` keeps one in a region held in a game, else the first of `hot` (labels
+ * the PC was only in after the keys) it keeps.
+ */
+export function inGameLabel(set, regions, hot, regionOf) {
+    const playing = set.regions.filter((r) => regions.find((p) => p.name === r.name).heldAt.at(-1));
+    for (const name of GameLoopNames) {
+        const region = playing.find((r) => r.symbols.has(name));
+        if (region) return [DraftSetId, region.name, name];
+    }
+    const label = hot.find((l) => set.regions.find((r) => r.name === regionOf(l)?.name)?.symbols.has(l.name));
+    return label && [DraftSetId, regionOf(label).name, label.name];
+}
+
 function draftCheck(title, regions, { seconds, keys, inGame }) {
-    const at = (i) => JSON.stringify(regions.filter((r) => r.heldAt.at(i)).map((r) => `game/${r.name}`));
+    const at = (i) => JSON.stringify(regions.filter((r) => r.heldAt.at(i)).map((r) => `${DraftSetId}/${r.name}`));
     return `/** ${title}${title.endsWith("s") ? "'" : "'s"} moments for tools/symbols/check-memory.js. */
 
 import { playScenario } from "../../tools/symbols/title-scenario.js";
@@ -314,7 +323,7 @@ export const scenarios = {
         playing: ${at(-1)},
         loadSecs: ${seconds},
         start: ${JSON.stringify(keys)},
-        inGame: ${JSON.stringify(inGame ?? ["game", "main", "TODO"])},
+        inGame: ${JSON.stringify(inGame ?? [DraftSetId, "main", "TODO"])},
         moves: ${JSON.stringify(DraftMoves)},
     }),
 };
@@ -349,6 +358,12 @@ function printMoment(title, comparison, hot) {
     console.log(`  hot labels: ${hot.map(([{ name }, n]) => `${name} ${n}`).join(", ") || "none"}`);
 }
 
+function positiveSeconds(option, text) {
+    const seconds = Number(text);
+    if (!(seconds > 0)) throw new Error(`--${option} is a number of seconds above 0, not ${text}`);
+    return seconds;
+}
+
 async function main() {
     const { values } = parseArgs({
         options: {
@@ -363,11 +378,12 @@ async function main() {
             draft: { type: "string" },
         },
     });
+    const seconds = positiveSeconds("seconds", values.seconds);
+    const wait = positiveSeconds("wait", values.wait);
     const { config, text, disc: discBytes } = await sourceAndDisc(values);
     const { parts } = readLevel7(text);
     const keys = values.keys.split(",").filter(Boolean);
     for (const key of keys) if (BBC[key] === undefined) throw new Error(`There's no key ${key} in jsbeeb's BBC keymap`);
-    const seconds = parseFloat(values.seconds);
     const labels = labelsByAddress(parts);
     const sets = values.config ? loadTitleSets(path.join(SymbolsDir, "sets"), config.id) : {};
     const moments = [];
@@ -390,7 +406,7 @@ async function main() {
             if (keys.length) {
                 for (const key of keys) {
                     await pressKey(session, BBC[key], KeyFrames);
-                    await runSeconds(session, parseFloat(values.wait));
+                    await runSeconds(session, wait);
                 }
                 await sample(`After ${keys.join(", ")}`);
             }
@@ -441,16 +457,14 @@ async function main() {
             RegionObject,
             (_, body) => `{ ${body.replace(/\n\s*/g, " ")} }`,
         );
-        const inGame = inGameLabel(draft, text, newHot, regionOf, regions);
-        const check = draftCheck(title, regions, { seconds, keys, inGame });
-        writeFileSync(
-            configFile,
-            await format(json, { ...(await resolveConfig(configFile, { editorconfig: true })), filepath: configFile }),
-        );
-        writeFileSync(
-            checkFile,
-            await format(check, { ...(await resolveConfig(checkFile, { editorconfig: true })), filepath: checkFile }),
-        );
+        const set = importedDraftSet(draft, text);
+        const inGame = set && inGameLabel(set, regions, newHot, regionOf);
+        const formatted = async (source, file) =>
+            format(source, { ...(await resolveConfig(file, { editorconfig: true })), filepath: file });
+        const configText = await formatted(json, configFile);
+        const checkText = await formatted(draftCheck(title, regions, { seconds, keys, inGame }), checkFile);
+        writeFileSync(checkFile, checkText);
+        writeFileSync(configFile, configText);
         console.log(`Wrote ${configFile} and ${checkFile}`);
     }
     return 0;

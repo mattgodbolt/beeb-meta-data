@@ -11,7 +11,7 @@
       "start": "0x0900",
       "end": "0x0d00",
       "minAnchors": 1,
-      "anchors": [{ "at": "0x0a00", "bytes": "ffeeddccbbaa" }],
+      "anchors": [{ "at": "0x0cbf", "bytes": "8090a000400c" }],
       "symbols": {
         "flipped_pixel_values": "0x0900",
         "mask_pixel_values": "0x0a00",

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { compareWithMemory, differingSpans, proposeRegions } from "../../tools/symbols/level7-compare.js";
+import {
+    compareWithMemory,
+    differingSpans,
+    draftConfig,
+    inGameLabel,
+    proposeRegions,
+} from "../../tools/symbols/level7-compare.js";
 import { readLevel7 } from "../../tools/symbols/level7-text.js";
 
 const Text = `Game disassembly
@@ -72,6 +78,74 @@ describe("proposeRegions", () => {
 
     it("leaves out a region with fewer than two labels", () => {
         expect(proposeRegions(parts, [loaded, playing]).some((r) => r.from === "&3000")).toBe(false);
+    });
+
+    const run = (address, count, prefix) =>
+        Array.from({ length: count }, (_, i) => statement(address + i * 16, i % 2 ? [] : [`${prefix}_${i}`]));
+    const heading = (name) => `${name}\n${"=".repeat(name.length)}`;
+    const held = (text) => {
+        const { parts: theirs } = readLevel7(text);
+        const all = compareWithMemory(theirs, () => 0xea);
+        return { parts: theirs, regions: proposeRegions(theirs, [all]) };
+    };
+
+    it("leaves out a small region, and one in zero page", () => {
+        const { regions } = held(`${heading("Game")}
+${[...run(0x1000, 0x40, "code"), ...run(0x2000, 4, "small"), ...run(0x0050, 0x10, "zp")].join("\n")}
+`);
+        expect(regions.map((r) => r.from)).toEqual(["&1000"]);
+    });
+
+    it("drops the smaller of two that overlap, and gives a region its part where another part has statements", () => {
+        const { regions } = held(`${heading("Game")}
+${run(0x1000, 0x40, "code").join("\n")}
+${heading("Loader")}
+${run(0x1200, 0x10, "loader").join("\n")}
+`);
+        expect(regions.map(({ name, part, from, to }) => ({ name, part, from, to }))).toEqual([
+            { name: "main", part: "Game", from: "&1000", to: "&1400" },
+        ]);
+    });
+});
+
+describe("draftConfig", () => {
+    it("marks overwritten only what's held before the keys and not after", () => {
+        const region = (name, heldAt) => ({ name, from: "&1000", to: "&1100", heldAt, avoid: [] });
+        const config = { source: {}, disc: {} };
+        const regions = [region("loader", [true, false]), region("main", [false, true]), region("both", [true, true])];
+        const [set] = draftConfig("test", "Test", config, regions).sets;
+        expect(set.regions.map((r) => [r.name, r.overwritten ?? false])).toEqual([
+            ["loader", true],
+            ["main", false],
+            ["both", false],
+        ]);
+    });
+});
+
+describe("inGameLabel", () => {
+    const regions = [
+        { name: "main", heldAt: [false, true] },
+        { name: "title", heldAt: [true, false] },
+    ];
+    const setNaming = (main, title = []) => ({
+        regions: [
+            { name: "main", symbols: new Map(main.map((name) => [name, 0])) },
+            { name: "title", symbols: new Map(title.map((name) => [name, 0])) },
+        ],
+    });
+    const hot = [{ name: "plot_sprite" }, { name: "move_enemy" }];
+    const regionOf = () => regions[0];
+
+    it("prefers update_player, then main_game_loop, in a region held in a game", () => {
+        const all = setNaming(["main_game_loop", "update_player", "plot_sprite"]);
+        expect(inGameLabel(all, regions, hot, regionOf)).toEqual(["game", "main", "update_player"]);
+        const loop = setNaming(["main_game_loop", "plot_sprite"], ["update_player"]);
+        expect(inGameLabel(loop, regions, hot, regionOf)).toEqual(["game", "main", "main_game_loop"]);
+    });
+
+    it("else takes the first routine hot only after the keys that the set keeps", () => {
+        expect(inGameLabel(setNaming(["move_enemy"]), regions, hot, regionOf)).toEqual(["game", "main", "move_enemy"]);
+        expect(inGameLabel(setNaming([]), regions, hot, regionOf)).toBeUndefined();
     });
 });
 

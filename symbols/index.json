@@ -1942,7 +1942,7 @@
           "start": "0x0900",
           "end": "0x0d00",
           "minAnchors": 1,
-          "anchors": [{ "at": "0x0a00", "bytes": "ffeeddccbbaa" }]
+          "anchors": [{ "at": "0x0cbf", "bytes": "8090a000400c" }]
         },
         "page11": {
           "start": "0x1100",
