@@ -73,3 +73,19 @@ export function romCopies(otherRoms, size, moved) {
     }
     return out;
 }
+
+/**
+ * Fetches a ROM jsbeeb doesn't have, refusing it unless its key is `key`.
+ * @returns {Promise<Uint8Array>}
+ */
+export async function fetchRom({ url, key }) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
+    const rom = new Uint8Array(await response.arrayBuffer());
+    if (romKey(rom) !== key) throw new Error(`${url} is ROM ${romKey(rom)}, and the config names ${key}`);
+    return rom;
+}
+
+/** A ROM a config names: jsbeeb's file, or a copy by URL and key. */
+export const romOf = async (rom) =>
+    typeof rom === "string" ? new Uint8Array(readFileSync(path.join(RomsDir, rom))) : fetchRom(rom);

@@ -2,6 +2,217 @@
   "format": 1,
   "sets": [
     {
+      "url": "sets/anfs-4.08.53.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8000", "bytes": "0042434c0b8a" },
+            { "at": "0x880b", "bytes": "2ca0fe30db4c140d" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x900d", "bytes": "60283c646972" },
+            { "at": "0x982a", "bytes": "ad6e0dd002a9ff" },
+            { "at": "0xa033", "bytes": "a2029d070fca" },
+            { "at": "0xa804", "bytes": "ad6d0d4c10a8" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb005", "bytes": "2c7d9484ac702c" },
+            { "at": "0xb819", "bytes": "a9df20bb9645" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/anfs-4.18.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8000", "bytes": "0042434c158a" },
+            { "at": "0x8815", "bytes": "2ca0fe30db4c140d" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9021", "bytes": "60283c646972" },
+            { "at": "0x983f", "bytes": "ad6d0dd002a9ff" },
+            { "at": "0xa000", "bytes": "88d0fdc6b2d0f0" },
+            { "at": "0xa802", "bytes": "ad080e10f7a96f" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb017", "bytes": "a018a2f8bd618d" },
+            { "at": "0xb817", "bytes": "a9df20d19645" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/anfs-4.21.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8000", "bytes": "0042434c548a" },
+            { "at": "0x881b", "bytes": "688d34fe2ca0fe" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9004", "bytes": "a001919ca240" },
+            { "at": "0x9800", "bytes": "681dc8c148bdc8c1" },
+            { "at": "0xa04c", "bytes": "ad06c16ab00c" },
+            { "at": "0xa83c", "bytes": "18a5efe90d302d" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb01a", "bytes": "a5aa48a9e9859e" },
+            { "at": "0xb805", "bytes": "0838e9203004" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/anfs-4.24.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8027", "bytes": "002404da5aac650d" },
+            { "at": "0x8809", "bytes": "a9012c3e0df003" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9006", "bytes": "c8f0d48000a001" },
+            { "at": "0x9825", "bytes": "ae09c028f004" },
+            { "at": "0xa014", "bytes": "a0062c679738" },
+            { "at": "0xa855", "bytes": "18a5efe90d302d" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb001", "bytes": "a000119a48919a" },
+            { "at": "0xb80b", "bytes": "60a900a89900c2" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/anfs-4.25.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x8000", "bytes": "0042434c8c8a" },
+            { "at": "0x8027", "bytes": "002504da5aac650d" },
+            { "at": "0x880b", "bytes": "a9012c3e0df003" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 5,
+          "anchors": [
+            { "at": "0x9008", "bytes": "c8f0d48000a001" },
+            { "at": "0x9800", "bytes": "681dc8c148bdc8c1" },
+            { "at": "0xa016", "bytes": "a0062c699738" },
+            { "at": "0xa857", "bytes": "18a5efe90d302d" },
+            { "at": "0xa89a", "bytes": "4820758b683a" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xbff7",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb003", "bytes": "a000119a48919a" },
+            { "at": "0xb80d", "bytes": "60a900a89900c2" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/anfs-4.26.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x8000", "bytes": "0042434c8c8a" },
+            { "at": "0x8027", "bytes": "002604da5aac650d" },
+            { "at": "0x880b", "bytes": "a9012c3e0df003" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 5,
+          "anchors": [
+            { "at": "0x9008", "bytes": "c8f0d48000a001" },
+            { "at": "0x9800", "bytes": "681dc8c148bdc8c1" },
+            { "at": "0xa016", "bytes": "a0062c699738" },
+            { "at": "0xa857", "bytes": "18a5efe90d302d" },
+            { "at": "0xa89a", "bytes": "20f7bfd00d8a" }
+          ]
+        },
+        "patch": {
+          "start": "0xbff7",
+          "end": "0xc000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0xbffc", "bytes": "fac90560" }]
+        }
+      }
+    },
+    {
       "url": "sets/arcadians-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -293,6 +504,211 @@
             { "at": "0x3860", "bytes": "001031337270" },
             { "at": "0x4060", "bytes": "77c88316342d" },
             { "at": "0x4912", "bytes": "ad4dfe30034c3549" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.34.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4caf80820c03" },
+            { "at": "0x8800", "bytes": "68480885c1a980" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0xa000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x9000", "bytes": "58204c864c488f" },
+            { "at": "0x982d", "bytes": "a9828da0fea939" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.34B.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4caf80820c03" },
+            { "at": "0x8801", "bytes": "68480885c1a980" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0xa000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x9001", "bytes": "58204d864c498f" },
+            { "at": "0x982d", "bytes": "a9828da0fea939" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.35D.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cea80820c03" },
+            { "at": "0x8800", "bytes": "a200a0048e080f" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0xa000",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x9010", "bytes": "b9fe0d91f0c8" },
+            { "at": "0x9317", "bytes": "85c2c3a9ff20d606" },
+            { "at": "0x9805", "bytes": "a9038d5c0da5a0" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.35K.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cea80820c03" },
+            { "at": "0x8806", "bytes": "b5b095c47d060f" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0xa000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x9008", "bytes": "b9fe0d91f0c8" },
+            { "at": "0x9805", "bytes": "a9038d5c0da5a0" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.40.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cf780821083" },
+            { "at": "0x8802", "bytes": "a00d8a91bbb9020f" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0x9fe0",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x900b", "bytes": "b9fe0d91f0c8" },
+            { "at": "0x97f7", "bytes": "a9038d5c0d20389f" }
+          ]
+        },
+        "tail": {
+          "start": "0x9fe0",
+          "end": "0xa000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x9fe9", "bytes": "290fc90a9002" }]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.60.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cf780821083" },
+            { "at": "0x8210", "bytes": "332e36300da4a8" },
+            { "at": "0x8803", "bytes": "a00520708da009" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0x9f9d",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x9015", "bytes": "b9fe0d91f0c8" },
+            { "at": "0x97dc", "bytes": "a9828da0fea9e6" }
+          ]
+        },
+        "tail": {
+          "start": "0x9f9d",
+          "end": "0x9fb5",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x9fa6", "bytes": "290fc90a9002" }]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.62.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cf780821083" },
+            { "at": "0x8210", "bytes": "332e36320da4a8" },
+            { "at": "0x8803", "bytes": "a00520708da009" },
+            { "at": "0x8d70", "bytes": "a204b1bb209d9f" }
+          ]
+        },
+        "patch": {
+          "start": "0x9fb5",
+          "end": "0x9fc1",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x9fb5", "bytes": "b1bec921b003" }]
+        }
+      }
+    },
+    {
+      "url": "sets/nfs-3.65.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8003", "bytes": "4cf380820c03" },
+            { "at": "0x8805", "bytes": "8e080fa00ead050f" }
+          ]
+        },
+        "high": {
+          "start": "0x9000",
+          "end": "0xa000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x9001", "bytes": "919e88c017d0f1" },
+            { "at": "0x9808", "bytes": "a9012ca1fef048" }
           ]
         }
       }
