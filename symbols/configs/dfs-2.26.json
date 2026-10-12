@@ -1,0 +1,79 @@
+{
+  "id": "dfs-2.26",
+  "licence": "MIT",
+  "notice": "The names are py8dis's example disassembly's, from https://github.com/ZornsLemma/py8dis/tree/2a6046356e20e93c4a2d484bc04bd5d74d66254e, under this licence:\n\nMIT License\n\nCopyright (c) 2021 Steven Flintham\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "source": {
+    "repository": "https://github.com/ZornsLemma/py8dis",
+    "commit": "2a6046356e20e93c4a2d484bc04bd5d74d66254e",
+    "directory": "examples",
+    "script": "examples/python/dfs226.py",
+    "assembly": "examples/known_good/dfs226_beebasm.asm"
+  },
+  "py8dis": {
+    "repository": "https://github.com/ZornsLemma/py8dis",
+    "commit": "2a6046356e20e93c4a2d484bc04bd5d74d66254e"
+  },
+  "rom": "b1770/dfs1770.rom",
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Repton2.zip",
+    "image": "Superior/Repton2.ssd",
+    "key": "c6a21b9b031b7d58ddf2f989c09da6e7"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "dfs-2.26-check.js",
+  "sets": [
+    {
+      "id": "rom",
+      "title": "Acorn DFS 2.26",
+      "moves": ["&8F96", "&8FAC", "&9047"],
+      "tableSizes": {
+        "nmi_lda_abs + 1": "4",
+        "nmi_lda_abs + 2": "4"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "loaded": true,
+          "from": "&8000",
+          "to": "&9000"
+        },
+        {
+          "name": "middle",
+          "loaded": true,
+          "from": "&9000",
+          "to": "&B000"
+        },
+        {
+          "name": "high",
+          "loaded": true,
+          "from": "&B000",
+          "to": "&C000"
+        },
+        {
+          "name": "nmi_read",
+          "piece": "nmi_handler_ram"
+        },
+        {
+          "name": "nmi_8271",
+          "piece": "nmi_bcs"
+        }
+      ]
+    },
+    {
+      "id": "tube",
+      "title": "Acorn DFS 2.26: the Tube host",
+      "moves": ["&AF13"],
+      "regions": [
+        {
+          "name": "page4",
+          "piece": "tube_entry"
+        },
+        {
+          "name": "page5",
+          "piece": "tube_entry_flags"
+        }
+      ]
+    }
+  ]
+}

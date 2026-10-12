@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "title": "Acorn DFS 2.26: the Tube host",
+  "licence": "MIT",
+  "source": "https://github.com/ZornsLemma/py8dis/tree/2a6046356e20e93c4a2d484bc04bd5d74d66254e",
+  "notice": "The names are py8dis's example disassembly's, from https://github.com/ZornsLemma/py8dis/tree/2a6046356e20e93c4a2d484bc04bd5d74d66254e, under this licence:\n\nMIT License\n\nCopyright (c) 2021 Steven Flintham\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "madeFrom": ["83d97c7170b35c26597896a2c0c202d6"],
+  "nameLink": "https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/{place}",
+  "regions": {
+    "page4": {
+      "start": "0x0400",
+      "end": "0x04fc",
+      "minAnchors": 2,
+      "anchors": [
+        { "at": "0x0435", "bytes": "087884138612" },
+        { "at": "0x0482", "bytes": "286058b00ad003" }
+      ],
+      "symbols": { "tube_entry": "0x0406", "tube_entry_claim_tube": "0x0428", "tube_entry_small_a": "0x0435" }
+    },
+    "page5": {
+      "start": "0x0500",
+      "end": "0x06ce",
+      "minAnchors": 1,
+      "anchors": [{ "at": "0x0668", "bytes": "a20420c5069500" }],
+      "symbols": {
+        "tube_entry_flags": "0x0518",
+        "tube_host_osword_0": "0x0668",
+        "tube_host_osword_0_loop": "0x066a",
+        "tube_host_osword_0_no_escape": "0x0680",
+        "tube_host_osword_0_no_escape_loop": "0x0687",
+        "write_tube_r2_data": "0x0695",
+        "write_tube_r4_data": "0x069e",
+        "tube_evntv_handler": "0x06ad",
+        "write_tube_r1_data": "0x06bc",
+        "read_tube_r2_data": "0x06c5"
+      }
+    }
+  },
+  "globals": {},
+  "places": {
+    "read_tube_r2_data": "examples/known_good/dfs226_beebasm.asm#L8061",
+    "tube_entry": "examples/known_good/dfs226_beebasm.asm#L8252",
+    "tube_entry_claim_tube": "examples/known_good/dfs226_beebasm.asm#L8278",
+    "tube_entry_flags": "examples/known_good/dfs226_beebasm.asm#L7768",
+    "tube_entry_small_a": "examples/known_good/dfs226_beebasm.asm#L8294",
+    "tube_evntv_handler": "examples/known_good/dfs226_beebasm.asm#L8042",
+    "tube_host_osword_0": "examples/known_good/dfs226_beebasm.asm#L7990",
+    "tube_host_osword_0_loop": "examples/known_good/dfs226_beebasm.asm#L7993",
+    "tube_host_osword_0_no_escape": "examples/known_good/dfs226_beebasm.asm#L8007",
+    "tube_host_osword_0_no_escape_loop": "examples/known_good/dfs226_beebasm.asm#L8012",
+    "write_tube_r1_data": "examples/known_good/dfs226_beebasm.asm#L8053",
+    "write_tube_r2_data": "examples/known_good/dfs226_beebasm.asm#L8022",
+    "write_tube_r4_data": "examples/known_good/dfs226_beebasm.asm#L8030"
+  }
+}

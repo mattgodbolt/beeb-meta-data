@@ -26,11 +26,15 @@ import { chooseAnchors, storesIn } from "./anchor-chooser.js";
 import { checkCommit, cloneCommit } from "./baron-build.js";
 import { SymbolsDir } from "./build-index.js";
 import { evaluate, isOnGitHub, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
+import { otherRomsThan, romCopies, romImages, romKey } from "./rom-images.js";
+import { RomsDir } from "../jsbeeb.js";
 
 const SetsDir = path.join(SymbolsDir, "sets");
 const DumpScript = fileURLToPath(new URL("py8dis-dump.py", import.meta.url));
 const Py8disPackage = "py8dis";
 const MaxOutput = 64 * 1024 * 1024;
+const LoadedImage = "the binary as loaded";
+const Unmoved = 0;
 const Definition = /^(?:\.([A-Za-z_]\w*)|([A-Za-z_]\w*)(?::|[ \t]*=))/;
 
 export const Py8disOptions = {
@@ -51,8 +55,9 @@ function operand({ code, data }) {
 
 /**
  * A dump from py8dis-dump.py as the importer reads it: each piece where it runs, holding its own
- * statements and the labels py8dis put in it, and each name's address. A name given two addresses is
- * refused.
+ * statements and the labels py8dis put in it; the binary where it loads, as one more piece, holding every
+ * piece's statements there and the labels of addresses no move() gave; and each name's address. A name
+ * given two addresses is refused.
  */
 export function readDump(dump) {
     const pieces = dump.pieces.map((piece, index) => {
@@ -71,6 +76,16 @@ export function readDump(dump) {
         });
         return read;
     });
+    const loaded = {
+        name: LoadedImage,
+        start: Math.min(...pieces.map(({ binary }) => binary)),
+        end: Math.max(...pieces.map(({ binary, start, end }) => binary + end - start)),
+        move: Unmoved,
+        labels: [],
+    };
+    loaded.statements = pieces.flatMap(({ binary, start, statements }) =>
+        statements.map((statement) => ({ ...statement, address: statement.address + binary - start, section: loaded })),
+    );
     const names = new Map();
     for (const label of dump.labels) {
         if (names.has(label.name) && names.get(label.name) !== label.address)
@@ -78,10 +93,11 @@ export function readDump(dump) {
                 `${label.name} names two addresses, ${hex(names.get(label.name))} and ${hex(label.address)}`,
             );
         names.set(label.name, label.address);
-        const piece = pieces.find((p) => p.move === label.move && holds(p, label.address));
-        if (piece) piece.labels.push({ address: label.address, name: label.name });
+        for (const piece of [...pieces, loaded])
+            if (piece.move === label.move && holds(piece, label.address))
+                piece.labels.push({ address: label.address, name: label.name });
     }
-    return { pieces, labels: dump.labels, names };
+    return { pieces, loaded, labels: dump.labels, names };
 }
 
 /**
@@ -101,31 +117,45 @@ export function assemblyDefinitions(file, text) {
     return definitions;
 }
 
-/** Everything the binary puts in memory: each piece where it runs, and the binary where it loads. */
-function binaryImages(pieces) {
-    const loaded = new Map();
-    for (const piece of pieces) {
-        let at = piece.binary;
-        for (const { data } of piece.statements) for (const byte of data) loaded.set(at++, byte);
-    }
+/** A piece's bytes, by address. */
+const memoryOf = (piece) =>
+    new Map(piece.statements.flatMap(({ address, data }) => data.map((byte, i) => [address + i, byte])));
+
+/**
+ * Everything the binary puts in memory: each piece where it runs and the binary where it loads; and for a
+ * ROM, the other ROMs, and their own copies of each piece it moves.
+ */
+function binaryImages({ pieces, loaded }, roms) {
+    const size = loaded.end - loaded.start;
     return [
-        ...pieces.map((piece) => ({
-            name: piece.name,
-            memory: new Map(
-                piece.statements.flatMap(({ address, data }) => data.map((byte, i) => [address + i, byte])),
-            ),
-            program: true,
-        })),
-        { name: "the binary as loaded", memory: loaded, program: false },
+        ...pieces.map((piece) => ({ name: piece.name, memory: memoryOf(piece), program: true })),
+        { name: loaded.name, memory: memoryOf(loaded), program: false },
+        ...(roms
+            ? [
+                  ...romImages(roms.otherRoms, loaded.start, size),
+                  ...pieces
+                      .filter(({ move }) => move !== Unmoved)
+                      .flatMap((piece) => romCopies(roms.otherRoms, size, memoryOf(piece))),
+              ]
+            : []),
     ];
 }
 
+/** Refuses a binary that isn't, where it loads, the ROM the config names. */
+function checkRom(file, rom, loaded) {
+    const memory = memoryOf(loaded);
+    const differs = Array.from(rom, (byte, i) => memory.get(loaded.start + i) !== byte).includes(true);
+    if (rom.length !== loaded.end - loaded.start || differs)
+        throw new Error(`The binary, where it loads, isn't ${file}`);
+}
+
 class Importer {
-    constructor(config, dump, definitions) {
-        this.config = config;
+    constructor(config, dump, definitions, roms) {
+        this.config = roms ? { ...config, madeFrom: [romKey(roms.rom)] } : config;
         this.dump = readDump(dump);
         this.definitions = definitions;
-        this.images = binaryImages(this.dump.pieces);
+        if (roms) checkRom(config.rom, roms.rom, this.dump.loaded);
+        this.images = binaryImages(this.dump, roms);
         this.errors = [];
         this.notes = [];
         this.reasons = [];
@@ -135,23 +165,37 @@ class Importer {
         return this.dump.names.get(name);
     }
 
-    region(spec, regionSpec) {
-        const find = (name) => this.find(name);
-        const start = evaluate(regionSpec.from, find);
+    /**
+     * The piece a region is in: the binary as loaded if it says `loaded`, else the one its `piece` names a
+     * label in, else the one piece running at its start.
+     */
+    pieceOf(spec, regionSpec) {
+        const what = `${spec.id}/${regionSpec.name}`;
+        if (regionSpec.loaded) return this.dump.loaded;
+        if (regionSpec.piece !== undefined) {
+            const label = this.dump.labels.find(({ name }) => name === regionSpec.piece);
+            const piece = label && this.dump.pieces.find((p) => p.move === label.move && holds(p, label.address));
+            if (!piece) throw new Error(`${what}: no piece of the binary holds ${regionSpec.piece}`);
+            return piece;
+        }
+        if (regionSpec.from === undefined) throw new Error(`${what}: says none of from, piece and loaded`);
+        const start = evaluate(regionSpec.from, (name) => this.find(name));
         const pieces = this.dump.pieces.filter((piece) => holds(piece, start));
         if (pieces.length !== 1)
             throw new Error(
-                `${spec.id}/${regionSpec.name}: ${pieces.length} pieces of the binary run at ${hex(start)}`,
+                `${what}: ${pieces.length} pieces of the binary run at ${hex(start)}${pieces.length ? "; name one with piece" : ""}`,
             );
-        const [piece] = pieces;
+        return pieces[0];
+    }
+
+    region(spec, regionSpec) {
+        const find = (name) => this.find(name);
+        const piece = this.pieceOf(spec, regionSpec);
+        const start = regionSpec.from === undefined ? piece.start : evaluate(regionSpec.from, find);
         const end = regionSpec.to === undefined ? piece.end : evaluate(regionSpec.to, find);
-        if (end <= start || end > piece.end)
+        if (start < piece.start || end <= start || end > piece.end)
             throw new Error(`${spec.id}/${regionSpec.name}: ${hex(start)}-${hex(end)} isn't inside ${piece.name}`);
-        const memory = new Map(
-            piece.statements
-                .flatMap(({ address, data }) => data.map((byte, i) => [address + i, byte]))
-                .filter(([address]) => address >= start && address < end),
-        );
+        const memory = new Map([...memoryOf(piece)].filter(([address]) => address >= start && address < end));
         return {
             name: regionSpec.name,
             fullName: `${spec.id}/${regionSpec.name}`,
@@ -212,7 +256,9 @@ class Importer {
         const globals = new Map();
         const dropped = [];
         for (const { name, address, move } of this.dump.labels) {
-            const inPiece = this.dump.pieces.some((piece) => piece.move === move && holds(piece, address));
+            const inPiece = [...this.dump.pieces, this.dump.loaded].some(
+                (piece) => piece.move === move && holds(piece, address),
+            );
             const region = regions.find((r) => r.section.move === move && holds(r, address));
             const names = region ? region.symbols : inPiece ? null : globals;
             if (!names) {
@@ -251,19 +297,27 @@ class Importer {
 
 /**
  * A title's sets from its py8dis dump, as its config describes them, each name linked to its place in
- * `definitions` (from assemblyDefinitions) for a repository on GitHub.
+ * `definitions` (from assemblyDefinitions) for a repository on GitHub. For a config that names a `rom`
+ * in jsbeeb's public/roms/, the binary has to be that ROM, and the anchors tell it apart from the others.
  * @param {Map<string, string[]> | null} [definitions]
+ * @param {{rom: Uint8Array, otherRoms: {name: string, bytes: Uint8Array}[]} | null} [roms]
  * @returns {{sets: {id: string, file: string, json: object, regions: object[], dropped: [string, number, string][]}[],
  *     errors: string[], notes: string[], reasons: string[]}}
  */
-export function importPy8dis(config, dump, definitions = null) {
-    const importer = new Importer(config, dump, definitions);
+export function importPy8dis(config, dump, definitions = null, roms = romsOf(config)) {
+    const importer = new Importer(config, dump, definitions, roms);
     const sets = config.sets.map((spec) => ({
         id: spec.id,
         file: `${config.id}-${spec.id}.json`,
         ...importer.set(spec),
     }));
     return { sets, errors: importer.errors, notes: importer.notes, reasons: importer.reasons };
+}
+
+function romsOf(config) {
+    if (config.rom === undefined) return null;
+    const rom = readFileSync(path.join(RomsDir, config.rom));
+    return { rom, otherRoms: otherRomsThan(config.rom, rom.length) };
 }
 
 /**

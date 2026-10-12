@@ -61,6 +61,21 @@ describe("the shipped ROM sets", () => {
         },
     );
 
+    it.each(["b1770/dfs1770.rom", "bp/dfs.rom"])("names DFS 2.26's code while %s is paged in", async (rom) => {
+        const names = await namesFor(withRoms(rom));
+        expect(names.sets.map(({ title }) => title).sort()).toEqual(["Acorn DFS 2.26", "BBC Micro MOS 1.20"]);
+        expect(names.operand(0x2000, 0x8048)?.name).toBe("generate_error");
+        expect(names.address(0xb1b1)?.name).toBe("general_service_handler");
+    });
+
+    it.each(["BASIC.ROM", "b/DFS-1.2.rom", "b/DFS-0.9.rom"])(
+        "leaves DFS 2.26's names out while %s is paged in",
+        async (rom) => {
+            const names = await namesFor(withRoms(rom));
+            expect(names.sets.map(({ title }) => title)).not.toContain("Acorn DFS 2.26");
+        },
+    );
+
     it("names a B's MOS and hardware, reading memory as the CPU sees it", async () => {
         const cpu = fake6502(findModel("B"));
         await cpu.initialise();

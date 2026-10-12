@@ -8,7 +8,8 @@
  * Usage: node tools/symbols/check-memory.js --config symbols/configs/pipeline.json [--source <checkout>]
  *            [--baron <path>] [--beebasm <path>] [--sets symbols/sets] [--shots DIR] [SCENARIO...]
  *
- * The config's `check` names the module of scenarios, beside it. They boot `source.disc`, the original
+ * The config's `check` names the module of scenarios, beside it, which can also export `machines`, the
+ * machine each scenario wants by its name (see startMachine). They boot `source.disc`, the original
  * disc in the source repository, with the title built as its importer builds it, for the scenarios that
  * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
  * its key. With no SCENARIO, it runs them all, each on a fresh machine. Exits 1 if any moment fails.
@@ -79,12 +80,16 @@ export function overlappingRegions(sets, found) {
     return out;
 }
 
-/** A B with DFS 1.2 and the disc in, booted with SHIFT+BREAK. */
-export async function startMachine(disc) {
-    const session = new MachineSession(Model);
+/**
+ * A machine with the disc in, booted with SHIFT+BREAK: a B with DFS 1.2 unless `machine` names another
+ * jsbeeb model, with a second processor if it says `tube`, and left at the prompt if it says `autoboot: false`.
+ */
+export async function startMachine(disc, { model = Model, tube = false, autoboot = true } = {}) {
+    const session = new MachineSession(model, { tube });
     await session.initialise();
     await session.boot(BootTimeoutSecs);
     session.loadDisc(disc);
+    if (!autoboot) return session;
     session.keyDownRaw(BBC.SHIFT);
     try {
         session.reset(true);
@@ -245,7 +250,9 @@ async function main() {
     if (!values.config) throw new Error(`Usage: check-memory.js --config <file> ${BuildUsage} [SCENARIO...]`);
     const config = JSON.parse(readFileSync(values.config, "utf8"));
     const sets = loadTitleSets(values.sets, config.id);
-    const { scenarios } = await import(pathToFileURL(path.resolve(path.dirname(values.config), config.check)).href);
+    const { scenarios, machines = {} } = await import(
+        pathToFileURL(path.resolve(path.dirname(values.config), config.check)).href
+    );
     const wanted = positionals.length ? positionals : Object.keys(scenarios);
     for (const name of wanted) if (!scenarios[name]) throw new Error(`There's no scenario ${name}`);
     if (values.shots) mkdirSync(values.shots, { recursive: true });
@@ -253,7 +260,7 @@ async function main() {
     await withTitleDisc(config, values, async ({ disc, filesDir }) => {
         for (const name of wanted) {
             console.log(`-- ${name}`);
-            const session = await startMachine(disc);
+            const session = await startMachine(disc, machines[name]);
             try {
                 await scenarios[name](scenarioContext(session, sets, filesDir, values.shots, results));
             } finally {
