@@ -47,6 +47,10 @@ const RandomHoldFrameRange = 40;
 
 const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")}`;
 
+/** The sets in `dir` with these ids, which are their files' names, by id. */
+export const loadSets = (dir, ids) =>
+    Object.fromEntries(ids.map((id) => [id, parseSet(JSON.parse(readFileSync(path.join(dir, `${id}.json`), "utf8")))]));
+
 /** A title's sets in `dir`, by set id: those whose files start with the config's id. */
 export function loadTitleSets(dir, titleId) {
     const prefix = `${titleId}-`;
@@ -292,7 +296,13 @@ async function main() {
     });
     if (!values.config) throw new Error(`Usage: check-memory.js --config <file> ${BuildUsage} [SCENARIO...]`);
     const config = JSON.parse(readFileSync(values.config, "utf8"));
-    const sets = loadTitleSets(values.sets, config.id);
+    const sets =
+        config.importer === "acornaeology"
+            ? loadSets(
+                  values.sets,
+                  config.sets.map(({ id }) => id),
+              )
+            : loadTitleSets(values.sets, config.id);
     const { scenarios, machines = {} } = await import(
         pathToFileURL(path.resolve(path.dirname(values.config), config.check)).href
     );

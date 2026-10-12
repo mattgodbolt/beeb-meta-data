@@ -29,7 +29,6 @@ const MovedFrom = Base + Pairs * PairBytes;
 const OpcodeNop = 0xea;
 
 const config = {
-    id: "demo",
     importer: "acornaeology",
     licence: "MIT",
     source: {
@@ -42,7 +41,7 @@ const config = {
     spreadAnchors: 1,
     sets: [
         {
-            id: "1",
+            id: "demo-1",
             title: "Demo ROM",
             disassembly: "versions/1/output/demo.json",
             rom: "DEMO.ROM",
@@ -146,11 +145,11 @@ describe("readDisassembly of code the ROM moves", () => {
 });
 
 describe("versionsOf", () => {
-    it("fills in the config's shared fields, which a version can override, and names its set", () => {
+    it("fills in the config's shared fields, which a version can override", () => {
         const ownGlobals = [{ start: "0xc000", end: "0xc300" }];
         const [first, second] = versionsOf({
             ...config,
-            sets: [config.sets[0], { ...config.sets[0], id: "2", globals: ownGlobals }],
+            sets: [config.sets[0], { ...config.sets[0], id: "demo-2", globals: ownGlobals }],
         });
         expect(first).toMatchObject({ id: "demo-1", licence: "MIT", globals: config.globals, bytesPerAnchor: 0x80 });
         expect(second).toMatchObject({ id: "demo-2", globals: ownGlobals });

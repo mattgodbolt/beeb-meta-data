@@ -71,6 +71,21 @@ describe("the shipped ROM sets", () => {
         expect(names.address(address)?.name).toBe(name);
     });
 
+    it.each([0x00a0, 0x00b0, 0x0d00, 0x0dba, 0x0e00, 0x1000, 0x0000, 0x0400])(
+        "gives no NFS name to &%s, which DNFS 1.20's DFS or another owner uses",
+        async (address) => {
+            const names = await namesFor(withRoms("b/DFS-1.2.rom"));
+            expect(names.sets.map(({ title }) => title)).toContain("Acorn NFS 3.60");
+            expect(names.address(address)?.name).toBeUndefined();
+        },
+    );
+
+    it("names DNFS 1.20's Econet workspace from NFS 3.60", async () => {
+        const names = await namesFor(withRoms("b/DFS-1.2.rom"));
+        expect(names.address(0x009a)?.name).toBe("net_tx_ptr");
+        expect(names.address(0x0d61)?.name).toBe("printer_buf_ptr");
+    });
+
     it("leaves DNFS 1.20's DFS to no network set", async () => {
         const names = await namesFor(withRoms("b/DFS-1.2.rom"));
         expect(names.address(0x9f9d)).toBeUndefined();

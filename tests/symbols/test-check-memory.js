@@ -9,6 +9,7 @@ import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
     fetchDisc,
     fetchRom,
+    loadSets,
     loadTitleSets,
     matchingRegions,
     overlappingRegions,
@@ -113,6 +114,14 @@ describe("fetchRom", () => {
     it("refuses a failed fetch", async () => {
         vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
         await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+    });
+});
+
+describe("loadSets", () => {
+    it("loads the sets with the ids given, by their files' names", () => {
+        const loaded = loadSets(path.join(SymbolsDir, "sets"), ["bbc-basic-2"]);
+        expect(Object.keys(loaded)).toEqual(["bbc-basic-2"]);
+        expect(loaded["bbc-basic-2"].title).toBe("BBC BASIC II");
     });
 });
 

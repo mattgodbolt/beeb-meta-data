@@ -289,10 +289,7 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
     return { json, errors, notes, dropped };
 }
 
-/**
- * The config's versions, each with the fields the config shares among them filled in, and the id of its
- * set (and so its file's name): the config's id, then the version's.
- */
+/** The config's versions, each with the fields the config shares among them filled in. */
 export const versionsOf = (config) =>
     config.sets.map((set) => ({
         licence: config.licence,
@@ -301,7 +298,6 @@ export const versionsOf = (config) =>
         bytesPerAnchor: config.bytesPerAnchor,
         spreadAnchors: config.spreadAnchors,
         ...set,
-        id: `${config.id}-${set.id}`,
     }));
 
 /**

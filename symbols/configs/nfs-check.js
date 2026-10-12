@@ -9,13 +9,13 @@ import { readFileSync } from "node:fs";
 import { typeUntil } from "../../tools/symbols/check-memory.js";
 
 const Config = JSON.parse(readFileSync(new URL("nfs.json", import.meta.url), "utf8"));
-const MasterVersions = new Set(["4.21", "4.24", "4.25", "4.26"]);
+const MasterVersions = new Set(["anfs-4.21", "anfs-4.24", "anfs-4.25", "anfs-4.26"]);
 // On jsbeeb's Master a plain *HELP never reaches ANFS's service handler, and *HELP NET does.
 const MasterHelp = "*HELP NET";
 // Regions another version's set names, since the two ROMs hold the same bytes there.
 const Borrowed = new Map([
-    ["3.62", ["3.60/high", "3.60/tail"]],
-    ["4.26", ["4.25/high"]],
+    ["nfs-3.62", ["nfs-3.60/high", "nfs-3.60/tail"]],
+    ["anfs-4.26", ["anfs-4.25/high"]],
 ]);
 const SidewaysRamBank = 7;
 const BankMask = 0x0f;
@@ -58,8 +58,8 @@ export const machines = {
 export const scenarios = {
     async dnfs({ address, check, session }) {
         check("BASIC's prompt", []);
-        await typeUntil(session, "*HELP", address("3.60", "low", "service_handler"));
-        check("*HELP, in DNFS 1.20's service handler", ["3.60/low", "3.60/high"]);
+        await typeUntil(session, "*HELP", address("nfs-3.60", "low", "service_handler"));
+        check("*HELP, in DNFS 1.20's service handler", ["nfs-3.60/low", "nfs-3.60/high"]);
     },
     ...Object.fromEntries(
         Config.sets.map(({ id, title }) => [

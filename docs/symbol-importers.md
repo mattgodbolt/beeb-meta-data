@@ -280,7 +280,7 @@ since renamed; `py8dis-dump.py` puts them back so such a script runs unchanged.
 JSON file (dasmos's schema 4) of every statement with its bytes and labels, plus `external_labels` for addresses outside
 the ROM. `import-acornaeology.js` makes a set per version from those, one config per repository.
 
-A config has `"importer": "acornaeology"`, an `id`, and
+A config has `"importer": "acornaeology"` and
 
 - `licence`, and `source`, with the `repository`, the `commit` and the `licenceFile` whose text becomes the sets'
   notice;
@@ -288,7 +288,7 @@ A config has `"importer": "acornaeology"`, an `id`, and
   for baron;
 - `otherRoms`, by `url` and `key`, copies the anchors must tell apart beside jsbeeb's own (other variants of the ROMs);
 - `check`, the in-memory check's scenarios;
-- `sets`, one per version, each with an `id` (the set's file is the config's id and the version's), a `title`, the
+- `sets`, one per version, each with an `id` (its set's file name), a `title`, the
   `disassembly` JSON's path, `home`, its page on acornaeology's site, and
   - `rom`, its file under jsbeeb's `public/roms/`, or the `url` of a copy and its `key`; the importer refuses a JSON
     whose bytes aren't that ROM's;
@@ -313,7 +313,9 @@ prints what each ROM matches. The in-memory check puts the version a scenario's 
 sideways RAM.
 
 The sets aren't `system`, so BASIC's workspace names only name BASIC's own code's operands, and a game run from BASIC
-keeps its own names for the zero page they share.
+keeps its own names for the zero page they share. But the address column shows a matching set's globals for any
+address no other matching set names, so a ROM's `globals` must leave out memory that other ROMs on the machines carrying
+it use while it's paged in.
 
 acornaeology's other disassemblies have no sets. ADFS 1.30 (jsbeeb's `b1770/zADFS.ROM`) took its first names from
 Dominic Beesley's ADFS-multi-target, converted by a script in the repository, and its workspace names from that
@@ -324,7 +326,8 @@ debugger doesn't show; the Econet bridge isn't a BBC Micro; and the Voltmace dri
 ## NFS and ANFS
 
 `symbols/configs/nfs.json` makes a set for each of the fourteen versions in
-[acorn-nfs](https://github.com/acornaeology/acorn-nfs), NFS 3.34 to 3.65 (8K) and ANFS 4.08.53 to 4.26 (16K). jsbeeb
+[acorn-nfs](https://github.com/acornaeology/acorn-nfs), `nfs-3.34` to `nfs-3.65` (8K) and `anfs-4.08.53` to
+`anfs-4.26` (16K). jsbeeb
 has ANFS 4.25; the others come from mdfs.net, whose copies are byte for byte the repository's, except NFS 3.35D, which
 mdfs.net doesn't have, and NFS 3.62, where mdfs.net has another variant. Those two come from the repository at the
 config's commit; the BBC Micro ROM Library lists both by the same SHA-1. MAME's `bbc_rom.xml` agrees for 3.34, 3.34B
@@ -339,6 +342,12 @@ NFS 3.62 is 3.60 with a patch in the padding at the end, and ANFS 4.26 is 4.25 w
 are the same bytes, two sets' regions would both match and the debugger would show neither, so the older version's
 region names them in both: 3.62's set is its `low` region and its `patch`, with 3.60's `high` and `tail` matching it
 too, and 4.26's is `low`, `middle` and `patch`, with 4.25's `high` (cut at `&BFF7`, before the padding) matching it.
+
+The globals are only Econet's zero page (`&90-&9F`) and NFS's workspace at `&0D60-&0D9E`. Watching which code writes
+where, on a B with DFS 1.2 (DNFS), a B1770 with DFS 2.26 and ADFS, and a Master with DFS or ADFS, the rest of what NFS
+names is used by others while NFS is paged in: `&00-&8F` and `&0400-&07FF` by BASIC, `&A0-&CF` and `&0D00-&0D5F` by
+whichever filing system has the disc and its NMIs, `&0D9F-&0DFF` by the MOS's extended vectors, `&0E00-&10FF` by DFS's
+catalogue and workspace on a B (and BASIC's program on a Master), and HAZEL at `&C000` by the Master's DFS.
 
 `otherRoms` are mdfs.net's Electron NFS 3.35E, whose second half 3.35D's anchors otherwise matched, the B's ANFS 4.21,
 and the RTC fix of 4.26. mdfs.net's ANFS 4.25a (one byte fixed) and its NFS 3.62 match their versions' sets, rightly.

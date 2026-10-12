@@ -1,5 +1,4 @@
 {
-  "id": "bbc-basic",
   "importer": "acornaeology",
   "licence": "MIT",
   "source": {
@@ -7,20 +6,37 @@
     "commit": "57b291c7fdfefc933c1a3f52dd97bac3de2ce06a",
     "licenceFile": "LICENSE"
   },
-  "globals": [{ "start": "0x0000", "end": "0x0800" }],
+  "globals": [
+    {
+      "start": "0x0000",
+      "end": "0x0800"
+    }
+  ],
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,
   "sets": [
     {
-      "id": "2",
+      "id": "bbc-basic-2",
       "title": "BBC BASIC II",
       "disassembly": "versions/basic-2/output/basic-2.json",
       "home": "https://acornaeology.uk/bbc-basic/2.html",
       "rom": "BASIC.ROM",
       "regions": [
-        { "name": "low", "start": "0x8000", "end": "0x9000" },
-        { "name": "middle", "start": "0x9000", "end": "0xb000" },
-        { "name": "high", "start": "0xb000", "end": "0xc000" }
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xc000"
+        }
       ]
     }
   ]

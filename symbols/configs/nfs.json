@@ -1,5 +1,4 @@
 {
-  "id": "nfs",
   "importer": "acornaeology",
   "licence": "MIT",
   "source": {
@@ -9,8 +8,12 @@
   },
   "globals": [
     {
-      "start": "0x0000",
-      "end": "0x1100"
+      "start": "0x0090",
+      "end": "0x00a0"
+    },
+    {
+      "start": "0x0d60",
+      "end": "0x0d9f"
     }
   ],
   "bytesPerAnchor": 2048,
@@ -32,7 +35,7 @@
   ],
   "sets": [
     {
-      "id": "3.34",
+      "id": "nfs-3.34",
       "title": "Acorn NFS 3.34",
       "disassembly": "versions/nfs-3.34/output/nfs-3.34.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.34.html",
@@ -54,7 +57,7 @@
       ]
     },
     {
-      "id": "3.34B",
+      "id": "nfs-3.34B",
       "title": "Acorn NFS 3.34B",
       "disassembly": "versions/nfs-3.34B/output/nfs-3.34B.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.34B.html",
@@ -76,7 +79,7 @@
       ]
     },
     {
-      "id": "3.35D",
+      "id": "nfs-3.35D",
       "title": "Acorn NFS 3.35D",
       "disassembly": "versions/nfs-3.35D/output/nfs-3.35D.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.35D.html",
@@ -98,7 +101,7 @@
       ]
     },
     {
-      "id": "3.35K",
+      "id": "nfs-3.35K",
       "title": "Acorn NFS 3.35K",
       "disassembly": "versions/nfs-3.35K/output/nfs-3.35K.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.35K.html",
@@ -120,7 +123,7 @@
       ]
     },
     {
-      "id": "3.40",
+      "id": "nfs-3.40",
       "title": "Acorn NFS 3.40",
       "disassembly": "versions/nfs-3.40/output/nfs-3.40.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.40.html",
@@ -149,7 +152,7 @@
       ]
     },
     {
-      "id": "3.60",
+      "id": "nfs-3.60",
       "title": "Acorn NFS 3.60",
       "disassembly": "versions/nfs-3.60/output/nfs-3.60.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.60.html",
@@ -178,7 +181,7 @@
       ]
     },
     {
-      "id": "3.62",
+      "id": "nfs-3.62",
       "title": "Acorn NFS 3.62",
       "disassembly": "versions/nfs-3.62/output/nfs-3.62.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.62.html",
@@ -200,7 +203,7 @@
       ]
     },
     {
-      "id": "3.65",
+      "id": "nfs-3.65",
       "title": "Acorn NFS 3.65",
       "disassembly": "versions/nfs-3.65/output/nfs-3.65.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.65.html",
@@ -222,7 +225,7 @@
       ]
     },
     {
-      "id": "4.08.53",
+      "id": "anfs-4.08.53",
       "title": "Acorn ANFS 4.08.53",
       "disassembly": "versions/anfs-4.08.53/output/anfs-4.08.53.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.08.53.html",
@@ -249,7 +252,7 @@
       ]
     },
     {
-      "id": "4.18",
+      "id": "anfs-4.18",
       "title": "Acorn ANFS 4.18",
       "disassembly": "versions/anfs-4.18/output/anfs-4.18.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.18.html",
@@ -276,7 +279,7 @@
       ]
     },
     {
-      "id": "4.21",
+      "id": "anfs-4.21",
       "title": "Acorn ANFS 4.21 (variant 1)",
       "disassembly": "versions/anfs-4.21_variant_1/output/anfs-4.21_variant_1.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.21_variant_1.html",
@@ -300,20 +303,10 @@
           "start": "0xb000",
           "end": "0xc000"
         }
-      ],
-      "globals": [
-        {
-          "start": "0x0000",
-          "end": "0x1100"
-        },
-        {
-          "start": "0xc000",
-          "end": "0xc300"
-        }
       ]
     },
     {
-      "id": "4.24",
+      "id": "anfs-4.24",
       "title": "Acorn ANFS 4.24",
       "disassembly": "versions/anfs-4.24/output/anfs-4.24.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.24.html",
@@ -337,20 +330,10 @@
           "start": "0xb000",
           "end": "0xc000"
         }
-      ],
-      "globals": [
-        {
-          "start": "0x0000",
-          "end": "0x1100"
-        },
-        {
-          "start": "0xc000",
-          "end": "0xc300"
-        }
       ]
     },
     {
-      "id": "4.25",
+      "id": "anfs-4.25",
       "title": "Acorn ANFS 4.25",
       "disassembly": "versions/anfs-4.25/output/anfs-4.25.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.25.html",
@@ -371,20 +354,10 @@
           "start": "0xb000",
           "end": "0xbff7"
         }
-      ],
-      "globals": [
-        {
-          "start": "0x0000",
-          "end": "0x1100"
-        },
-        {
-          "start": "0xc000",
-          "end": "0xc300"
-        }
       ]
     },
     {
-      "id": "4.26",
+      "id": "anfs-4.26",
       "title": "Acorn ANFS 4.26",
       "disassembly": "versions/anfs-4.26/output/anfs-4.26.json",
       "home": "https://acornaeology.uk/acorn-nfs/4.26.html",
@@ -407,16 +380,6 @@
           "name": "patch",
           "start": "0xbff7",
           "end": "0xc000"
-        }
-      ],
-      "globals": [
-        {
-          "start": "0x0000",
-          "end": "0x1100"
-        },
-        {
-          "start": "0xc000",
-          "end": "0xc300"
         }
       ]
     }
