@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
-import { chooseAnchors } from "./anchor-chooser.js";
+import { chooseAnchors, zeroPageStores } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
 import { SameCode } from "./corpus-check.js";
 import { matchingRegions, overlappingRegions } from "./check-memory.js";
@@ -91,11 +91,11 @@ export function pageAnchors(html) {
 }
 
 /** One name per address outside the ROM: the one the memory map describes, else the only one. */
-function globalsOf(outside, ranges, systemGlobals, dropped, errors) {
+function globalsOf(outside, ranges, systemGlobals, stored, dropped, errors) {
     const named = new Map();
     for (const label of outside) {
         if (!within(ranges, label.address)) continue;
-        if (systemGlobals.has(label.address)) {
+        if (systemGlobals.has(label.address) && !stored.has(label.address)) {
             dropped.push([label.name, label.address, `the system sets call it ${systemGlobals.get(label.address)}`]);
             continue;
         }
@@ -261,7 +261,7 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
         if (!within(regions, address)) dropped.push([label, address, "no region holds it"]);
     for (const { address, name: label } of moved) dropped.push([label, address, "it's in code the ROM moves"]);
     const globalRanges = set.globals.map((range, i) => parseRange(range, `globals range ${i}`));
-    const globals = globalsOf(outside, globalRanges, systemGlobals, dropped, errors);
+    const globals = globalsOf(outside, globalRanges, systemGlobals, zeroPageStores(statements), dropped, errors);
     for (const { address, name: label } of outside)
         if (!within(globalRanges, address)) dropped.push([label, address, "it's outside the globals' ranges"]);
 
