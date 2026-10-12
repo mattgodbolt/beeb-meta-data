@@ -308,7 +308,7 @@ async function main() {
                 .map((spec) => [spec.id, pageDefinitions(readPages(path.join(sourceDir, spec.pages.directory)))]),
         );
         const imported = importAcme(config, builds, roms, [...jsbeebRoms, ...copies], {
-            system: systemGlobals(SymbolsDir, { writing: config.sets.map(({ id }) => `sets/${config.id}-${id}.json`) }),
+            system: config.system ? new Map() : systemGlobals(),
             pages,
         });
         const bases = new Set(config.sets.map((spec) => builds.get(spec.assemble).base));
