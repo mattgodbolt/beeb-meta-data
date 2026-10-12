@@ -317,7 +317,7 @@ The sets aren't `system`, so BASIC's workspace names only name BASIC's own code'
 keeps its own names for the zero page they share. But the address column shows a matching set's globals for any
 address no other matching set names, and a ROM's set matches whenever the ROM is paged in, not only while its code
 runs. A filing system's ROM stays paged in while a game runs from disc, so its globals would land on the game's memory;
-such a ROM's set has none until the client can scope them (a jsbeeb issue is being filed).
+such a ROM's set has none until the client can scope them (jsbeeb#1252).
 
 acornaeology's other disassemblies have no sets. ADFS 1.30 (jsbeeb's `b1770/zADFS.ROM`) took its first names from
 Dominic Beesley's ADFS-multi-target, converted by a script in the repository, and its workspace names from that

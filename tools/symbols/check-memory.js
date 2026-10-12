@@ -253,7 +253,7 @@ async function withTitleDisc(config, options, use) {
             use({ disc: path.join(sourceDir, config.source.disc), filesDir }),
         );
     if (config.disc === undefined) {
-        if (config.rom === undefined && !config.sets.some(({ rom }) => rom !== undefined))
+        if (config.rom === undefined && !config.sets?.some(({ rom }) => rom !== undefined))
             throw new Error("The config names no disc to boot, in source.disc or disc");
         return use({ disc: null });
     }
