@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "super-invaders",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/super-invaders-disassembly.txt",
+    "sha256": "0597a5ef68a8db3dff3e1e8c6848a5f7c682b65fdf0329df46ca33041ae6ba7f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Acornsoft/SuperInvaders.zip",
+    "image": "Acornsoft/SuperInvaders.ssd",
+    "key": "8c95c00b5d144ca6319dc14eac511e4f"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "super-invaders-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Super Invaders",
+      "regions": [{ "name": "main", "from": "&0E00", "to": "&3000" }]
+    }
+  ]
+}

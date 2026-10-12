@@ -62,7 +62,8 @@ describe("assemblerOf", () => {
 });
 
 describe("importerOf", () => {
-    it("is py8dis's for a config that names py8dis, else its assembler's", () => {
+    it("is level7's for a config that says so, py8dis's for one that names py8dis, else its assembler's", () => {
+        expect(importerOf({ ...config(undefined), importer: "level7" })).toBe("level7");
         expect(importerOf({ ...config(undefined), py8dis: { repository: "r", commit: "c" } })).toBe("py8dis");
         expect(importerOf(config(undefined))).toBe("baron");
         expect(importerOf(config("beebasm"))).toBe("beebasm");

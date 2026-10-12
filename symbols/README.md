@@ -24,6 +24,7 @@ describes. None of this data is under this repository's GPL; each set has its ow
 | `dfs-2.26-*.json`           | [py8dis's DFS 2.26 example](https://github.com/ZornsLemma/py8dis)             | `import-py8dis.js`       |
 | `planb-game.json`           | [py8dis's Plan B example](https://github.com/ZornsLemma/py8dis)               | `import-py8dis.js`       |
 | `lisp-4.06-rom.json`        | [py8dis's LISP 4.06 example](https://github.com/ZornsLemma/py8dis)            | `import-py8dis.js`       |
+| the level7 titles' sets     | [level7's disassemblies](https://www.level7.org.uk/miscellany/)               | `import-level7.js`       |
 
 The importers are under `tools/symbols/`, and each config pins its source's commit.
 [The importers' doc](../docs/symbol-importers.md) says how to remake and check each set.
