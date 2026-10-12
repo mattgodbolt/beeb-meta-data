@@ -637,7 +637,7 @@ export function withTitle(configPath, options, use) {
  * in `out` with them, every one formatted before any file is touched.
  * @returns {Promise<string[]>} the errors, the importer's and the index's, none if the sets were written
  */
-export async function writeSets({ sets, errors }, { out, titleId, mosSets }) {
+export async function writeSets({ sets, errors }, { out, titleId, mosSets, otherTitleIds = [] }) {
     const problems = [
         ...errors,
         ...sets.flatMap(({ file, json }) =>
@@ -650,8 +650,12 @@ export async function writeSets({ sets, errors }, { out, titleId, mosSets }) {
         const target = path.join(out, file);
         formatted.push([target, await formatJson(json, target)]);
     }
-    for (const stale of readdirSync(out).filter((name) => name.startsWith(`${titleId}-`) && name.endsWith(".json")))
-        rmSync(path.join(out, stale));
+    const othersFiles = otherTitleIds.filter((id) => id.startsWith(`${titleId}-`)).map((id) => `${id}-`);
+    const isStale = (name) =>
+        name.startsWith(`${titleId}-`) &&
+        name.endsWith(".json") &&
+        !othersFiles.some((prefix) => name.startsWith(prefix));
+    for (const stale of readdirSync(out).filter(isStale)) rmSync(path.join(out, stale));
     for (const [target, text] of formatted) writeFileSync(target, text);
     return [];
 }
@@ -677,6 +681,13 @@ async function main() {
  * @param {{out: string, verbose: boolean}} values - the command line's
  * @returns {Promise<number>} the exit code
  */
+/** Every curator config's id, so a title's stale sets are told from those of another whose id it prefixes. */
+const configIds = () =>
+    readdirSync(path.join(SymbolsDir, "configs"))
+        .filter((name) => name.endsWith(".json"))
+        .map((name) => JSON.parse(readFileSync(path.join(SymbolsDir, "configs", name), "utf8")).id)
+        .filter((id) => id !== undefined);
+
 export async function writeTitle(config, imported, values) {
     for (const { id, json, regions, dropped } of imported.sets) {
         const summary = regions.map((region) => `${region.name} ${region.anchors.length}/${region.symbols.size}`);
@@ -691,7 +702,12 @@ export async function writeTitle(config, imported, values) {
     // A trial outside symbols/sets needn't list its own system sets; build-index checks them when they land.
     const trial = config.system && path.resolve(values.out) !== path.resolve(SetsDir);
     const mosSets = [...readMosSets(), ...(trial ? imported.sets.map(({ file }) => `sets/${file}`) : [])];
-    const errors = await writeSets(imported, { out: values.out, titleId: config.id, mosSets });
+    const errors = await writeSets(imported, {
+        out: values.out,
+        titleId: config.id,
+        mosSets,
+        otherTitleIds: configIds(),
+    });
     if (errors.length) {
         for (const error of errors) console.error(`error: ${error}`);
         console.error("Nothing written");

@@ -655,6 +655,22 @@ describe("writeSets", () => {
         expect(JSON.parse(readFileSync(path.join(out, "demo-prog.json"), "utf8")).title).toBe("Demo");
     });
 
+    it("leaves alone the sets of another title whose id starts with this one's", async () => {
+        writeFileSync(path.join(out, "demo-1992-rom.json"), "{}");
+        expect(
+            await writeSets(imported(), { out, titleId: "demo", mosSets: [], otherTitleIds: ["demo", "demo-1992"] }),
+        ).toEqual([]);
+        expect(readdirSync(out).sort()).toEqual(["demo-1992-rom.json", "demo-prog.json", "other-kept.json"]);
+    });
+
+    it("still clears its own stale sets when another title's id is a prefix of its own", async () => {
+        writeFileSync(path.join(out, "demo-sub-old.json"), "{}");
+        expect(
+            await writeSets(imported(), { out, titleId: "demo-sub", mosSets: [], otherTitleIds: ["demo", "demo-sub"] }),
+        ).toEqual([]);
+        expect(readdirSync(out).sort()).toEqual(["demo-prog.json", "demo-stale.json", "other-kept.json"]);
+    });
+
     it("writes nothing, and removes nothing, when the importer or the index's checks found a problem", async () => {
         const failing = imported();
         failing.sets[0].json.licence = "GPL-3.0-or-later";
