@@ -74,7 +74,7 @@ describe("a beebasm build", () => {
         expect(made.listing).toContain(`${PrintPrefix}:ptr:112`);
         expect(made.dump).toContain("'.start':6400L");
         expect([...made.saved]).toEqual([["out/PROG", Buffer.from("ABC")]]);
-        expect(made.operandNames).toEqual(new Set(["ptr"]));
+        expect(made.operandNames).toEqual(new Map([["ptr", new Set(["src/main.asm"])]]));
         expect(made.definitions).toEqual(
             new Map([
                 ["ptr", ["src/main.asm#L1"]],

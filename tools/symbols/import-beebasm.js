@@ -346,10 +346,20 @@ class Importer {
         }
 
         const code = files.flatMap((file) => file.statements.filter((s) => s.code && s.target !== null));
+        const sources = new Set(
+            regions
+                .flatMap((region) => [...named.get(region).values()].flat())
+                .flatMap(({ name }) => this.placesOf(name))
+                .map((place) => place.split("#")[0]),
+        );
+        const writtenAsOperand = (name) => {
+            const files = this.build.operandNames.get(name.split(".").at(-1));
+            return files !== undefined && (!sources.size || [...files].some((file) => sources.has(file)));
+        };
         const byValue = new Map();
         const valued = [...this.build.constants, ...this.unsavedLabels.map(({ name, address }) => [name, address])];
         for (const [name, value] of valued) {
-            if (value < 0 || value >= AddressLimit || !this.build.operandNames.has(name.split(".").at(-1))) continue;
+            if (value < 0 || value >= AddressLimit || !writtenAsOperand(name)) continue;
             if (!byValue.has(value)) byValue.set(value, []);
             byValue.get(value).push(name);
         }

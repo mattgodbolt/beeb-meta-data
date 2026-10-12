@@ -74,7 +74,7 @@ const made = (operandNames = ["ptr", "buf", "OSWRCH", "jump_to"]) => ({
         ["out/OVER", Uint8Array.from(over)],
     ]),
     names: ["ptr", "ALIAS", "buf", "jump_to", "OSWRCH", "KEY", "greeting", "blank"],
-    operandNames: new Set(operandNames),
+    operandNames: new Map(operandNames.map((name) => [name, new Set(["src/prog.asm"])])),
     definitions: new Map([
         ["start", ["src/prog.asm#L3"]],
         ["loop", ["src/prog.asm#L6"]],
@@ -237,6 +237,12 @@ describe("importBeebasm", () => {
         expect(dropped.map(([name]) => name)).not.toContain("KEY");
     });
 
+    it("takes such a name only from a source that defines one of the set's labels", () => {
+        const build = beebasmBuild(made());
+        build.operandNames.set("ptr", new Set(["src/elsewhere.asm"]));
+        expect(importBeebasm(config(), build, { system }).sets[0].json.globals).toEqual({});
+    });
+
     it("puts a `=` name in the globals when code outside its region uses it", () => {
         const regions = [
             { name: "code", file: "PROG", to: "pad" },
@@ -363,7 +369,7 @@ describe("importBeebasm on a program with workspace it doesn't save, a macro, an
         dump: "[{'.count':112L,'.entry':32768L,'.entry.inside':32777L}]",
         saved: new Map([["ROM", Uint8Array.from(code)]]),
         names: [],
-        operandNames: new Set(["count"]),
+        operandNames: new Map([["count", new Set(["rom.asm"])]]),
         definitions: new Map(),
     };
     const romConfig = {

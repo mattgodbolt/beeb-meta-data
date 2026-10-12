@@ -193,9 +193,9 @@ function runWrapped(beebasm, workDir, runDir, buildDir, main, names) {
  * Assembles the config's main source (`source.assemble`) in `workDir`, a copy of the checkout, running
  * beebasm in `source.directory` (the root if it names none), as source INCLUDEs are found from there.
  * @returns {{listing: string, dump: string, saved: Map<string, Uint8Array>, names: string[],
- *     operandNames: Set<string>, definitions: Map<string, string[]>, exported: Set<string>}} the listing,
- *     the label dump, each SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the
- *     sources write as an instruction's memory operand, every place (`<file>#L<line>`, from the root) each
+ *     operandNames: Map<string, Set<string>>, definitions: Map<string, string[]>, exported: Set<string>}} the
+ *     listing, the label dump, each SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the
+ *     sources write as an instruction's memory operand with the files (from the root) that do, every place (`<file>#L<line>`, from the root) each
  *     name is defined, and the labels written `.*name`, each as definitionsIn qualifies it
  */
 export function assemble(config, workDir, buildDir, beebasm) {
@@ -207,8 +207,13 @@ export function assemble(config, workDir, buildDir, beebasm) {
     const texts = [...sources].map((file) => readFileSync(file, "latin1"));
     const definitions = new Map();
     const exported = new Set();
+    const operandNames = new Map();
     [...sources].forEach((file, i) => {
         const fromRoot = path.relative(workDir, file).split(path.sep);
+        for (const name of memoryOperandNames(texts[i])) {
+            if (!operandNames.has(name)) operandNames.set(name, new Set());
+            operandNames.get(name).add(fromRoot.join("/"));
+        }
         if (fromRoot[0] === "..") return;
         for (const { name, line, exported: isExported } of definitionsIn(texts[i])) {
             if (!definitions.has(name)) definitions.set(name, []);
@@ -228,7 +233,7 @@ export function assemble(config, workDir, buildDir, beebasm) {
         dump: readFileSync(path.join(buildDir, LabelsFile), "latin1"),
         saved,
         names: kept,
-        operandNames: new Set(texts.flatMap(memoryOperandNames)),
+        operandNames,
         definitions,
         exported,
     };
