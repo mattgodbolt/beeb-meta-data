@@ -16,7 +16,15 @@
         { "at": "0x6a85", "bytes": "0fffe0c0804f" },
         { "at": "0x790e", "bytes": "b1729170c8d0f9" }
       ],
-      "symbols": { "picture": "0x6300", "start": "0x7900", "relocate": "0x790e" }
+      "symbols": { "picture": "0x6300", "start": "0x7900", "relocate": "0x790e" },
+      "scopes": [
+        { "start": "0x7902", "end": "0x7904", "symbols": { "relocate_to": "0x0070" } },
+        { "start": "0x7904", "end": "0x7906", "symbols": { "relocate_from": "0x0072" } },
+        { "start": "0x7908", "end": "0x790a", "symbols": { "relocate_to": "0x0070" } },
+        { "start": "0x790c", "end": "0x790e", "symbols": { "relocate_from": "0x0072" } },
+        { "start": "0x790e", "end": "0x7910", "symbols": { "relocate_from": "0x0072" } },
+        { "start": "0x7910", "end": "0x7912", "symbols": { "relocate_to": "0x0070" } }
+      ]
     },
     "unpack": {
       "start": "0x2f18",
@@ -34,7 +42,14 @@
         "clear_bottom": "0x2f5c",
         "clear_page": "0x2f64",
         "clear_byte": "0x2f65"
-      }
+      },
+      "scopes": [
+        { "start": "0x2f5e", "end": "0x2f60", "symbols": { "clear_ptr": "0x0070" } },
+        { "start": "0x2f62", "end": "0x2f64", "symbols": { "clear_ptr": "0x0070" } },
+        { "start": "0x2f65", "end": "0x2f67", "symbols": { "clear_ptr": "0x0070" } },
+        { "start": "0x2f6a", "end": "0x2f6c", "symbols": { "clear_ptr": "0x0070" } },
+        { "start": "0x2f6c", "end": "0x2f6e", "symbols": { "clear_ptr": "0x0070" } }
+      ]
     }
   },
   "globals": { "packed": "0x0070", "screen_ptr": "0x0072" },
@@ -42,11 +57,14 @@
     "clear_bottom": "src/title.6502#L134",
     "clear_byte": "src/title.6502#L141",
     "clear_page": "src/title.6502#L139",
+    "clear_ptr": "src/title.6502#L49",
     "next_code": "src/title.6502#L96",
     "packed": "src/title.6502#L45",
     "picture": "src/title.6502#L56",
     "read_run_length": "src/title.6502#L106",
     "relocate": "src/title.6502#L72",
+    "relocate_from": "src/title.6502#L42",
+    "relocate_to": "src/title.6502#L41",
     "screen_ptr": "src/title.6502#L46",
     "start": "src/title.6502#L64",
     "step_packed": "src/title.6502#L124",

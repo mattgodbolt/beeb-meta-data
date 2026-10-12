@@ -33,7 +33,20 @@
         "low_code_load": "0x3200",
         "main_code_load": "0x3600",
         "leftover": "0x50ad"
-      }
+      },
+      "scopes": [
+        { "start": "0x3008", "end": "0x300a", "symbols": { "menu_keys": "0x0050" } },
+        { "start": "0x30ad", "end": "0x30af", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30b0", "end": "0x30b2", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30b4", "end": "0x30b6", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30b6", "end": "0x30b9", "symbols": { "copy_from": "0x0002" } },
+        { "start": "0x30c2", "end": "0x30c4", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30c6", "end": "0x30c8", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30c8", "end": "0x30ca", "symbols": { "copy_return": "0x0000" } },
+        { "start": "0x30cc", "end": "0x30ce", "symbols": { "copy_from": "0x0002" } },
+        { "start": "0x30d3", "end": "0x30d5", "symbols": { "copy_from": "0x0002" } },
+        { "start": "0x30e4", "end": "0x30e7", "symbols": { "copy_return": "0x0000" } }
+      ]
     },
     "event_handler": {
       "start": "0x0131",
@@ -983,7 +996,9 @@
     "copy_block_params": "src/hidden_game.6502#L402",
     "copy_block_return": "src/hidden_game.6502#L434",
     "copy_count": "src/hidden_game.6502#L286",
+    "copy_from": "src/hidden_game.6502#L284",
     "copy_keys_loop": "src/hidden_game.6502#L324",
+    "copy_return": "src/hidden_game.6502#L283",
     "copy_to": "src/hidden_game.6502#L285",
     "count_across": "src/hidden_game.6502#L234",
     "count_down": "src/hidden_game.6502#L235",
@@ -1222,6 +1237,7 @@
     "mark_monsters": "src/hidden_game.6502#L3603",
     "menu_key_left": "src/hidden_game.6502#L133",
     "menu_key_right": "src/hidden_game.6502#L134",
+    "menu_keys": "src/hidden_game.6502#L289",
     "message_to_crackers": "src/hidden_game.6502#L375",
     "mission_complete": "src/hidden_game.6502#L3214",
     "mission_done": "src/hidden_game.6502#L4548",

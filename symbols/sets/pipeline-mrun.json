@@ -18,7 +18,12 @@
         "boot_command": "0x07cf",
         "start_basic": "0x07dc",
         "unused": "0x07e3"
-      }
+      },
+      "scopes": [
+        { "start": "0x07b1", "end": "0x07b3", "symbols": { "typed_index": "0x0050" } },
+        { "start": "0x07c0", "end": "0x07c2", "symbols": { "typed_index": "0x0050" } },
+        { "start": "0x07c2", "end": "0x07c4", "symbols": { "typed_index": "0x0050" } }
+      ]
     }
   },
   "globals": { "default_vectors": "0x0050" },
@@ -28,6 +33,7 @@
     "start": "src/mrun.6502#L31",
     "start_basic": "src/mrun.6502#L89",
     "type_next": "src/mrun.6502#L61",
+    "typed_index": "src/mrun.6502#L23",
     "unused": "src/mrun.6502#L94"
   }
 }

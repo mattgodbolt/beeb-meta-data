@@ -117,16 +117,16 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 - `=` names count as addresses when an instruction uses them as a memory operand: the operand's first name, not after
   `#`, not a FUNCTION's result, and not one `leftToSystemSets` covers. Such a name goes to the region it points into
   if only that region's code uses it, and is a global otherwise.
-- There's one name per address. In a region, a scope's own name wins over the labels inside it (`pl` over
+- A region or the globals give an address one name. In a region, a scope's own name wins over the labels inside it (`pl` over
   `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In the globals it's the `=`
   name or virtual section label the most instructions use as a memory operand; a label of a `globalsSections`
   section, or a virtual one only data mentions, counts as used by none.
-- Where the globals name an address more than one way, the name most instructions use stays the global, and each
-  other `=` name whose uses are all in the set's regions goes in a region's scopes instead. That's baron's `ZA_AUTO`,
-  which gives routines that never run together the same zero page. A scope is a routine, the outermost named scope
-  under `stripScope`, or a single instruction outside one. Each routine that uses the name gets it, including a
-  caller setting a routine's parameters, and the global's name joins it there if that routine uses it too. Two
-  names for one address in one routine still keep only the one it uses most.
+- Where the globals name an address outside every region more than one way, the name most instructions use stays
+  the global. Each other name whose uses are all in the set's regions goes in the region's scopes instead, one for
+  each routine that uses it, a caller setting a routine's parameters included. That's baron's `ZA_AUTO`, which gives
+  routines that never run together the same zero page. A routine is the outermost baron scope under `stripScope`, if
+  it has a name, or else the one instruction. The global's name joins a routine's scope if the routine uses it too,
+  and a routine using two names for one address keeps the one it uses most.
 - Each name's place is the file and line the symbol dump says defines it (`src/game.6502#L120`), which goes in the
   set's `places` for a GitHub repository. There, a name the dump gives no place stops the import. A `defines` entry
   (Scorched Earth's `BUILD`) has no line, so it's never a name in a set.
@@ -189,9 +189,9 @@ jsbeeb has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks
 
 ## What the baron importer gets wrong
 
-- A name for an address the globals name another way is lost if any of its uses is outside the set's regions, as
-  scopes only cover code in them. PIPELINE's game loader's `copy_return`, `copy_from` and `menu_keys` give way to the
-  main code's `monster_x`, `monster_direction` and `work0`.
+- A name for an address the globals name another way is lost if any of its uses is outside the set's regions, since
+  scopes only cover code in them, or if it's a label of a `globalsSections` section, which no instruction counts as
+  using.
 - The operand rule misses `=` names the code reaches only through an immediate's `LO()`/`HI()`, a FUNCTION or a table
   of addresses, and takes a name used only in dead code as readily as any other.
 - Stores through a pointer, or by the OS into a block it wasn't passed with `LDX #LO(...)`, aren't seen. The

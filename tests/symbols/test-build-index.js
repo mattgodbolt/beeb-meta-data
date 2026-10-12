@@ -177,12 +177,17 @@ describe("the symbol set build", () => {
                 [
                     "a scoped name that's another kind of name for another address",
                     [scope("0x1900", "0x1a00", { main_loop: "0x70" })],
-                    "main_loop is named in region main and in a scope, for another address",
+                    "main_loop is named in region main and in a scope",
                 ],
                 [
                     "two overlapping scopes naming one address",
                     [scope("0x1900", "0x1a00", { aim_x: "0x70" }), scope("0x19f0", "0x1b00", { blast_x: "0x70" })],
                     "scopes at &1900 and &19F0 overlap and both name &0070 (blast_x)",
+                ],
+                [
+                    "a scope naming an address inside its region",
+                    [scope("0x1900", "0x1a00", { entry: "0x1905" })],
+                    "names &1905 (entry), which is inside the region",
                 ],
                 ["scopes that aren't a list", { start: "0x1900" }, "scopes isn't a list"],
             ])("reject %s", (_, scopes, message) => {

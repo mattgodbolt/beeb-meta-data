@@ -12,7 +12,8 @@
       "end": "0x043b",
       "minAnchors": 1,
       "anchors": [{ "at": "0x0400", "bytes": "78a201bdfcff" }],
-      "symbols": { "pl": "0x0400", "pl.read_reset_high": "0x0401", "key_bytes": "0x0402", "pl.decrypt_byte": "0x0427" }
+      "symbols": { "pl": "0x0400", "pl.read_reset_high": "0x0401", "key_bytes": "0x0402", "pl.decrypt_byte": "0x0427" },
+      "scopes": [{ "start": "0x0400", "end": "0x043b", "symbols": { "crypt_ptr": "0x0070" } }]
     },
     "encrypted": {
       "start": "0x043c",
@@ -65,7 +66,8 @@
         "pl_cheat.load_game": "0x061a",
         "pl_cheat.unlock_keys": "0x0621",
         "pl_cheat.action_names": "0x0625"
-      }
+      },
+      "scopes": [{ "start": "0x043b", "end": "0x05d8", "symbols": { "entry_index": "0x0070" } }]
     }
   },
   "globals": {
@@ -89,6 +91,7 @@
     "GAME_START": "src/pl.6502#L146",
     "checks_left": "src/pl.6502#L165",
     "code_bcd": "src/pl.6502#L167",
+    "crypt_ptr": "src/pl.6502#L53",
     "entry_index": "src/pl.6502#L161",
     "format_index": "src/pl.6502#L163",
     "game_clear_furthest_level": "src/pl.6502#L150",

@@ -190,6 +190,12 @@ export function checkSet(json, { file, mosSets }) {
             if (address < region.start || address >= region.end)
                 problems.push(`${where} names ${hex(address)} (${name}), which is outside it`);
         const scopes = region.scopes ?? [];
+        for (const scope of scopes)
+            for (const [address, name] of scope.symbols)
+                if (address >= region.start && address < region.end)
+                    problems.push(
+                        `${where}'s scope at ${hex(scope.start)} names ${hex(address)} (${name}), which is inside the region`,
+                    );
         for (const [i, scope] of scopes.entries())
             for (const earlier of scopes.slice(0, i))
                 if (earlier.start < scope.end && scope.start < earlier.end)
@@ -207,14 +213,13 @@ export function checkSet(json, { file, mosSets }) {
         for (const [i, scope] of (region.scopes ?? []).entries())
             checkNames(scope.symbols, `region ${name}'s scope ${i}`, new Map(), problems);
     }
-    // A scoped name can recur, in every routine that uses it, and be the global, but always for one address.
     const globalAt = new Map([...set.globals].map(([address, name]) => [name, address]));
     const scopedAt = new Map();
     for (const region of set.regions)
-        for (const scope of region.scopes)
+        for (const scope of region.scopes ?? [])
             for (const [address, name] of scope.symbols) {
                 if (globalAt.has(name) ? globalAt.get(name) !== address : seen.has(name))
-                    problems.push(`${name} is named in ${seen.get(name)} and in a scope, for another address`);
+                    problems.push(`${name} is named in ${seen.get(name)} and in a scope`);
                 else if (scopedAt.has(name) && scopedAt.get(name) !== address)
                     problems.push(
                         `${name} names ${hex(scopedAt.get(name))} in one scope and ${hex(address)} in another`,
