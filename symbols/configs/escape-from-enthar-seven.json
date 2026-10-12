@@ -24,7 +24,10 @@
           "part": "ADCODE1",
           "from": "&08C0",
           "to": "&0CFB",
-          "avoid": [["&0BB6", "&0BBC"]]
+          "avoid": [
+            ["&08C0", "&0A9A"],
+            ["&0BB6", "&0BBC"]
+          ]
         },
         {
           "name": "main",

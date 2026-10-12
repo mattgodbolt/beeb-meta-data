@@ -867,7 +867,7 @@
           "start": "0x08c0",
           "end": "0x0cfb",
           "minAnchors": 1,
-          "anchors": [{ "at": "0x08c0", "bytes": "a9011865628562" }]
+          "anchors": [{ "at": "0x0a9a", "bytes": "a900857c60a901" }]
         },
         "main": {
           "start": "0x1f00",
