@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { changedSets, importerScript } from "../../tools/symbols/reimport-all.js";
+import { changedSets, importerScript, systemFirst } from "../../tools/symbols/reimport-all.js";
 
 const ConfigsDir = new URL("../../symbols/configs/", import.meta.url);
 
@@ -24,6 +24,17 @@ describe("importerScript", () => {
 
     it("refuses an importer it doesn't know", () => {
         expect(() => importerScript({ id: "odd", importer: "nope" })).toThrow("nope");
+    });
+});
+
+describe("systemFirst", () => {
+    it("puts the system sets' configs first, keeping the order within each group", () => {
+        const configs = [
+            { file: "a.json", config: {} },
+            { file: "mos.json", config: { system: true } },
+            { file: "b.json", config: {} },
+        ];
+        expect(systemFirst(configs).map(({ file }) => file)).toEqual(["mos.json", "a.json", "b.json"]);
     });
 });
 

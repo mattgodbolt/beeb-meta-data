@@ -184,7 +184,7 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         end: parseAddress(end, `globals range ${i}'s end`, AddressLimit),
     }));
     const uses = operandUses(statements);
-    const stored = ownedIfStored(chooserStatements);
+    const stored = ownedIfStored(chooserStatements.filter((s) => regions.some((r) => holds(r, s.address))));
     const candidates = new Map();
     for (const definition of kept) {
         const { name, value, label } = definition;
