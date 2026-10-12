@@ -1,0 +1,38 @@
+{
+  "importer": "level7",
+  "id": "palace-of-magic",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/palace-of-magic-disassembly.txt",
+    "sha256": "4d2f06b35e6e56bcf918c8a4427c723b9f468889cb02674f521e5fd73b6c2e08"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/PalaceOfMagic.zip",
+    "image": "Superior/PalaceOfMagic.ssd",
+    "key": "db5863fc7d478b47c767a29204621017"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "palace-of-magic-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Palace of Magic",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&03EC",
+          "to": "&4E8C",
+          "avoid": [
+            ["&0D12", "&0D1D"],
+            ["&0FD8", "&0FE3"],
+            ["&290D", "&290F"],
+            ["&2EED", "&2EEE"],
+            ["&2F73", "&2F74"],
+            ["&4E80", "&4E8C"]
+          ]
+        }
+      ]
+    }
+  ]
+}

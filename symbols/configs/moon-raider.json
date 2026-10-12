@@ -1,0 +1,36 @@
+{
+  "importer": "level7",
+  "id": "moon-raider",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/moon-raider-disassembly.txt",
+    "sha256": "5a64cdc90cc71e6c52c5da875e6491bac790e691884d112acf9c6b9108016544"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Micropower/MoonRaider.zip",
+    "image": "Micropower/MoonRaider.ssd",
+    "key": "b8f2051bd478b9ffd422eb6fe4b3a019"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "moon-raider-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Moon Raider",
+      "regions": [
+        {
+          "name": "page4",
+          "from": "&0406",
+          "to": "&09EF"
+        },
+        {
+          "name": "main",
+          "from": "&1000",
+          "to": "&3000",
+          "avoid": [["&1907", "&1909"]]
+        }
+      ]
+    }
+  ]
+}

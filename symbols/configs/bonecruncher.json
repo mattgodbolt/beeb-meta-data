@@ -1,0 +1,69 @@
+{
+  "importer": "level7",
+  "id": "bonecruncher",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/bonecruncher-disassembly.txt",
+    "sha256": "6c2b21be955a2a4e6ba6807c8407aa02c9b2a4847af9a8cd9f6e9fa239086306"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Bonecruncher.zip",
+    "image": "Superior/Bonecruncher.ssd",
+    "key": "bee10235372f464c103a4790b1d82904"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "bonecruncher-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Bonecruncher",
+      "regions": [
+        { "name": "password_key_table", "from": "&0880", "to": "&0900" },
+        {
+          "name": "main",
+          "part": "Bone2",
+          "from": "&0D1E",
+          "to": "&6700",
+          "avoid": [
+            ["&0D1E", "&0DFF"],
+            ["&22C7", "&22C8"],
+            ["&2301", "&2302"],
+            ["&2330", "&2331"],
+            ["&2354", "&2355"],
+            ["&2386", "&2387"],
+            ["&243E", "&243F"],
+            ["&2556", "&2557"],
+            ["&2631", "&2642"],
+            ["&2691", "&269F"],
+            ["&26B3", "&26B4"],
+            ["&27F7", "&2801"],
+            ["&281B", "&2836"],
+            ["&287A", "&2885"],
+            ["&2896", "&2897"],
+            ["&28A9", "&28F5"],
+            ["&2AE3", "&2AE7"],
+            ["&2B0E", "&2B0F"],
+            ["&2C67", "&2C82"],
+            ["&2D0F", "&2D1C"],
+            ["&2DC0", "&2DC1"],
+            ["&2DE2", "&2DE3"],
+            ["&2E10", "&2E11"],
+            ["&2E23", "&2E27"],
+            ["&2E70", "&30FB"],
+            ["&4078", "&4147"],
+            ["&4448", "&44FF"],
+            ["&4850", "&486F"],
+            ["&4992", "&49B0"],
+            ["&4AD0", "&4AEE"],
+            ["&4C10", "&4C30"],
+            ["&4D50", "&4D70"],
+            ["&50C0", "&517F"],
+            ["&5320", "&541F"],
+            ["&55E0", "&565F"]
+          ]
+        }
+      ]
+    }
+  ]
+}

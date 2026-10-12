@@ -1,0 +1,50 @@
+{
+  "importer": "level7",
+  "id": "codename-droid",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/codename-droid-disassembly.txt",
+    "sha256": "48903895e855df1e5396f561bdf533382f32308ec810bc246d583c71072a5a13"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/CodenameDroid.zip",
+    "image": "Superior/CodenameDroid.ssd",
+    "key": "27f3be38fe2001f3f017e0c9f4d47fb2"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "codename-droid-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Codename Droid",
+      "regions": [
+        {
+          "name": "main",
+          "part": "DROID",
+          "from": "&1100",
+          "to": "&5900",
+          "avoid": [
+            ["&1201", "&1202"],
+            ["&362A", "&362B"],
+            ["&3AE6", "&3AE8"],
+            ["&4BDC", "&4BDD"],
+            ["&51F8", "&5207"],
+            ["&55F9", "&5607"],
+            ["&56F9", "&56FB"],
+            ["&5800", "&5900"]
+          ]
+        },
+        {
+          "name": "page3",
+          "from": "&0300",
+          "to": "&1100",
+          "avoid": [
+            ["&0529", "&052E"],
+            ["&0804", "&0870"]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,29 @@
   "format": 1,
   "sets": [
     {
+      "url": "sets/3d-pool-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "pagec": {
+          "start": "0x0c00",
+          "end": "0x0cce",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0c00", "bytes": "20270cc980297f" }]
+        },
+        "main": {
+          "start": "0x1056",
+          "end": "0x3efd",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x113e", "bytes": "200a2da9be206432" },
+            { "at": "0x1c00", "bytes": "c670608a48bd520f" },
+            { "at": "0x27ad", "bytes": "69018e5f338d6033" },
+            { "at": "0x3357", "bytes": "1e1c130d1500" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/anfs-4.08.53.json",
       "licence": "MIT",
       "regions": {
@@ -242,6 +265,32 @@
       }
     },
     {
+      "url": "sets/atic-atac-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "font_data": {
+          "start": "0x02ea",
+          "end": "0x1194",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x08bc", "bytes": "ea140afc0100" },
+            { "at": "0x0a53", "bytes": "0323000cfcc0" }
+          ]
+        },
+        "main": {
+          "start": "0x138c",
+          "end": "0x4280",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1884", "bytes": "0a78e00893d0" },
+            { "at": "0x27cc", "bytes": "a2248606a028" },
+            { "at": "0x2b17", "bytes": "20a72a189003" },
+            { "at": "0x36df", "bytes": "20c436a980855e" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/bbc-b-mos-1.20.json",
       "licence": "MIT",
       "regions": {
@@ -321,6 +370,29 @@
       }
     },
     {
+      "url": "sets/bonecruncher-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "password_key_table": {
+          "start": "0x0880",
+          "end": "0x0900",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0880", "bytes": "c9e2d9c1e4d2" }]
+        },
+        "main": {
+          "start": "0x0d1e",
+          "end": "0x6700",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x2200", "bytes": "a93fc50bd002" },
+            { "at": "0x2398", "bytes": "aabdf723912c" },
+            { "at": "0x3a10", "bytes": "002b20c70777" },
+            { "at": "0x5e55", "bytes": "a000b1489140" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/bruce-lee-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -350,6 +422,23 @@
             { "at": "0x2ec0", "bytes": "20632ea9008d3f30" },
             { "at": "0x36e8", "bytes": "a980a2f9a0ff" },
             { "at": "0x5223", "bytes": "c904d05d8dca52" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/by-fair-means-or-foul-enhanced-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1100",
+          "end": "0x4b00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x114c", "bytes": "206111a00820131d" },
+            { "at": "0x1f9d", "bytes": "adfa0dc910f069" },
+            { "at": "0x2fb0", "bytes": "48856820004c" },
+            { "at": "0x3e00", "bytes": "4c9a40a5f448" }
           ]
         }
       }
@@ -406,6 +495,32 @@
           "anchors": [
             { "at": "0x4ed8", "bytes": "20e94ea20a8a" },
             { "at": "0x51b9", "bytes": "a9008dea5160" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/codename-droid-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1100",
+          "end": "0x5900",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1109", "bytes": "ad62fec9d4f003" },
+            { "at": "0x2308", "bytes": "38a591e57bc960" },
+            { "at": "0x350a", "bytes": "18a57a6908857a" },
+            { "at": "0x4700", "bytes": "1f0c07535550" }
+          ]
+        },
+        "page3": {
+          "start": "0x0300",
+          "end": "0x1100",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x0520", "bytes": "000203150a0b" },
+            { "at": "0x1080", "bytes": "1f0805575249" }
           ]
         }
       }
@@ -598,6 +713,63 @@
       }
     },
     {
+      "url": "sets/doctor-who-and-the-mines-of-terror-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0880",
+          "end": "0x4000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0b09", "bytes": "e8e00ad0a6e699" },
+            { "at": "0x1668", "bytes": "290705038502" },
+            { "at": "0x2440", "bytes": "aee207e02cf0ec" },
+            { "at": "0x32c7", "bytes": "05060713494a" }
+          ]
+        },
+        "unused": {
+          "start": "0x4d80",
+          "end": "0x4f00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x4e00", "bytes": "a9008d62028570" }]
+        }
+      }
+    },
+    {
+      "url": "sets/doctor-who-and-the-warlord-part-a-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0400",
+          "end": "0x7c00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x040f", "bytes": "a2b6201e0ba900" },
+            { "at": "0x22d4", "bytes": "a7010e030d6a" },
+            { "at": "0x426a", "bytes": "86298e269e24" },
+            { "at": "0x5ee1", "bytes": "0d0e46050094" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/doctor-who-and-the-warlord-part-b-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0400",
+          "end": "0x7c00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x040f", "bytes": "a2b6201e0ba900" },
+            { "at": "0x2336", "bytes": "0d7c47fce0fa" },
+            { "at": "0x4005", "bytes": "a7019d4f0290" },
+            { "at": "0x630b", "bytes": "bd0009c902900a" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/eagles-wing-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -684,6 +856,61 @@
           "end": "0x5800",
           "minAnchors": 1,
           "anchors": [{ "at": "0x53e4", "bytes": "77eef8e298f3" }]
+        }
+      }
+    },
+    {
+      "url": "sets/escape-from-enthar-seven-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "adcode": {
+          "start": "0x08c0",
+          "end": "0x0cfb",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x08c0", "bytes": "a9011865628562" }]
+        },
+        "main": {
+          "start": "0x1f00",
+          "end": "0x6200",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x2437", "bytes": "4820e80c689173" },
+            { "at": "0x2feb", "bytes": "a900856720d427" },
+            { "at": "0x4088", "bytes": "8d281da95e4ced3c" },
+            { "at": "0x5150", "bytes": "a2fca0ff4c5224" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/firetrack-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x17ab",
+          "end": "0x377c",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x1917", "bytes": "bd960f85babc420f" },
+            { "at": "0x1fa1", "bytes": "207a27242d3051" },
+            { "at": "0x31ef", "bytes": "60a54ac90490f9" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/fortress-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0a00",
+          "end": "0x2000",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x0e68", "bytes": "ad40fe29104910" },
+            { "at": "0x115e", "bytes": "a9022d4dfef00d" },
+            { "at": "0x18c3", "bytes": "18657388d0fa" }
+          ]
         }
       }
     },
@@ -859,6 +1086,23 @@
       }
     },
     {
+      "url": "sets/killer-gorilla-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0d00",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x11b0", "bytes": "a563d00c203f13" },
+            { "at": "0x15dd", "bytes": "68c90690084c4f16" },
+            { "at": "0x201f", "bytes": "4cd410a2008680" },
+            { "at": "0x2766", "bytes": "a90420f01c20fa1c" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/kissin-kousins-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -914,6 +1158,40 @@
       }
     },
     {
+      "url": "sets/knightlore-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x06d2",
+          "end": "0x3136",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0884", "bytes": "000c1824303c" },
+            { "at": "0x1352", "bytes": "a200a00920591a" },
+            { "at": "0x1c1c", "bytes": "8438a513851c" },
+            { "at": "0x26a8", "bytes": "a901bc2803c018" }
+          ]
+        },
+        "bit_reversed_bytes": {
+          "start": "0x3136",
+          "end": "0x546a",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x3195", "bytes": "e000f7f801ef" },
+            { "at": "0x3a0c", "bytes": "037fe001bfc0" },
+            { "at": "0x4331", "bytes": "d008fffc8001" },
+            { "at": "0x5300", "bytes": "008040c020a0" }
+          ]
+        },
+        "page64": {
+          "start": "0x6400",
+          "end": "0x6b00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x6400", "bytes": "071820408081" }]
+        }
+      }
+    },
+    {
       "url": "sets/lisp-4.06-rom.json",
       "licence": "MIT",
       "regions": {
@@ -949,6 +1227,23 @@
       }
     },
     {
+      "url": "sets/lode-runner-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0900",
+          "end": "0x4fd0",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0900", "bytes": "4cca29200c16" },
+            { "at": "0x1af5", "bytes": "a9018d90104c631c" },
+            { "at": "0x2c7c", "bytes": "b0b1919293b4" },
+            { "at": "0x4dd9", "bytes": "111006011000" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/monsters-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -961,6 +1256,29 @@
             { "at": "0x1698", "bytes": "a638b51418691b" },
             { "at": "0x1f13", "bytes": "aa20be1bc990" },
             { "at": "0x28c0", "bytes": "8a29fe0a8570" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/moon-raider-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page4": {
+          "start": "0x0406",
+          "end": "0x09ef",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0406", "bytes": "4cb6059848a000" }]
+        },
+        "main": {
+          "start": "0x1000",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1480", "bytes": "4000418041c4" },
+            { "at": "0x1909", "bytes": "a5ff300160a000" },
+            { "at": "0x2026", "bytes": "a20720bd1fca" },
+            { "at": "0x2806", "bytes": "a9000aaabd2f2e" }
           ]
         }
       }
@@ -1311,6 +1629,23 @@
             { "at": "0x75b0", "bytes": "a0008ce00f8485" },
             { "at": "0x7740", "bytes": "a290bdff089d7f5f" },
             { "at": "0x7f46", "bytes": "a562c904f003" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/palace-of-magic-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x03ec",
+          "end": "0x4e8c",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x06d0", "bytes": "a5942907484907" },
+            { "at": "0x1da0", "bytes": "a25f9aa9ff8587" },
+            { "at": "0x2948", "bytes": "8581202c2dc951" },
+            { "at": "0x3be4", "bytes": "4e0729208b06" }
           ]
         }
       }
@@ -1672,6 +2007,29 @@
       }
     },
     {
+      "url": "sets/ravenskull-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1100",
+          "end": "0x5900",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1100", "bytes": "20e5114c8b32" },
+            { "at": "0x2300", "bytes": "a68fcaa49020cb23" },
+            { "at": "0x351a", "bytes": "c907b00e38e902" },
+            { "at": "0x57c0", "bytes": "ee665d994c11" }
+          ]
+        },
+        "sprite_marsh": {
+          "start": "0x5a80",
+          "end": "0x6000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x5d00", "bytes": "eeeaeeffff11" }]
+        }
+      }
+    },
+    {
       "url": "sets/repton2-game.json",
       "licence": "Unlicense",
       "regions": {
@@ -1697,6 +2055,29 @@
           "end": "0x08c0",
           "minAnchors": 1,
           "anchors": [{ "at": "0x0880", "bytes": "60a58bf0fba902" }]
+        }
+      }
+    },
+    {
+      "url": "sets/rick-hanson-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page4": {
+          "start": "0x0400",
+          "end": "0x0500",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0400", "bytes": "13ea6a78727f" }]
+        },
+        "main": {
+          "start": "0x1100",
+          "end": "0x7c00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x165b", "bytes": "209816a200bdf314" },
+            { "at": "0x2bcb", "bytes": "ad1415c903d0be" },
+            { "at": "0x46af", "bytes": "fd3a14fb8f6a" },
+            { "at": "0x614a", "bytes": "fffdf289e7f9" }
+          ]
         }
       }
     },
@@ -1804,6 +2185,46 @@
       }
     },
     {
+      "url": "sets/shark-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0400",
+          "end": "0x4200",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0d54", "bytes": "a470b178c88470" },
+            { "at": "0x1394", "bytes": "a9ff8d1804ae5901" },
+            { "at": "0x2390", "bytes": "a941a202a090" },
+            { "at": "0x3cf0", "bytes": "409040c030c0" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/sim-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0d00",
+          "end": "0x2fff",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0f1d", "bytes": "a000b9030a3004" },
+            { "at": "0x1641", "bytes": "a010b9681699000a" },
+            { "at": "0x1e87", "bytes": "a58599020aa582" },
+            { "at": "0x274e", "bytes": "ad2928d0034c0828" }
+          ]
+        },
+        "page9": {
+          "start": "0x0900",
+          "end": "0x0bff",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x090f", "bytes": "00ed188111f6" }]
+        }
+      }
+    },
+    {
       "url": "sets/skirmish-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -1822,6 +2243,46 @@
             { "at": "0x1486", "bytes": "a9018562a564" },
             { "at": "0x1b8c", "bytes": "85a220c51ba5a2" },
             { "at": "0x2762", "bytes": "60e8e885122901" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/space-agent-zelda-meets-the-bug-eyes-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page9": {
+          "start": "0x0900",
+          "end": "0x0b62",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x090f", "bytes": "ad460ad00ea22f" }]
+        },
+        "main": {
+          "start": "0x1100",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1420", "bytes": "020418307018" },
+            { "at": "0x1bc0", "bytes": "a9018dfa1cad021d" },
+            { "at": "0x2091", "bytes": "6048adfa1cf004" },
+            { "at": "0x2a64", "bytes": "1ffe01a65800" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/space-hi-way-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0e00",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0e28", "bytes": "a269a000b90010" },
+            { "at": "0x16e8", "bytes": "dd3c09d039a001" },
+            { "at": "0x1f03", "bytes": "ca30034c331e" },
+            { "at": "0x2ce6", "bytes": "140104151602" }
           ]
         }
       }
@@ -1855,6 +2316,23 @@
       }
     },
     {
+      "url": "sets/spy-hunter-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0c00",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1670", "bytes": "a006a90099d507" },
+            { "at": "0x2039", "bytes": "a90120d034a9df" },
+            { "at": "0x3222", "bytes": "a9008dc30760" },
+            { "at": "0x4fa0", "bytes": "013436373800" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/spy-vs-spy-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -1878,6 +2356,52 @@
       }
     },
     {
+      "url": "sets/star-wars-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0400",
+          "end": "0x4707",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x050d", "bytes": "a20f20ff37297f" },
+            { "at": "0x14d8", "bytes": "ad8c08d02fad0003" },
+            { "at": "0x258a", "bytes": "a50cc50a9008" },
+            { "at": "0x3669", "bytes": "a52e052ff0ef" }
+          ]
+        },
+        "shields_string": {
+          "start": "0x4878",
+          "end": "0x5000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x4878", "bytes": "4806f00d5553" }]
+        }
+      }
+    },
+    {
+      "url": "sets/starquake-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page9": {
+          "start": "0x0900",
+          "end": "0x0c00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0a80", "bytes": "868e848fa000" }]
+        },
+        "main": {
+          "start": "0x0e00",
+          "end": "0x6c00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0e03", "bytes": "2040642907c905" },
+            { "at": "0x320d", "bytes": "b90b35999000" },
+            { "at": "0x4180", "bytes": "d85f133f552f" },
+            { "at": "0x631c", "bytes": "b16b29029dc801" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/starship-command-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -1897,6 +2421,40 @@
           "end": "0x62f9",
           "minAnchors": 1,
           "anchors": [{ "at": "0x62b1", "bytes": "a900a88580a90e" }]
+        }
+      }
+    },
+    {
+      "url": "sets/strykers-run-enhanced-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0e00",
+          "end": "0x4000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x18df", "bytes": "20011da6b2d002" },
+            { "at": "0x1a82", "bytes": "20221aa5ccf003" },
+            { "at": "0x2716", "bytes": "a90a8579a57b" },
+            { "at": "0x34b5", "bytes": "001200bcecbd" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/strykers-run-standard-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1400",
+          "end": "0x4000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1ca9", "bytes": "207d20a6b2d002" },
+            { "at": "0x1f14", "bytes": "bdff029185c8" },
+            { "at": "0x2a09", "bytes": "a682d002a280" },
+            { "at": "0x358b", "bytes": "00bcbd940005" }
+          ]
         }
       }
     },
@@ -1930,6 +2488,23 @@
             { "at": "0x1848", "bytes": "a203bd27013004" },
             { "at": "0x2d80", "bytes": "2b2c0d083332" },
             { "at": "0x4a60", "bytes": "03033c3d3e3f" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/the-hunt-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x350a",
+          "end": "0x6800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x4111", "bytes": "a57ef00fa92e" },
+            { "at": "0x4689", "bytes": "c907f0036c3d25" },
+            { "at": "0x4f02", "bytes": "c8b18e843320254e" },
+            { "at": "0x5bbc", "bytes": "0a03258b3b85" }
           ]
         }
       }
@@ -2012,6 +2587,45 @@
       }
     },
     {
+      "url": "sets/the-way-of-the-exploding-fist-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0400",
+          "end": "0x2d00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0400", "bytes": "bcfc0d10034cd104" },
+            { "at": "0x0f98", "bytes": "ecce06f0588ece06" },
+            { "at": "0x1ab0", "bytes": "ad000148ad800d" },
+            { "at": "0x22c4", "bytes": "c028d001989dea0d" }
+          ]
+        },
+        "game2": {
+          "start": "0x2d00",
+          "end": "0x468a",
+          "minAnchors": 5,
+          "anchors": [
+            { "at": "0x2d4c", "bytes": "874ba50c4c48" },
+            { "at": "0x321a", "bytes": "280400071626" },
+            { "at": "0x3450", "bytes": "4003000161e1" },
+            { "at": "0x3de0", "bytes": "380108000033" },
+            { "at": "0x41a6", "bytes": "380210030303" }
+          ]
+        },
+        "sprite_17_data": {
+          "start": "0x47dd",
+          "end": "0x5800",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x47dd", "bytes": "300310474747" },
+            { "at": "0x5062", "bytes": "380208030333" },
+            { "at": "0x52f8", "bytes": "a011adfb0d4a" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/twin-kingdom-valley-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -2045,6 +2659,23 @@
             { "at": "0x3500", "bytes": "a900858d20fb24" },
             { "at": "0x42bc", "bytes": "4c030f20fb24" },
             { "at": "0x6000", "bytes": "8357656c636f" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/vindaloo-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0600",
+          "end": "0x3000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0901", "bytes": "a9008d4909a90b" },
+            { "at": "0x13e0", "bytes": "f0f3f5b2d5a2" },
+            { "at": "0x1bf4", "bytes": "a9018d2f1dad371d" },
+            { "at": "0x25bb", "bytes": "a900856b8d6523" }
           ]
         }
       }

@@ -1,0 +1,42 @@
+{
+  "importer": "level7",
+  "id": "ravenskull",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/ravenskull-disassembly.txt",
+    "sha256": "956b3cc94570f52a08a1f4e037e0a2bd75b8a39e1c38828abe2922accb85be72"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Ravenskull.zip",
+    "image": "Superior/Ravenskull.ssd",
+    "key": "30c10b60795190459f5f90cb790b4d65"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "ravenskull-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Ravenskull",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&1100",
+          "to": "&5900",
+          "avoid": [
+            ["&12FE", "&1300"],
+            ["&20D2", "&20D3"],
+            ["&2BBD", "&2BC1"],
+            ["&2CC9", "&2CD1"],
+            ["&3800", "&4800"]
+          ]
+        },
+        {
+          "name": "sprite_marsh",
+          "from": "&5A80",
+          "to": "&6000"
+        }
+      ]
+    }
+  ]
+}

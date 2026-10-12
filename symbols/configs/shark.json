@@ -1,0 +1,41 @@
+{
+  "importer": "level7",
+  "id": "shark",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/shark-disassembly.txt",
+    "sha256": "6cf68be214dbcec8c4d5482f2d244b805b5e21494ab5e51131d3c6be66542ebc"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Audiogenic/Shark.zip",
+    "image": "Audiogenic/Shark.ssd",
+    "key": "8e4c7c2c81ca59089a1aa4ddd5284180"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "shark-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Shark",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&0400",
+          "to": "&4200",
+          "avoid": [
+            ["&0400", "&0419"],
+            ["&0807", "&0850"],
+            ["&0878", "&087B"],
+            ["&08B9", "&08BA"],
+            ["&0D00", "&0D20"],
+            ["&147B", "&147C"],
+            ["&1F6D", "&1F6F"],
+            ["&1FD9", "&1FDD"],
+            ["&4000", "&4199"]
+          ]
+        }
+      ]
+    }
+  ]
+}

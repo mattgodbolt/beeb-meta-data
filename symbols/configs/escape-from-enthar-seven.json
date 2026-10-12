@@ -1,0 +1,38 @@
+{
+  "importer": "level7",
+  "id": "escape-from-enthar-seven",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/escape-from-enthar-seven-disassembly.txt",
+    "sha256": "8265e5d1be68cab7957eeda158cf648671d6ec9830440d0ec6ea3d817ad569e9"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Robico/EntharSeven.zip",
+    "image": "Robico/EntharSeven.ssd",
+    "key": "c72f0a0e39696467af43334559f4b8ea"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "escape-from-enthar-seven-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Escape from Enthar Seven",
+      "regions": [
+        {
+          "name": "adcode",
+          "part": "ADCODE1",
+          "from": "&08C0",
+          "to": "&0CFB",
+          "avoid": [["&0BB6", "&0BBC"]]
+        },
+        {
+          "name": "main",
+          "part": "ENTHAR7",
+          "from": "&1F00",
+          "to": "&6200"
+        }
+      ]
+    }
+  ]
+}

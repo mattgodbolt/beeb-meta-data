@@ -1,0 +1,55 @@
+{
+  "importer": "level7",
+  "id": "the-hunt",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/the-hunt-disassembly.txt",
+    "sha256": "54d4533dd3e49a3a74e7081adc272e5f3a9a094f6f4aba64304ba2d0bf2c8564"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Robico/TheHuntSearchForShauna.zip",
+    "image": "Robico/TheHuntSearchForShauna.ssd",
+    "key": "93feed7bf2bc1fe09d71c94ef105ee45"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "the-hunt-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "The Hunt",
+      "regions": [
+        {
+          "name": "main",
+          "part": "HUNT2",
+          "from": "&350A",
+          "to": "&6800",
+          "avoid": [
+            ["&4117", "&4124"],
+            ["&4864", "&486C"],
+            ["&4DA3", "&4DC4"],
+            ["&4E03", "&4E09"],
+            ["&5023", "&5024"],
+            ["&507D", "&5098"],
+            ["&50AB", "&50C2"],
+            ["&50F7", "&511F"],
+            ["&5135", "&5150"],
+            ["&5189", "&5195"],
+            ["&55C5", "&55C8"],
+            ["&560C", "&560F"],
+            ["&5844", "&5846"],
+            ["&5893", "&5908"],
+            ["&5961", "&596A"],
+            ["&5A1A", "&5A4F"],
+            ["&5D44", "&5D90"],
+            ["&5E99", "&5F21"],
+            ["&61F2", "&61F9"],
+            ["&6702", "&670A"],
+            ["&6746", "&67AE"],
+            ["&67C0", "&67C2"]
+          ]
+        }
+      ]
+    }
+  ]
+}

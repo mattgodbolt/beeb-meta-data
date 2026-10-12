@@ -1,0 +1,55 @@
+{
+  "importer": "level7",
+  "id": "doctor-who-and-the-mines-of-terror",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/doctor-who-and-the-mines-of-terror-disassembly.txt",
+    "sha256": "5ffeca5f7497cea4ec6102a10331925792faf4590117ac40503bd5012f3da207"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Micropower/DoctorWhoAndTheMinesOfTerror-swram.zip",
+    "image": "Micropower/DoctorWhoAndTheMinesOfTerror-swram.ssd",
+    "key": "f19e1c27e42d597322feb3b7071f737d"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "doctor-who-and-the-mines-of-terror-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Doctor Who and the Mines of Terror",
+      "regions": [
+        {
+          "name": "main",
+          "part": "$.Who4",
+          "from": "&0880",
+          "to": "&4000",
+          "avoid": [
+            ["&097A", "&097B"],
+            ["&0EC1", "&0EC4"],
+            ["&1408", "&1410"],
+            ["&14B6", "&14C3"],
+            ["&1D86", "&1D89"],
+            ["&2E4E", "&2E5B"],
+            ["&32D2", "&32DB"],
+            ["&335B", "&335C"],
+            ["&3439", "&343A"],
+            ["&3493", "&3494"],
+            ["&34B8", "&34B9"],
+            ["&34DD", "&3527"],
+            ["&3573", "&3596"],
+            ["&38D1", "&390F"]
+          ]
+        },
+        {
+          "name": "unused",
+          "part": "$.Who4",
+          "from": "&4D80",
+          "to": "&4F00",
+          "overwritten": true,
+          "avoid": [["&4E5D", "&4E67"]]
+        }
+      ]
+    }
+  ]
+}

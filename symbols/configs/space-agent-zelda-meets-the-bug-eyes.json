@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "space-agent-zelda-meets-the-bug-eyes",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/space-agent-zelda-meets-the-bug-eyes-disassembly.txt",
+    "sha256": "47025e93805a54b9775fa365e3bec42304667725e7d481e8f302aa223a0abd4e"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Icon/BugEyes.zip",
+    "image": "Icon/BugEyes.ssd",
+    "key": "e10d39adc24bdde3ae7e3d3a0db5349a"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "space-agent-zelda-meets-the-bug-eyes-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Space Agent Zelda Meets The Bug Eyes",
+      "regions": [
+        {
+          "name": "page9",
+          "part": "BUG4",
+          "from": "&0900",
+          "to": "&0B62"
+        },
+        {
+          "name": "main",
+          "part": "BUG5",
+          "from": "&1100",
+          "to": "&3000"
+        }
+      ]
+    }
+  ]
+}

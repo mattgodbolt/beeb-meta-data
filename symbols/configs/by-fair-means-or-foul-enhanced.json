@@ -1,0 +1,31 @@
+{
+  "importer": "level7",
+  "id": "by-fair-means-or-foul-enhanced",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt",
+    "sha256": "62cc39cfd16465b2748c7f1bed42f2f7cbb57df03992ef1288c76e47198db2da"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/ByFairMeansOrFoul.zip",
+    "image": "Superior/ByFairMeansOrFoul.ssd",
+    "key": "81ec3cb1464c20f6a3ad9fa15a2c07b0"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "by-fair-means-or-foul-enhanced-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "By Fair Means or Foul (Enhanced version)",
+      "regions": [
+        {
+          "name": "main",
+          "part": "B",
+          "from": "&1100",
+          "to": "&4B00"
+        }
+      ]
+    }
+  ]
+}

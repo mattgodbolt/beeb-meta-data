@@ -1,0 +1,41 @@
+{
+  "importer": "level7",
+  "id": "firetrack",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/firetrack-disassembly.txt",
+    "sha256": "24cc1231b5c40c4be3d04cdb33e73b07c7f0d7d695150e4f8912c5f06bf396c4"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/ElectricDreams/Firetrack.zip",
+    "image": "ElectricDreams/Firetrack.ssd",
+    "key": "3c0520d01ca2cdb82c7ab7ffce32a6be"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "firetrack-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "FireTrack",
+      "regions": [
+        {
+          "name": "main",
+          "part": "Game Disassembly",
+          "from": "&17AB",
+          "to": "&377C",
+          "avoid": [
+            ["&17AB", "&1911"],
+            ["&1A00", "&1B00"],
+            ["&1B75", "&1B76"],
+            ["&1E81", "&1EBA"],
+            ["&1ECB", "&1EDA"],
+            ["&205C", "&206B"],
+            ["&2600", "&31D3"],
+            ["&326C", "&326E"]
+          ]
+        }
+      ]
+    }
+  ]
+}

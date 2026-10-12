@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "rick-hanson",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/rick-hanson-disassembly.txt",
+    "sha256": "cb950e4c99932b2b4309fcf607454b19496498f16e71cb5dfc24f03cdf679477"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Robico/RickHanson.zip",
+    "image": "Robico/RickHanson.ssd",
+    "key": "560fa3ec145c3951132a6475fe8dfe0c"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "rick-hanson-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Rick Hanson (Saga of a Spy - The Rick Hanson Trilogy, Part 1)",
+      "regions": [
+        {
+          "name": "page4",
+          "from": "&0400",
+          "to": "&0500"
+        },
+        {
+          "name": "main",
+          "part": "RICK3",
+          "from": "&1100",
+          "to": "&7C00",
+          "avoid": [["&14E2", "&14FF"]]
+        }
+      ]
+    }
+  ]
+}

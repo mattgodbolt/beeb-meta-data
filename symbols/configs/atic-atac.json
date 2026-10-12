@@ -1,0 +1,55 @@
+{
+  "importer": "level7",
+  "id": "atic-atac",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/atic-atac-disassembly.txt",
+    "sha256": "d1fb348618f89f4fd245d0fca5cf5eeb1d421802941e022c32799785fab08cf9"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Ultimate/AticAtac.zip",
+    "image": "Ultimate/AticAtac.ssd",
+    "key": "4ad07e307bb3a817cf88adc45dc560a7"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "atic-atac-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Atic Atac",
+      "regions": [
+        {
+          "name": "font_data",
+          "part": "Game Disassembly/(no filename)",
+          "from": "&02EA",
+          "to": "&1194",
+          "avoid": [
+            ["&0774", "&0880"],
+            ["&1180", "&1194"]
+          ]
+        },
+        {
+          "name": "main",
+          "part": "Game Disassembly/(no filename)",
+          "from": "&138C",
+          "to": "&4280",
+          "avoid": [
+            ["&1568", "&15A8"],
+            ["&1E83", "&1E84"],
+            ["&1EDB", "&1EDC"],
+            ["&1EF1", "&1EF7"],
+            ["&1F19", "&1F1F"],
+            ["&21DD", "&21DE"],
+            ["&2602", "&2603"],
+            ["&2618", "&2619"],
+            ["&2658", "&2662"],
+            ["&2698", "&26AC"],
+            ["&2B6B", "&2B6C"],
+            ["&2B87", "&2B88"]
+          ]
+        }
+      ]
+    }
+  ]
+}

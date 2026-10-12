@@ -1,0 +1,63 @@
+{
+  "importer": "level7",
+  "id": "knightlore",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/knightlore-disassembly.txt",
+    "sha256": "1360d08de65b60e0e5f490289ce9377a979a1fb286f7a998a8f7d4ce1e2a075f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Ultimate/Knightlore.zip",
+    "image": "Ultimate/Knightlore.ssd",
+    "key": "377c5cfa0ec0a838990ee6d81b8e3f56"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "knightlore-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Knight Lore",
+      "regions": [
+        {
+          "name": "main",
+          "part": "Game disassembly/(no filename)",
+          "from": "&06D2",
+          "to": "&3136",
+          "avoid": [
+            ["&06D2", "&0750"],
+            ["&0764", "&0765"],
+            ["&0810", "&0860"],
+            ["&2F94", "&2FDE"],
+            ["&30AA", "&30C0"],
+            ["&30E8", "&30E9"],
+            ["&310C", "&310D"]
+          ]
+        },
+        {
+          "name": "bit_reversed_bytes",
+          "from": "&3136",
+          "to": "&546A",
+          "avoid": [
+            ["&40F6", "&4106"],
+            ["&45F6", "&4606"],
+            ["&5400", "&546A"]
+          ]
+        },
+        {
+          "name": "page64",
+          "from": "&6400",
+          "to": "&6B00",
+          "avoid": [
+            ["&6428", "&6450"],
+            ["&64B4", "&655A"],
+            ["&6640", "&66B8"],
+            ["&6728", "&672F"],
+            ["&68CA", "&68E0"],
+            ["&69C8", "&69DE"]
+          ]
+        }
+      ]
+    }
+  ]
+}

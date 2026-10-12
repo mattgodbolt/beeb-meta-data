@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "lode-runner",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/lode-runner-disassembly.txt",
+    "sha256": "4c89818cf1fa3d9dcfcc2232476e98cdf113f7ef0162485e0462d4834c65efad"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/SoftwareProjects/LodeRunner.zip",
+    "image": "SoftwareProjects/LodeRunner.ssd",
+    "key": "cb353d145d36fcefd9be60815fb02e9d"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "lode-runner-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Lode Runner",
+      "regions": [
+        {
+          "name": "main",
+          "part": "?",
+          "from": "&0900",
+          "to": "&4FD0",
+          "avoid": [
+            ["&1800", "&1900"],
+            ["&1DD7", "&1DEB"],
+            ["&1E89", "&1E8E"],
+            ["&2C96", "&2C97"]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "importer": "level7",
+  "id": "space-hi-way",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/space-hi-way-disassembly.txt",
+    "sha256": "6a96d4e6531e063177b46734616a127b34ba0c5fad85f44b3fd958295931b0b8"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Pace/SpaceHiWay.zip",
+    "image": "Pace/SpaceHiWay.ssd",
+    "key": "61df19c2da7f326f98bbfb5f309b10d8"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "space-hi-way-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Space Hi-way",
+      "regions": [
+        {
+          "name": "main",
+          "part": "Game disassembly",
+          "from": "&0E00",
+          "to": "&3000",
+          "avoid": [
+            ["&27F8", "&2800"],
+            ["&2F00", "&2F38"]
+          ]
+        }
+      ]
+    }
+  ]
+}

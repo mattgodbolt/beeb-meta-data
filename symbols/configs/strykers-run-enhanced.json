@@ -1,0 +1,31 @@
+{
+  "importer": "level7",
+  "id": "strykers-run-enhanced",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/strykers-run-enhanced-disassembly.txt",
+    "sha256": "fc99f2725c53421a43f0c60da4dbc377515600cbb5c50fc7cfa1013c3297c653"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/StrykersRun.zip",
+    "image": "Superior/StrykersRun.ssd",
+    "key": "674c809dd958c83af9d0a2ff29e474ed"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "strykers-run-enhanced-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Styker's Run (Enhanced version)",
+      "regions": [
+        {
+          "name": "main",
+          "part": "GAME??",
+          "from": "&0E00",
+          "to": "&4000"
+        }
+      ]
+    }
+  ]
+}
