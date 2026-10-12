@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkSet, readMosSets, SymbolsDir } from "../../tools/symbols/build-index.js";
 import { BuildLayout } from "../../tools/symbols/baron-build.js";
@@ -13,6 +13,7 @@ import {
     osBlockTargets,
     placesBySource,
     readBaronBuild,
+    scopedNames,
     setJson,
     symbolsBySource,
     writeSets,
@@ -443,8 +444,10 @@ const namingConfig = {
     ],
 };
 
+const namingBuild = () => baronBuild(new Map([["names", namingListing]]), namingSymbols, []);
+
 describe("importBaron's names", () => {
-    const [set] = importBaron(namingConfig, baronBuild(new Map([["names", namingListing]]), namingSymbols, [])).sets;
+    const [set] = importBaron(namingConfig, namingBuild()).sets;
 
     it("gives an address a scope's own name over the labels inside it, then the label written last", () => {
         expect(set.json.regions.a.symbols).toEqual({ sub: "0x1900", local: "0x1905", second: "0x1910" });
@@ -461,9 +464,12 @@ describe("importBaron's names", () => {
                 ["zp_end", 0x0002, "past its section's end"],
                 ["sub.entry", 0x1900, "a calls it sub"],
                 ["first", 0x1910, "a calls it second"],
-                ["alias", 0x0072, "the globals call it lives"],
             ]),
         );
+    });
+
+    it("names an address another way in a scope over the code that uses that name", () => {
+        expect(set.json.regions.a.scopes).toEqual([{ start: "0x1908", end: "0x190a", symbols: { alias: "0x0072" } }]);
     });
 
     it("names the `=` addresses the code of a region from another source uses", () => {
@@ -543,6 +549,201 @@ describe("importBaron's names", () => {
         expect(() => importBaron(stripped, baronBuild(new Map([["s", twice]]), twiceSymbols, []))).toThrow(
             "names given twice: x",
         );
+    });
+});
+
+describe("importBaron's scopes", () => {
+    const zaListing = [
+        "shared = 112 [&70]",
+        "outside = 113 [&71]",
+        "spare_slot = 113 [&71]",
+        "counter = 115 [&73]",
+        "SECTION work, org=&0072, virtual=TRUE",
+        label(0x0072, "slot"),
+        statement(0x0072, [], "SKIP 1"),
+        label(0x0073, "vslot"),
+        statement(0x0073, [], "SKIP 1"),
+        "ENDSECTION",
+        'SECTION za, filename="ZA", org=&1900, load=&1900, exec=&1900',
+        label(0x1900, "aim"),
+        "{",
+        "px = 112 [&70]",
+        "dup = 112 [&70]",
+        statement(0x1900, [0x85, 0x70], "STA px"),
+        statement(0x1902, [0xe6, 0x70], "INC px"),
+        statement(0x1904, [0xa5, 0x70], "LDA dup"),
+        statement(0x1906, [0xc6, 0x73], "DEC vslot"),
+        statement(0x1908, [0x60], "RTS"),
+        "}",
+        label(0x1909, "blast"),
+        "{",
+        "py = 112 [&70]",
+        "temp = 114 [&72]",
+        statement(0x1909, [0xa5, 0x70], "LDA py"),
+        statement(0x190b, [0xa5, 0x70], "LDA shared"),
+        statement(0x190d, [0xc5, 0x70], "CMP shared"),
+        statement(0x190f, [0x85, 0x72], "STA temp"),
+        statement(0x1911, [0x60], "RTS"),
+        "}",
+        label(0x1912, "main"),
+        statement(0x1912, [0x85, 0x70], "STA blast.py"),
+        statement(0x1914, [0x20, 0x09, 0x19], "JSR blast"),
+        statement(0x1917, [0xa5, 0x70], "LDA shared"),
+        statement(0x1919, [0xc6, 0x72], "DEC slot"),
+        statement(0x191b, [0xc6, 0x72], "DEC slot"),
+        statement(0x191d, [0xc6, 0x71], "DEC outside"),
+        statement(0x191f, [0xc6, 0x71], "DEC outside"),
+        statement(0x1921, [0xc6, 0x73], "DEC counter"),
+        statement(0x1923, [0xc6, 0x73], "DEC counter"),
+        statement(0x1925, [0x60], "RTS"),
+        "ENDSECTION",
+        'SECTION other, filename="OTHER", org=&2000, load=&2000, exec=&2000',
+        statement(0x2000, [0xc6, 0x71], "DEC spare_slot"),
+        statement(0x2002, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const zaSymbols = {
+        "src/za.6502": {
+            shared: 0x70,
+            outside: 0x71,
+            spare_slot: 0x71,
+            counter: 0x73,
+            slot: 0x72,
+            vslot: 0x73,
+            aim: 0x1900,
+            "aim.px": 0x70,
+            "aim.dup": 0x70,
+            blast: 0x1909,
+            "blast.py": 0x70,
+            "blast.temp": 0x72,
+            main: 0x1912,
+        },
+    };
+    const zaPlaces = Object.fromEntries(
+        Object.keys(zaSymbols["src/za.6502"]).map((name, i) => [name, `src/za.6502#L${i + 1}`]),
+    );
+    const zaConfig = (repository = "https://example.com/za") => ({
+        ...config(),
+        source: { repository, commit: "0123abc" },
+        leftToSystemSets: [],
+        sets: [{ id: "za", title: "ZA", sources: ["za"], regions: [{ name: "code", section: "za" }] }],
+    });
+    const importZa = (cfg = zaConfig(), listing = zaListing) =>
+        importBaron(cfg, baronBuild(new Map([["za", listing]]), zaSymbols, [], { "src/za.6502": zaPlaces }));
+    const [set] = importZa().sets;
+    const scopeAt = (start) => set.json.regions.code.scopes.find((scope) => scope.start === start);
+
+    it("keeps the name most instructions use as the global, and gives the others each routine that uses them", () => {
+        expect(set.json.globals).toEqual({ shared: "0x0070", outside: "0x0071", slot: "0x0072", counter: "0x0073" });
+        expect(scopeAt("0x1900")).toEqual({
+            start: "0x1900",
+            end: "0x1909",
+            symbols: { "aim.px": "0x0070", vslot: "0x0073" },
+        });
+        expect(scopeAt("0x1912")).toEqual({ start: "0x1912", end: "0x1914", symbols: { "blast.py": "0x0070" } });
+    });
+
+    it("leaves the global's name to the globals in a routine that uses it most", () => {
+        expect(scopeAt("0x1909")).toEqual({ start: "0x1909", end: "0x1912", symbols: { "blast.temp": "0x0072" } });
+    });
+
+    it("leaves out a name only when every routine using it calls the address something else", () => {
+        expect(set.dropped).toContainEqual([
+            "aim.dup",
+            0x0070,
+            "every routine that uses it calls it something else, such as aim.px",
+        ]);
+        expect(set.dropped.map(([name]) => name)).not.toContain("blast.py");
+    });
+
+    it("keeps out of scopes a name used outside every region", () => {
+        expect(set.dropped).toContainEqual(["spare_slot", 0x0071, "the globals call it outside"]);
+    });
+
+    it("makes a set the index accepts, placing every scoped name for a repository on GitHub", () => {
+        const { sets, errors } = importZa(zaConfig("https://github.com/example/za"));
+        expect(errors).toEqual([]);
+        expect(sets[0].json.places).toMatchObject({ "aim.px": "src/za.6502#L8", vslot: "src/za.6502#L6" });
+        expect(checkSet(sets[0].json, { file: "sets/za.json", mosSets: readMosSets() })).toEqual([]);
+    });
+
+    it("refuses a scoped name that's also a name for another address", () => {
+        const listing = zaListing.replace("  1912  .main", "  1912  .py");
+        const { main: _main, ...rest } = zaSymbols["src/za.6502"];
+        const stripped = { ...zaConfig(), sets: [{ ...zaConfig().sets[0], stripScope: "blast" }] };
+        const build = baronBuild(new Map([["za", listing]]), { "src/za.6502": { ...rest, py: 0x1912 } }, []);
+        expect(() => importBaron(stripped, build)).toThrow("names given twice: py");
+    });
+});
+
+describe("importBaron's scopes across sources", () => {
+    const second = [
+        "hot = 116 [&74]",
+        "vslot = 116 [&74]",
+        'SECTION zb, filename="ZB", org=&3000, load=&3000, exec=&3000',
+        statement(0x3000, [0xc6, 0x74], "DEC hot"),
+        statement(0x3002, [0xc6, 0x74], "DEC hot"),
+        statement(0x3004, [0xc6, 0x74], "DEC vslot"),
+        statement(0x3006, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const za = [
+        "count = 115 [&73]",
+        "SECTION work, org=&0073, virtual=TRUE",
+        label(0x0073, "vslot"),
+        statement(0x0073, [], "SKIP 1"),
+        "ENDSECTION",
+        'SECTION za, filename="ZA", org=&1900, load=&1900, exec=&1900',
+        statement(0x1900, [0xc6, 0x73], "DEC count"),
+        statement(0x1902, [0xc6, 0x73], "DEC count"),
+        statement(0x1904, [0xc6, 0x73], "DEC vslot"),
+        statement(0x1906, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const build = () =>
+        baronBuild(
+            new Map([
+                ["za", za],
+                ["zb", second],
+            ]),
+            { "src/za.6502": { count: 0x73, vslot: 0x73 }, "src/zb.6502": { hot: 0x74, vslot: 0x74 } },
+            [],
+        );
+    const twoSources = {
+        ...config(),
+        leftToSystemSets: [],
+        sets: [
+            {
+                id: "z",
+                title: "Z",
+                sources: ["za", "zb"],
+                regions: [
+                    { name: "a", section: "za" },
+                    { name: "b", source: "zb", section: "zb" },
+                ],
+            },
+        ],
+    };
+
+    it("refuses a name scoped at two addresses", () => {
+        expect(() => importBaron(twoSources, build())).toThrow("names given twice: vslot");
+    });
+});
+
+describe("scopedNames", () => {
+    const range = { region: "code", start: 0x1900, end: 0x1910 };
+    const candidate = (name, uses, useRanges) => ({ name, rank: [uses, 0], useRanges });
+
+    it("leaves an address inside a region to the globals", () => {
+        const globalsNamed = new Map([[0x1905, [candidate("a", 2, [range, range]), candidate("b", 1, [range])]]]);
+        expect(scopedNames(globalsNamed, () => true).size).toBe(0);
+        expect(globalsNamed.get(0x1905)).toHaveLength(2);
+    });
+
+    it("leaves a name with no uses to the globals", () => {
+        const globalsNamed = new Map([[0x70, [candidate("a", 2, [range, range]), candidate("b", 0, [])]]]);
+        expect(scopedNames(globalsNamed, () => false).size).toBe(0);
+        expect(globalsNamed.get(0x70)).toHaveLength(2);
     });
 });
 
@@ -706,6 +907,16 @@ describe("writeTitle", () => {
     let out;
     beforeEach(() => (out = mkdtempSync(path.join(tmpdir(), "symbols-out-"))));
     afterEach(() => rmSync(out, { recursive: true, force: true }));
+
+    it("counts each region's scoped names in its summary", async () => {
+        const log = vi.spyOn(console, "log").mockImplementation(() => {});
+        try {
+            await writeTitle(namingConfig, importBaron(namingConfig, namingBuild()), { out, verbose: false });
+            expect(log).toHaveBeenCalledWith(expect.stringContaining("a 1/3 +1 scoped, b 1/1;"));
+        } finally {
+            log.mockRestore();
+        }
+    });
 
     it("writes a system set mos-sets.json doesn't list yet, outside symbols/sets", async () => {
         const system = { ...config(), system: true };

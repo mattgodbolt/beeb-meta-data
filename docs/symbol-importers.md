@@ -117,10 +117,16 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 - `=` names count as addresses when an instruction uses them as a memory operand: the operand's first name, not after
   `#`, not a FUNCTION's result, and not one `leftToSystemSets` covers. Such a name goes to the region it points into
   if only that region's code uses it, and is a global otherwise.
-- There's one name per address. In a region, a scope's own name wins over the labels inside it (`pl` over
-  `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In the globals it's the `=`
-  name or virtual section label the most instructions use as a memory operand; a label of a `globalsSections`
-  section, or a virtual one only data mentions, counts as used by none.
+- A region or the globals give an address one name. In a region, a baron scope's own name wins over the labels
+  inside it (`pl` over `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In
+  the globals it's the `=` name or virtual section label the most instructions use as a memory operand; a label of a
+  `globalsSections` section, or a virtual one only data mentions, counts as used by none.
+- Where the globals name an address outside every region more than one way, the name most instructions use stays
+  the global. Each other name whose uses are all in the set's regions goes in the region's scopes instead, one for
+  each routine that uses it, a caller setting a routine's parameters included. That's baron's `ZA_AUTO`, which gives
+  routines that never run together the same zero page. A routine is the outermost baron scope under `stripScope`, if
+  it has a name, or else the one instruction. A routine using two names for one address keeps the
+  one it uses most, and where that's the global's, leaves the address to the globals.
 - Each name's place is the file and line the symbol dump says defines it (`src/game.6502#L120`), which goes in the
   set's `places` for a GitHub repository. There, a name the dump gives no place stops the import. A `defines` entry
   (Scorched Earth's `BUILD`) has no line, so it's never a name in a set.
@@ -128,12 +134,6 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 Every importer links names back to the author's own work where it can, with the set's `home`, `nameLink` and
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
 anchors. Where the author has no site of their own, `source` is the only link.
-
-The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
-system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
-in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
-the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
-`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
 The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
 system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
@@ -189,10 +189,9 @@ jsbeeb has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks
 
 ## What the baron importer gets wrong
 
-- A program's zero page used differently in different regions loses names, since a set's globals hold one name per
-  address. PIPELINE's game loader's `copy_return`, `copy_from` and `menu_keys` give way to the main code's
-  `monster_x`, `monster_direction` and `work0`. Baron's `ZA_AUTO`, which gives routines that never run together the
-  same zero page, does the same to Scorched Earth.
+- A name for an address the globals name another way is lost if any of its uses is outside the set's regions, since
+  scopes only cover code in them, or if it's a label of a `globalsSections` section, which no instruction counts as
+  using.
 - The operand rule misses `=` names the code reaches only through an immediate's `LO()`/`HI()`, a FUNCTION or a table
   of addresses, and takes a name used only in dead code as readily as any other.
 - Stores through a pointer, or by the OS into a block it wasn't passed with `LDX #LO(...)`, aren't seen. The
