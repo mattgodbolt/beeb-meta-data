@@ -286,6 +286,14 @@ describe("importPy8dis", () => {
             expect(reasons).toEqual(["prog/rom: an anchor at &200C for nearly.rom"]);
         });
 
+        it("takes the binary as a ROM jsbeeb doesn't have, if its key is the config's", () => {
+            const byUrl = (key) => ({ ...romConfig, rom: { url: "https://example.com/demo.rom", key } });
+            expect(importPy8dis(byUrl(romKey(rom)), dump).sets[0].json.madeFrom).toEqual([romKey(rom)]);
+            expect(() => importPy8dis(byUrl("0".repeat(32)), dump)).toThrow(
+                `The binary is ROM ${romKey(rom)}, and the config names ${"0".repeat(32)}`,
+            );
+        });
+
         it("refuses a binary that isn't the ROM", () => {
             const other = Uint8Array.from(rom);
             other[3] ^= 0xff;

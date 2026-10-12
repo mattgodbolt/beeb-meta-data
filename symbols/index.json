@@ -155,6 +155,41 @@
       }
     },
     {
+      "url": "sets/lisp-4.06-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8060", "bytes": "ac2b04c8c88c2c04" },
+            { "at": "0x8818", "bytes": "b93300913088" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9000", "bytes": "b17cd031203d90" },
+            { "at": "0x981e", "bytes": "a200204498205384" },
+            { "at": "0xa002", "bytes": "2025a0a0100672" },
+            { "at": "0xa80e", "bytes": "000aac0c0000" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0xb420", "bytes": "005854414280" },
+            { "at": "0xb800", "bytes": "02d705d750d7" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/nevryon-game.json",
       "licence": "MIT",
       "regions": {

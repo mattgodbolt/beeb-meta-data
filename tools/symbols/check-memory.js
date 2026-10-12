@@ -12,7 +12,9 @@
  * machine each scenario wants by its name (see startMachine). They boot `source.disc`, the original
  * disc in the source repository, with the title built as its importer builds it, for the scenarios that
  * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
- * its key. With no SCENARIO, it runs them all, each on a fresh machine. Exits 1 if any moment fails.
+ * its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by
+ * URL and key, is put in sideways RAM. With no SCENARIO, it runs them all, each on a fresh machine. Exits
+ * 1 if any moment fails.
  */
 
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -28,10 +30,13 @@ import { parseSet } from "jsbeeb/src/symbol-sets.js";
 import { regionMatches } from "jsbeeb/src/symbol-names.js";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir } from "./build-index.js";
+import { romKey } from "./rom-images.js";
 import { BuildOptions, BuildUsage, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
 const Model = "B-DFS1.2";
+const SidewaysBase = 0x8000;
+const SidewaysRamBank = 7;
 const BootTimeoutSecs = 30;
 const DefaultKeyFrames = 3;
 export const ReleaseFrames = 2;
@@ -81,14 +86,16 @@ export function overlappingRegions(sets, found) {
 }
 
 /**
- * A machine with the disc in, booted with SHIFT+BREAK: a B with DFS 1.2 unless `machine` names another
- * jsbeeb model, with a second processor if it says `tube`, and left at the prompt if it says `autoboot: false`.
+ * A machine with the disc in (if any), booted with SHIFT+BREAK: a B with DFS 1.2 unless `machine` names
+ * another jsbeeb model, with a second processor if it says `tube`, and left at the prompt if it says
+ * `autoboot: false`. A `sideways` ROM goes in sideways RAM before the machine starts.
  */
-export async function startMachine(disc, { model = Model, tube = false, autoboot = true } = {}) {
+export async function startMachine(disc, { model = Model, tube = false, autoboot = true } = {}, sideways = null) {
     const session = new MachineSession(model, { tube });
     await session.initialise();
+    if (sideways) session.writeMemory(SidewaysBase, [...sideways], { bank: SidewaysRamBank });
     await session.boot(BootTimeoutSecs);
-    session.loadDisc(disc);
+    if (disc) session.loadDisc(disc);
     if (!autoboot) return session;
     session.keyDownRaw(BBC.SHIFT);
     try {
@@ -108,6 +115,20 @@ export async function pressKey(session, key, frames = DefaultKeyFrames) {
     await session.runFrames(frames);
     session.keyUpRaw(key);
     await session.runFrames(ReleaseFrames);
+}
+
+/**
+ * Types a line, which `session.type` ends with RETURN itself, stopping where the PC first reaches `address`,
+ * as the command the line starts runs.
+ */
+export async function typeUntil(session, text, address) {
+    const id = session.addBreakpoint("execute", address);
+    try {
+        await session.type(text);
+    } finally {
+        session.removeBreakpoint(id);
+    }
+    if (session.registers().pc !== address) throw new Error(`Typing ${text} never reached ${hex(address)}`);
 }
 
 /** Holds a key until the PC reaches `address`: a loop that waits for a key comes round while it's down. */
@@ -218,15 +239,30 @@ export async function fetchDisc({ url, image, key }) {
 }
 
 /**
+ * Fetches a ROM jsbeeb doesn't have, refusing it unless its key is `key`.
+ * @returns {Promise<Uint8Array>}
+ */
+export async function fetchRom({ url, key }) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
+    const rom = new Uint8Array(await response.arrayBuffer());
+    if (romKey(rom) !== key) throw new Error(`${url} is ROM ${romKey(rom)}, and the config names ${key}`);
+    return rom;
+}
+
+/**
  * Runs `use` with the disc a config's scenarios boot: an assembled title's `source.disc`, in its build,
- * or a disc the config's `disc` fetches from an archive.
+ * a disc the config's `disc` fetches from an archive, or none for a ROM's config that names none.
  */
 async function withTitleDisc(config, options, use) {
     if (config.source.disc !== undefined)
         return withTitleSource(config, options, ({ sourceDir, filesDir }) =>
             use({ disc: path.join(sourceDir, config.source.disc), filesDir }),
         );
-    if (config.disc === undefined) throw new Error("The config names no disc to boot, in source.disc or disc");
+    if (config.disc === undefined) {
+        if (config.rom === undefined) throw new Error("The config names no disc to boot, in source.disc or disc");
+        return use({ disc: null });
+    }
     const temp = mkdtempSync(path.join(tmpdir(), "symbols-disc-"));
     try {
         const disc = path.join(temp, path.basename(config.disc.image));
@@ -257,10 +293,11 @@ async function main() {
     for (const name of wanted) if (!scenarios[name]) throw new Error(`There's no scenario ${name}`);
     if (values.shots) mkdirSync(values.shots, { recursive: true });
     const results = [];
+    const sideways = typeof config.rom === "object" ? await fetchRom(config.rom) : null;
     await withTitleDisc(config, values, async ({ disc, filesDir }) => {
         for (const name of wanted) {
             console.log(`-- ${name}`);
-            const session = await startMachine(disc, machines[name]);
+            const session = await startMachine(disc, machines[name], sideways);
             try {
                 await scenarios[name](scenarioContext(session, sets, filesDir, values.shots, results));
             } finally {

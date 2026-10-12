@@ -141,20 +141,42 @@ function binaryImages({ pieces, loaded }, roms) {
     ];
 }
 
-/** Refuses a binary that isn't, where it loads, the ROM the config names. */
-function checkRom(file, rom, loaded) {
+const loadedBytes = (loaded) => {
     const memory = memoryOf(loaded);
-    const differs = Array.from(rom, (byte, i) => memory.get(loaded.start + i) !== byte).includes(true);
-    if (rom.length !== loaded.end - loaded.start || differs)
-        throw new Error(`The binary, where it loads, isn't ${file}`);
+    return Uint8Array.from({ length: loaded.end - loaded.start }, (_, i) => memory.get(loaded.start + i));
+};
+
+/** Refuses a binary that isn't, where it loads, the ROM the config names. */
+function checkRom(name, rom, loaded) {
+    const bytes = loadedBytes(loaded);
+    if (rom.length !== bytes.length || rom.some((byte, i) => bytes[i] !== byte))
+        throw new Error(`The binary, where it loads, isn't ${name}`);
+}
+
+/**
+ * The ROM a config names and every other ROM jsbeeb has: `rom` is a file under jsbeeb's public/roms/, or
+ * for a ROM jsbeeb doesn't have, the `url` the in-memory check fetches it from and its `key`, which the
+ * binary's has to be.
+ */
+function romsOf(config, loaded) {
+    const { rom } = config;
+    if (typeof rom === "string") {
+        const bytes = readFileSync(path.join(RomsDir, rom));
+        return { rom: bytes, otherRoms: otherRomsThan(rom, bytes.length) };
+    }
+    const bytes = loadedBytes(loaded);
+    if (romKey(bytes) !== rom.key)
+        throw new Error(`The binary is ROM ${romKey(bytes)}, and the config names ${rom.key}`);
+    return { rom: bytes, otherRoms: otherRomsThan(null, bytes.length) };
 }
 
 class Importer {
-    constructor(config, dump, definitions, roms) {
-        this.config = roms ? { ...config, madeFrom: [romKey(roms.rom)] } : config;
+    constructor(config, dump, definitions, givenRoms) {
         this.dump = readDump(dump);
+        const roms = givenRoms ?? (config.rom === undefined ? null : romsOf(config, this.dump.loaded));
+        this.config = roms ? { ...config, madeFrom: [romKey(roms.rom)] } : config;
         this.definitions = definitions;
-        if (roms) checkRom(config.rom, roms.rom, this.dump.loaded);
+        if (roms) checkRom(config.rom?.url ?? config.rom, roms.rom, this.dump.loaded);
         this.images = binaryImages(this.dump, roms);
         this.errors = [];
         this.notes = [];
@@ -297,14 +319,15 @@ class Importer {
 
 /**
  * A title's sets from its py8dis dump, as its config describes them, each name linked to its place in
- * `definitions` (from assemblyDefinitions) for a repository on GitHub. For a config that names a `rom`
- * in jsbeeb's public/roms/, the binary has to be that ROM, and the anchors tell it apart from the others.
+ * `definitions` (from assemblyDefinitions) for a repository on GitHub. For a config that names a `rom`, the
+ * binary has to be that ROM, and the anchors tell it apart from jsbeeb's others.
  * @param {Map<string, string[]> | null} [definitions]
- * @param {{rom: Uint8Array, otherRoms: {name: string, bytes: Uint8Array}[]} | null} [roms]
+ * @param {{rom: Uint8Array, otherRoms: {name: string, bytes: Uint8Array}[]} | null} [roms] - the ROM and
+ *     the others, instead of the ones the config names
  * @returns {{sets: {id: string, file: string, json: object, regions: object[], dropped: [string, number, string][]}[],
  *     errors: string[], notes: string[], reasons: string[]}}
  */
-export function importPy8dis(config, dump, definitions = null, roms = romsOf(config)) {
+export function importPy8dis(config, dump, definitions = null, roms = null) {
     const importer = new Importer(config, dump, definitions, roms);
     const sets = config.sets.map((spec) => ({
         id: spec.id,
@@ -312,12 +335,6 @@ export function importPy8dis(config, dump, definitions = null, roms = romsOf(con
         ...importer.set(spec),
     }));
     return { sets, errors: importer.errors, notes: importer.notes, reasons: importer.reasons };
-}
-
-function romsOf(config) {
-    if (config.rom === undefined) return null;
-    const rom = readFileSync(path.join(RomsDir, config.rom));
-    return { rom, otherRoms: otherRomsThan(config.rom, rom.length) };
 }
 
 /**

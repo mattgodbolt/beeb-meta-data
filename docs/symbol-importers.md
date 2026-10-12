@@ -250,9 +250,10 @@ The config differs from a baron title's in these.
   names. It has to lie in one piece: the one running at `from`, else the one holding the name `piece` gives, where two
   run at the same address (`from` is then the piece's start if not given). With `loaded`, it's the binary where it
   loads instead, as a ROM sits in memory.
-- `rom`, for a ROM, is its file under jsbeeb's `public/roms/`. The binary has to be that ROM, which gives the sets'
-  `madeFrom`, and the anchors tell it apart from every other ROM there and from their own copies of the code it moves
-  (the same Tube host at `&0400`, say), found by the runs of 8 bytes they share.
+- `rom`, for a ROM, is its file under jsbeeb's `public/roms/`, or for one jsbeeb doesn't have, the `url` of a copy
+  and its `key`, which the in-memory check fetches and puts in sideways RAM. The binary has to be that ROM, which gives
+  the sets' `madeFrom`, and the anchors tell it apart from every other ROM jsbeeb has and from their own copies of the
+  code it moves (the same Tube host at `&0400`, say), found by the runs of 8 bytes they share.
 - `moves` and `tableSizes` are expressions too, since a script names few of the instructions it traces
   (`boot_relocate_0380_loop + 3`). A table is the store's operand exactly, so `STA table+1,X` is `table + 1`. A move
   can name a copy loop's first instruction; the loop is the one in the piece with an instruction there, or in any
@@ -384,6 +385,15 @@ disassembly of Bug Byte's game: one region over the binary, which runs where it 
 `BugByte/PlanB.zip`, whose `PLANB` differs from the example's binary in two operands of one OSBYTE call at
 `title_and_game_loop`, which no anchor covers. TobyLobster's own PlanB repository has no licence, so the set comes
 from py8dis's copy, under py8dis's.
+
+## LISP 4.06
+
+`symbols/configs/lisp-4.06.json` makes one set, `rom`, from py8dis's example `examples/python/lisp406.py`,
+TobyLobster's disassembly with Acornsoft's own label names, cut at `&9000` and `&B000`. jsbeeb doesn't have the ROM.
+The example's binary is byte for byte the `LISP406` on mdfs.net, whose SHA-1 MAME's `bbc_rom.xml` also lists for LISP
+4.06, so the config names that copy. The in-memory check puts it in sideways RAM on a B, and checks it matches only
+while LISP is paged in. Stairway to Hell's `Lisp_B` tape is an earlier version that loads into RAM, and shares little
+with it.
 
 ## Nevryon
 

@@ -17,7 +17,7 @@ const CallOsword7F = "A%=&7F:X%=B%:Y%=B% DIV256:CALL &FFF1";
 const Rom = ["rom/low", "rom/middle", "rom/high"];
 const Tube = ["tube/page4", "tube/page5"];
 
-const command = (session, text) => session.type(`${text}\r`);
+const command = (session, text) => session.type(text);
 const finish = (session) => runSeconds(session, CommandSecs);
 
 export const machines = {
