@@ -120,6 +120,22 @@ function piecesOf(part) {
     return pieces;
 }
 
+/**
+ * The parts `name` picks out: those it's the name of, else those it's the heading of, else the one it
+ * gives as `heading/name`.
+ */
+function partsCalled(parts, name) {
+    const named = parts.filter((part) => part.name === name);
+    if (named.length) return named;
+    const headed = parts.filter((part) => part.heading === name);
+    return headed.length ? headed : parts.filter((part) => `${part.heading}/${part.name}` === name);
+}
+
+/** What a config calls a part: its name, or its heading and name where the name alone is another's too. */
+export function partCalled(parts, part) {
+    return partsCalled(parts, part.name).length === 1 ? part.name : `${part.heading}/${part.name}`;
+}
+
 /** The statement a label names: the first after it at its address. */
 const labelled = (part, label) => part.statements.find((s) => s.line > label.line && s.address === label.address);
 
@@ -184,7 +200,7 @@ class Importer {
 
     partNamed(name) {
         if (name === undefined) return undefined;
-        const parts = this.parts.filter((part) => part.name === name || part.heading === name);
+        const parts = partsCalled(this.parts, name);
         if (parts.length !== 1) throw new Error(`${parts.length} parts of the disassembly are called ${name}`);
         return parts[0];
     }
@@ -424,6 +440,10 @@ class Importer {
 
     set(spec) {
         const regions = spec.regions.map((regionSpec) => this.region(spec, regionSpec));
+        for (const [i, region] of regions.entries())
+            for (const other of regions.slice(i + 1))
+                if (region.start < other.end && other.start < region.end)
+                    throw new Error(`${region.fullName} and ${other.fullName} overlap`);
         const dropped = [];
         const labelLines = this.regionNames(regions, dropped);
         const { globals, uses } = this.globalNames(regions, dropped);
