@@ -11,6 +11,7 @@ const Text = `Game disassembly
 &1900 a9 13    LDA #&13
 #     actually LDA #&14
 &1902 85 8f    STA &8f ; code_address_high
+#     or       STA &90 ; code_address_high if MOS 0.10
 &1904 91 70    STA (&70),Y ; target_address                         # Write it
 &1906 ad 00 30 LDA &3000 ; screen_memory + 1
 ; loop (LOOP)
@@ -66,16 +67,16 @@ describe("readLevel7", () => {
         expect(part.statements[1].base).toBe(0x8f);
     });
 
-    it("marks an instruction the disassembly says runs as something else", () => {
-        expect(part.statements.filter((s) => s.modified).map((s) => s.address)).toEqual([0x1900]);
+    it("marks an instruction the disassembly says runs as something else (`actually`, `or`)", () => {
+        expect(part.statements.filter((s) => s.modified).map((s) => s.address)).toEqual([0x1900, 0x1902]);
     });
 
     it("gives each label the address of the statement after it", () => {
         expect(part.labels.map(({ name, address, line }) => [name, address, line])).toEqual([
             ["entry_point", 0x1900, 6],
-            ["loop", 0x1909, 12],
-            ["table", 0x190e, 16],
-            ["moved", 0x0900, 21],
+            ["loop", 0x1909, 13],
+            ["table", 0x190e, 17],
+            ["moved", 0x0900, 22],
         ]);
     });
 
@@ -87,6 +88,6 @@ describe("readLevel7", () => {
     });
 
     it("reads an instruction whose bytes its operand disagrees with as data, and says so", () => {
-        expect(doubtful).toEqual(["line 15: STA &0201 is 3 bytes, not 2"]);
+        expect(doubtful).toEqual(["line 16: STA &0201 is 3 bytes, not 2"]);
     });
 });

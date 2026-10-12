@@ -13,7 +13,8 @@ const Permission =
 // A game at &1900 that copies its last page to &0900, with a loader part that also runs at &1900.
 const Text = `Game disassembly
 ================
-Notes mention code_address once.
+Notes mention code_address once, and the table
+&1912 is where it lives.
 
 The author of this disassembly imposes no additional copyright restrictions
 beyond those already present on the game itself. It is provided for educational
@@ -41,6 +42,7 @@ Game disassembly
 &1906 a5 70    LDA &70 ; other_counter
 &1908 86 70    STX &70 ; counter
 &190a 20 0c 19 JSR &190c ; draw
+; draw_entry
 ; draw
 &190d e6 71    INC &71 ; frame
 ; unused
@@ -54,7 +56,10 @@ Game disassembly
 ; moved_routine
 &0900 a9 01    LDA #&01
 &0902 8d 10 0a STA &0a10 ; workspace
-&0905 60       RTS
+&0905 8d 40 fe STA &fe40 ; via
+&0908 a5 72    LDA &72 ; pair
+&090a a5 73    LDA &73 ; pair
+&090c 60       RTS
 `;
 
 const config = {
@@ -71,7 +76,7 @@ const config = {
             part: "GAME",
             regions: [
                 { name: "main", from: "entry_point", to: "&1919" },
-                { name: "low", from: "moved_routine", to: "&0906" },
+                { name: "low", from: "moved_routine", to: "&090D" },
             ],
         },
     ],
@@ -135,25 +140,44 @@ describe("importLevel7", () => {
             table: "0x1912",
         });
         expect(set.json.regions.low.symbols).toEqual({ moved_routine: "0x0900" });
+        expect(set.dropped).toContainEqual(["draw_entry", 0x190d, "main calls it draw"]);
     });
 
     it("takes globals from the set's own operands, the most used name for an address", () => {
         expect(set.json.globals).toEqual({ counter: "0x0070", code_address: "0x008f", workspace: "0x0a10" });
         expect(set.dropped).toContainEqual(["other_counter", 0x70, "the globals call it counter"]);
         expect(set.dropped).toContainEqual(["frame", 0x71, "the system sets call it os_frame"]);
+        expect(set.dropped).toContainEqual(["pair", 0x72, "it names 2 addresses as often"]);
+        expect(set.json.globals.via).toBeUndefined();
     });
 
-    it("keeps anchors off padding and copies its notes make, and tells the loader apart", () => {
+    it("keeps anchors off padding, and tells the loader at the same address apart", () => {
         const anchors = Object.values(set.json.regions).flatMap((region) => region.anchors);
         expect(anchors.every(({ at }) => at !== "0x190f")).toBe(true);
-        expect(set.json.regions.main.anchors.length).toBeGreaterThan(0);
         expect(set.json.regions.low.anchors.length).toBeGreaterThan(0);
+        const loader = new Map([0xa2, 0xff, 0x9a, 0x4c, 0x00, 0x19].map((byte, i) => [0x1900 + i, byte]));
+        const held = ({ at, bytes }) =>
+            Buffer.from(bytes, "hex").every((byte, i) => loader.get(parseInt(at, 16) + i) === byte);
+        expect(set.json.regions.main.anchors.length).toBeGreaterThan(0);
+        expect(set.json.regions.main.anchors.every(held)).toBe(false);
+    });
+
+    it("takes a note's copying instruction as a move when it's a store", () => {
+        const stored = (text) =>
+            importLevel7(config, text, { systemGlobals: new Map() }).reasons.some((reason) =>
+                reason.includes("matches no store"),
+            );
+        expect(stored(Text)).toBe(true);
+        expect(stored(Text.replace("is copied to &0900 - &0905 at &1906", "is copied to &0900 - &0905 at &1908"))).toBe(
+            false,
+        );
     });
 
     it("links names to their lines with text fragments, and quotes the author's permission", () => {
         expect(set.json.nameLink).toBe("https://www.example.com/miscellany/{place}");
         expect(set.json.places.draw).toBe("test-disassembly.txt#:~:text=draw,-%26190d");
-        expect(set.json.places.code_address).toBe("test-disassembly.txt#:~:text=code_address");
+        expect(set.json.places.code_address).toBe("test-disassembly.txt#:~:text=code_address,-%261904");
+        expect(set.json.places.table).toBe("test-disassembly.txt#:~:text=%261912,-12");
         expect(set.json.notice).toContain(Permission);
         expect(set.json.licence).toBe("LicenseRef-level7-educational");
     });
@@ -174,6 +198,15 @@ describe("importLevel7", () => {
         const left = importLevel7(leaving, unrelocated, { systemGlobals: new Map() });
         expect(left.notes.some((note) => note.includes("disagree"))).toBe(false);
         expect(left.sets[0].json.regions.main.symbols.tape_name).toBeUndefined();
+    });
+
+    it("refuses a leaveOut outside its region, and a region whose statements all disagree", () => {
+        const spec = config.sets[0];
+        const outside = { ...config, sets: [{ ...spec, regions: [{ ...spec.regions[0], leaveOut: ["&0900"] }] }] };
+        expect(() => importLevel7(outside, Text, { systemGlobals: new Map() })).toThrow("which leaveOut names");
+        const clash = Text.replace("&1918 ea       NOP", "&1918 ea       NOP\n&1912 ff\n&1913 ff ff ff ff ff");
+        const only = { ...config, sets: [{ ...spec, regions: [{ name: "table", from: "&1912", to: "&1918" }] }] };
+        expect(() => importLevel7(only, clash, { systemGlobals: new Map() })).toThrow("disagrees with another");
     });
 
     it("needs a part when two have statements in a region", () => {

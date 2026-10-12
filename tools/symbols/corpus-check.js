@@ -13,8 +13,9 @@
  * Each zip is one title. Every complete DFS file on an .ssd or .dsd is placed at its load address,
  * BASIC programs included, since a BASIC program's lines can collide too; a file of one repeated
  * byte, or catalogued to load in page zero (a placeholder, usually), is left out. It makes the sets as
- * the title's importer does (import-baron.js, import-beebasm.js, or import-py8dis.js for a config that
- * names `py8dis`), taking the options that one does. Prints the report as Markdown, and exits 1 if
+ * the title's importer does (import-baron.js, import-beebasm.js, import-py8dis.js for a config that
+ * names `py8dis`, or import-level7.js for a level7 one, whose `--source` is a copy of the disassembly),
+ * taking the options that one does. Prints the report as Markdown, and exits 1 if
  * anything collides.
  */
 

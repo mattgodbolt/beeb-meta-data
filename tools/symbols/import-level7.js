@@ -20,9 +20,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { Format, parseSet } from "jsbeeb/src/symbol-sets.js";
+import { Format } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors, storesIn } from "./anchor-chooser.js";
-import { readMosSets, SymbolsDir } from "./build-index.js";
+import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { byAddress, evaluate, hexAddress, writeTitle } from "./import-baron.js";
 import { readLevel7 } from "./level7-text.js";
 
@@ -38,7 +38,7 @@ const FragmentSafe = /[A-Za-z0-9_.~]/;
 const WordCharacter = /[A-Za-z0-9_]/;
 const SuffixWords = 4;
 
-const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")}`;
+export const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")}`;
 const holds = (range, address) => address >= range.start && address < range.end;
 
 /** The author's statement of what they allow, a paragraph of its own near the top of every disassembly. */
@@ -206,10 +206,13 @@ class Importer {
         const [part] = parts;
         const leftOut = new Set((regionSpec.leaveOut ?? []).map((at) => evaluate(at, find)));
         const unplaced = [...leftOut].filter(
-            (at) => !this.pieces.some((piece) => piece.part === part && piece.start === at),
+            (at) =>
+                !holds({ start, end }, at) || !this.pieces.some((piece) => piece.part === part && piece.start === at),
         );
         if (unplaced.length)
-            throw new Error(`${where}: no piece of ${part.name} starts at ${unplaced.map(hex).join(", ")}`);
+            throw new Error(
+                `${where}: no piece of ${part.name} in the region starts at ${unplaced.map(hex).join(", ")}, which leaveOut names`,
+            );
         const { statements, conflicting } = agreeingStatements(
             this.pieces
                 .filter((piece) => piece.part === part && !leftOut.has(piece.start))
@@ -219,6 +222,10 @@ class Importer {
         if (conflicting.length)
             this.notes.push(
                 `${where}: left out statements that disagree with others at the same address, on lines ${conflicting.map((s) => s.line).join(", ")}`,
+            );
+        if (!statements.length)
+            throw new Error(
+                `${where}: every statement at ${hex(start)}-${hex(end)} disagrees with another at its address`,
             );
         const memory = new Map();
         for (const { address, data } of statements)
@@ -280,6 +287,9 @@ class Importer {
         const unmatched = [...tables, ...moves].filter(([, address]) => !used.has(address)).map(([name]) => name);
         if (unmatched.length)
             throw new Error(`${spec.id}: a table or a move matches no store: ${unmatched.join(", ")}`);
+        // A note's copy is often through a pointer, which no store blocks anyway.
+        for (const address of this.noteMoves.filter((a) => !used.has(a)))
+            this.reasons.push(`${spec.id}: the disassembly's move at ${hex(address)} matches no store`);
         return stores;
     }
 
@@ -313,17 +323,21 @@ class Importer {
 
     /**
      * The names the set's regions' operands give addresses outside them: those no label has, no system set's
-     * global has, below &8000; for an address with several, the one most instructions use.
+     * global has, below &8000; for an address with several, the one most instructions use. With each,
+     * the first instruction that uses it, where it's linked to.
      */
     globalNames(regions, dropped) {
         const counts = new Map();
+        const firstUses = new Map();
         const named = (statement) => regions.some((r) => r.part === statement.section && holds(r, statement.address));
-        for (const { name, address, statement } of this.references) {
+        for (const reference of this.references) {
+            const { name, address, statement } = reference;
             if (!named(statement)) continue;
             if (this.labelNames.has(name) || address >= GlobalsLimit || regions.some((r) => holds(r, address)))
                 continue;
             if (!counts.has(name)) counts.set(name, new Map());
             counts.get(name).set(address, (counts.get(name).get(address) ?? 0) + 1);
+            if (!firstUses.has(`${name}@${address}`)) firstUses.set(`${name}@${address}`, reference);
         }
         const candidates = new Map();
         for (const [name, byAddressCount] of counts) {
@@ -341,29 +355,48 @@ class Importer {
             candidates.get(address).push([name, uses]);
         }
         const globals = new Map();
+        const uses = new Map();
         for (const [address, names] of candidates) {
             const [[winner], ...others] = names.sort(([, a], [, b]) => b - a);
             globals.set(winner, address);
+            uses.set(winner, firstUses.get(`${winner}@${address}`));
             for (const [name] of others) dropped.push([name, address, `the globals call it ${winner}`]);
         }
-        return globals;
+        return { globals, uses };
     }
 
     /**
-     * Each name's place: its label's line for a region's name, or failing that the line of the statement
-     * it labels; the first mention for a global's.
+     * A fragment reaching `text` on `line` (ignoring case, as a fragment does), else one reaching the
+     * address that starts `statement`'s line.
      */
-    places(spec, regions, globals, labels) {
+    fragmentOnLine(text, line, statement) {
+        const at = (wanted, lineNumber) => {
+            const start = this.offsets[lineNumber];
+            const end = this.text.indexOf("\n", start);
+            const found = this.lower.slice(start, end < 0 ? undefined : end).indexOf(wanted.toLowerCase());
+            return found < 0 ? undefined : start + found;
+        };
+        const offset = at(text, line);
+        const byName =
+            offset === undefined
+                ? undefined
+                : textFragment(this.text, this.lower, this.text.substr(offset, text.length), offset);
+        if (byName) return byName;
+        const address = hex(statement.address);
+        const start = at(address, statement.line);
+        return start === this.offsets[statement.line]
+            ? textFragment(this.text, this.lower, this.text.substr(start, address.length), start)
+            : undefined;
+    }
+
+    /**
+     * Each name's place: its label's line for a region's name, and for a global's the first instruction
+     * that uses it at its address; or failing that the address of the statement on that line.
+     */
+    places(spec, regions, globals, globalUses, labels) {
         const places = new Map();
         const unplaced = [];
         const file = new URL(this.config.source.disassembly).pathname.split("/").at(-1);
-        const fragment = (text, line) =>
-            textFragment(
-                this.text,
-                this.lower,
-                text,
-                this.offsets[line] + this.text.slice(this.offsets[line]).indexOf(text),
-            );
         const place = (name, found) => {
             if (found) places.set(name, `${file}#${found}`);
             else unplaced.push(name);
@@ -371,16 +404,12 @@ class Importer {
         for (const region of regions)
             for (const name of region.symbols.keys()) {
                 const label = labels.get(name);
-                const statement = region.part.statements.find(
-                    (s) => s.address === label.address && s.line > label.line,
-                );
-                place(name, fragment(name, label.line) ?? fragment(hex(label.address).toLowerCase(), statement.line));
+                place(name, this.fragmentOnLine(name, label.line, labelled(region.part, label)));
             }
-        for (const name of globals.keys())
-            place(
-                name,
-                textFragment(this.text, this.lower, name, firstMatch(this.lower, name.toLowerCase(), undefined)),
-            );
+        for (const name of globals.keys()) {
+            const { line, statement } = globalUses.get(name);
+            place(name, this.fragmentOnLine(name, line, statement));
+        }
         if (unplaced.length) this.notes.push(`${spec.id}: no text fragment reaches ${unplaced.sort().join(", ")}`);
         return places;
     }
@@ -389,7 +418,7 @@ class Importer {
         const regions = spec.regions.map((regionSpec) => this.region(spec, regionSpec));
         const dropped = [];
         const labelLines = this.regionNames(regions, dropped);
-        const globals = this.globalNames(regions, dropped);
+        const { globals, uses } = this.globalNames(regions, dropped);
         const stores = this.stores(spec);
         const spread = { bytesPerAnchor: this.config.bytesPerAnchor, spreadAnchors: this.config.spreadAnchors };
         for (const region of regions) {
@@ -399,7 +428,7 @@ class Importer {
             this.notes.push(...notes);
             this.reasons.push(...reasons);
         }
-        const places = this.places(spec, regions, globals, labelLines);
+        const places = this.places(spec, regions, globals, uses, labelLines);
         return { json: this.setJson(spec, regions, globals, places), regions, dropped };
     }
 
@@ -446,15 +475,6 @@ export function importLevel7(config, text, options) {
         ...importer.set(spec),
     }));
     return { sets, errors: importer.errors, notes: importer.notes, reasons: importer.reasons };
-}
-
-/** The globals of the system sets (mos-sets.json), by address. */
-export function systemGlobals() {
-    const globals = new Map();
-    for (const file of readMosSets())
-        for (const [address, name] of parseSet(JSON.parse(readFileSync(path.join(SymbolsDir, file), "utf8"))).globals)
-            globals.set(address, name);
-    return globals;
 }
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");

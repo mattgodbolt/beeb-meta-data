@@ -20,7 +20,7 @@
       "title": "Arcadians",
       "regions": [
         { "name": "sprites", "from": "&0C00", "to": "&0D00" },
-        { "name": "main", "from": "&0E00", "to": "&5800", "leaveOut": ["&1A00", "&3620", "&3F00", "&5DB1"] },
+        { "name": "main", "from": "&0E00", "to": "&5800", "leaveOut": ["&1A00", "&3620", "&3F00"] },
         { "name": "relocate", "from": "&60D0", "to": "&60FE", "overwritten": true }
       ]
     }

@@ -1,5 +1,5 @@
 /**
- * Reads one of the disassemblies at http://www.level7.org.uk/miscellany/, plain text in which each
+ * Reads one of the disassemblies at https://www.level7.org.uk/miscellany/, plain text in which each
  * statement is a line of its address, its bytes and, for an instruction, the instruction (`&1400 a9 13
  * LDA #&13`), each label is a line of its own (`; entry_point`) before the statement it names, and an
  * instruction's operand is often followed by the name of what it addresses (`STA &8f ;

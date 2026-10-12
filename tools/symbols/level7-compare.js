@@ -20,15 +20,13 @@ import { parseArgs } from "node:util";
 
 import { BBC } from "jsbeeb/src/keymap.js";
 import { fetchDisc, pressKey, runSeconds, startMachine } from "./check-memory.js";
-import { level7Text } from "./import-level7.js";
+import { hex, level7Text } from "./import-level7.js";
 import { readLevel7 } from "./level7-text.js";
 
 const MemoryTop = 0x8000;
 const SecondsAfterKey = 3;
 const KeyFrames = 5;
 const ShortestRun = 16;
-
-const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")}`;
 
 /**
  * Each part's runs of consecutive statements, with how many of their bytes below &8000 `peek` agrees

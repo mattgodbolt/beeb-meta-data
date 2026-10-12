@@ -9,6 +9,7 @@ import { holdUntil, pressRandomKeys, runSeconds, seededRandom } from "../../tool
 const PlayMoments = 20;
 const PlayFramesPerMoment = 200;
 const PlaySeed = 1;
+const LaterSecs = 60;
 
 const Loaded = ["game/main", "game/startup"];
 const Relocated = ["game/main", "game/page9", "game/pagec", "game/startup"];
@@ -29,7 +30,7 @@ export const scenarios = {
             await pressRandomKeys(session, Moves, random, PlayFramesPerMoment);
             check(`random play, moment ${moment}`, Game);
         }
-        await runSeconds(session, 60);
+        await runSeconds(session, LaterSecs);
         check("a minute later", Game);
     },
 };

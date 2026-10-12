@@ -19,9 +19,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
+import { Format, parseAddress } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors } from "./anchor-chooser.js";
-import { checkSet, formatJson, readMosSets, SymbolsDir } from "./build-index.js";
+import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
 import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 import { RomsDir } from "../jsbeeb.js";
 
@@ -208,14 +208,6 @@ async function fetchText(url) {
     return response.text();
 }
 
-function systemGlobalsOf() {
-    const globals = new Map();
-    for (const file of readMosSets())
-        for (const [address, name] of parseSet(JSON.parse(readFileSync(path.join(SymbolsDir, file), "utf8"))).globals)
-            globals.set(address, name);
-    return globals;
-}
-
 async function main() {
     const { values } = parseArgs({
         options: { config: { type: "string" }, verbose: { type: "boolean", short: "v", default: false } },
@@ -236,7 +228,7 @@ async function main() {
     const { json, errors, notes, dropped } = importAcornaeology(config, disassembly, {
         rom,
         otherRoms: otherRomsThan(config.rom, rom.length),
-        systemGlobals: systemGlobalsOf(),
+        systemGlobals: systemGlobals(),
         notice,
         anchors: page === null ? null : pageAnchors(page),
     });

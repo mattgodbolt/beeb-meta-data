@@ -416,7 +416,7 @@ share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so th
 
 ## level7's disassemblies
 
-[level7](https://www.level7.org.uk/miscellany/) has disassemblies of 75 games as plain text, by an author who doesn't
+[level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
 give their name. Each says the author "imposes no additional copyright restrictions beyond those already present on the
 game itself" and that it's "provided for educational purposes only"; Matt agreed to use them on that basis, borrowing
 the names and linking back. So a set's `licence` is `LicenseRef-level7-educational`, and its `notice` quotes that
@@ -446,11 +446,12 @@ its regions, below `&8000`, unless a label or the MOS's set has them; an address
 instructions use. There are no anchors in a text file, so a name's place is a
 [text fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments): the name and as
 many of the words after it as make the label line the first match (`hopper-disassembly.txt#:~:text=update_object,-%23%20Called`),
-else the statement's address and the words after it; a global's is its first mention. The files are often of the tape
+else the statement's address and the words after it; a global's is the first instruction of the set's that uses it, at its address. The files are often of the tape
 version. `tools/symbols/level7-compare.js --config <file>` boots the config's disc and says how much of each run of
 statements memory holds, which is how to choose a title and its regions.
 
 Hopper, Super Invaders, Arcadians, Starship Command and Syncron have sets. Their discs run the code the files list,
-relocated as the files list it; none loads where it runs, so the corpus check finds nothing to compare. Each `main`
+relocated as the files list it. None loads where it runs, so the corpus check only meets the run-once regions, which
+match the original discs and a cheat disc, the same code. Each `main`
 stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians' `relocate`, Starship Command's
-`entry`) has a region of its own. Arcadians' main leaves out the four routines the file lists unrelocated.
+`entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists unrelocated in the middle of it.

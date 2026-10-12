@@ -1,7 +1,8 @@
 /**
  * What the corpus check and the in-memory check need from a title, whichever assembler its source is
- * for: its config's `source.assembler`, `baron` unless it says `beebasm`; or, for a config that names
- * `py8dis`, the py8dis disassembly it is.
+ * for: its config's `source.assembler`, `baron` unless it says `beebasm`; for a config that names
+ * `py8dis`, the py8dis disassembly it is; or, for one with `"importer": "level7"`, the level7 text
+ * disassembly, of which `--source` is then a local copy.
  */
 
 import { readFileSync } from "node:fs";

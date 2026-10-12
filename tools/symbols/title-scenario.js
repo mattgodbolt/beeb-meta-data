@@ -10,8 +10,11 @@ import { pressKey, pressRandomKeys, runScript, runSeconds, seededRandom } from "
 const StartHoldFrames = 50;
 const StartWaitSecs = 2;
 const StartTries = 10;
+// What jsbeeb's runUntilAddress throws when the time runs out first.
+const NotReached = /did not hit appropriate breakpoint/;
 const PlayFramesPerMoment = 200;
 const PlaySeed = 1;
+const PlayMoments = 20;
 
 /**
  * Presses each key in turn, again and again, until the PC reaches `address`: a title screen often
@@ -24,8 +27,8 @@ export async function pressUntil(session, keys, address) {
             try {
                 await session.runUntilAddress(address, StartWaitSecs);
                 return;
-            } catch {
-                // Not there yet; press the next key.
+            } catch (error) {
+                if (!NotReached.test(error.message)) throw error;
             }
         }
     throw new Error(`The PC never reached &${address.toString(16).toUpperCase()} for those keys`);
@@ -41,7 +44,7 @@ export async function pressUntil(session, keys, address) {
  * @param {string[]} options.moves - names of the keys to play with
  * @param {number} [options.moments]
  */
-export function playScenario({ loaded, playing, loadSecs, start, inGame, moves, moments = 20 }) {
+export function playScenario({ loaded, playing, loadSecs, start, inGame, moves, moments = PlayMoments }) {
     return async ({ session, address, shots, check }) => {
         check("booting", []);
         await runSeconds(session, loadSecs);
