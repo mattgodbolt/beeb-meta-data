@@ -11,7 +11,7 @@ own `licence`, where they came from in `source`, and carries any `notice` its li
 - `configs/`: each title's config, from which its importer remakes its sets, and the title's in-memory check.
 - `mos-sets.json`: the sets that may be marked `"system": true`. Only a MOS's set belongs on it.
 - `index.json`: made from the sets by `npm run build-index`; never edited by hand. The pre-commit hook remakes it
-  when a set changes, and CI fails if it's stale.
+  when a set is added or changed (not removed), and CI fails if it's stale.
 
 ## Where each set comes from
 

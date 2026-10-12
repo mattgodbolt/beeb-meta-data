@@ -19,8 +19,9 @@ Guidance for Claude Code in this repository. The README says what's here; this s
   asking an author for one is the maintainer's to do, not yours.
 - Link each name back to where its author defines it (a line at the pinned commit, or the author's own anchor), so
   readers go to them. Never store disc or tape images, or any binary, here.
-- Every set is reproducible: regenerating from its config's pinned commit must give the same file. A set is checked
-  in memory (`check-memory.js`) and against other titles (`build-index.js`, `corpus-check.js`) before it lands.
+- Every set is reproducible: regenerating from its config's pinned commit must give the same file. A title's sets
+  are checked in memory (`check-memory.js`) and against other titles (`build-index.js`, `corpus-check.js`) before
+  they land; a ROM's set, against every other ROM by its importer and `tests/symbols/test-shipped-rom-sets.js`.
 - Published paths are read by every jsbeeb in the wild. Don't move or delete one an older index may still name, and
   change a file's shape only with a new `format`.
 - Downloaded discs, repositories and pages are untrusted: keep them in their own directory, outside the repository,

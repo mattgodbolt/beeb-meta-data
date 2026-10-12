@@ -310,8 +310,9 @@ provenance says so ([how](media-registry-design-notes.md#finding-aliases)).
 
 The media window shows a title, instructions and links through `MediaLoader.addDescriber`; `requires`
 feeds the existing machine switch; `controls` gives phones a joystick and gamepads sensible defaults; the
-debugger labels code from matching symbol sets ([jsbeeb#107](https://github.com/mattgodbolt/jsbeeb/issues/107)). With no record, content heuristics like Clock
-Signal's can still guess the machine.
+debugger labels code from matching symbol sets
+([jsbeeb#107](https://github.com/mattgodbolt/jsbeeb/issues/107)). With no record, content heuristics like
+Clock Signal's can still guess the machine.
 
 ## Open questions
 
@@ -324,7 +325,8 @@ Signal's can still guess the machine.
 - The `controls` schema, with Robert Smallshire and Beebium.
 - Whether, and how, we can host screenshots.
 
-Do let me know what you think, in a [GitHub issue](https://github.com/mattgodbolt/jsbeeb/issues) or on [the PR that proposed this](https://github.com/mattgodbolt/jsbeeb/pull/1179).
+Do let me know what you think, in [an issue here](https://github.com/mattgodbolt/beeb-meta-data/issues).
+The proposal began in [jsbeeb#1179](https://github.com/mattgodbolt/jsbeeb/pull/1179).
 
 ---
 

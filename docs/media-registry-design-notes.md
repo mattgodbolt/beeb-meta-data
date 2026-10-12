@@ -69,7 +69,8 @@ Closer to home:
   the registry should be worked out with him rather than separately.
 - Rich Talbot-Watkins' [Baron](https://github.com/waitingforvsync/baron) assembler writes every resolved
   symbol to a JSON file with `--symbols`, which a converter can turn into a symbol set. Rich was in the
-  original [jsbeeb#107](https://github.com/mattgodbolt/jsbeeb/issues/107) discussion too, and we've been talking with him about source formats since.
+  original [jsbeeb#107](https://github.com/mattgodbolt/jsbeeb/issues/107) discussion too, and we've been
+  talking with him about source formats since.
 - [bbcmicro.co.uk](https://bbcmicro.co.uk) already launches jsbeeb from its game pages, passing a model
   and `KEY.` remaps in the URL, and its database has per-game keys and a platform. See [the licensing
   rules](media-registry-proposal.md#licensing) before reaching for any of it.

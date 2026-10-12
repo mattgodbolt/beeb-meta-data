@@ -2,9 +2,11 @@
 
 Metadata about BBC Micro software, for emulators to fetch: today, **symbol sets** that name the code and data of
 programs in a debugger; later, **records** that say what a disc or tape is (its title, which machine it needs, its
-keys). [jsbeeb](https://github.com/mattgodbolt/jsbeeb) is the first client, but nothing here is specific to it.
+keys). [jsbeeb](https://github.com/mattgodbolt/jsbeeb) is the first client, but nothing in the published data is
+specific to it.
 
-It's published as static JSON under `https://bbc.xania.org/meta/`, with CORS open to every origin.
+It will be published as static JSON under `https://bbc.xania.org/meta/`, with CORS open to every origin, once the
+deploy has credentials.
 
 ## The idea in brief
 

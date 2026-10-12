@@ -349,7 +349,7 @@ runs of `NOP`s when those were allowed as anchors, now keeps its labels.
 
 So on Repton 2, at least, anchors are cheap and chosen almost entirely by a tool. What stayed manual was
 naming the regions and leaving out the part of the listing that's the disassembler's own loader. To rerun
-it from the jsbeeb root:
+it from this repository's root:
 
 ```sh
 git clone https://github.com/gfoot/repton2disassembly r2dis    # repton2.s, at c5fed37
@@ -422,8 +422,8 @@ It's a proxy, with limits. Files sit at their load addresses, not in memory as i
 that's relocated or decrypted as it loads is missed. The discs are Stairway To Hell's DFS images only,
 which leaves out protected originals and tapes. The runs are at random offsets anywhere in a file, data
 included, not anchors at routine entry points. And requiring one file to hold all three anchors misses a
-match split across two files that load together, which memory could hold. To rerun it from the jsbeeb
-root:
+match split across two files that load together, which memory could hold. To rerun it from this
+repository's root:
 
 ```sh
 node tools/registry/anchor-collisions.js --examples
