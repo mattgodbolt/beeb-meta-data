@@ -25,7 +25,7 @@
     "ci-checks": "npm run lint && npm run format:check && npm run check-index"
   },
   "dependencies": {
-    "jsbeeb": "github:mattgodbolt/jsbeeb#1807a630"
+    "jsbeeb": "git+https://github.com/mattgodbolt/jsbeeb.git#1807a630c72edfc032c90984f2e0e1c5a713d8e4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
