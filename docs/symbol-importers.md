@@ -135,6 +135,12 @@ in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in 
 the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
 `leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
+The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
+system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
+in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
+the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
+`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
+
 ## Anchors
 
 Candidates are runs of 4 to 8 bytes of the region's own statements: whole instructions from an instruction's start
