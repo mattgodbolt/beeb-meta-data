@@ -1,0 +1,188 @@
+import { createHash } from "node:crypto";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import { checkSet } from "../../tools/symbols/build-index.js";
+import { importLevel7, level7Text, noteMoves, permissionOf, textFragment } from "../../tools/symbols/import-level7.js";
+
+const Permission =
+    "The author of this disassembly imposes no additional copyright restrictions beyond those already present on the game itself. It is provided for educational purposes only.";
+
+// A game at &1900 that copies its last page to &0900, with a loader part that also runs at &1900.
+const Text = `Game disassembly
+================
+Notes mention code_address once.
+
+The author of this disassembly imposes no additional copyright restrictions
+beyond those already present on the game itself. It is provided for educational
+purposes only.
+
+Loader disassembly
+==================
+; LOAD
+; 001900 001900 000008
+
+; loader_start
+&1900 a2 ff    LDX #&ff
+&1902 9a       TXS
+&1903 4c 00 19 JMP &1900 ; loader_start
+
+Game disassembly
+================
+; GAME
+; 001900 001900 000020
+
+; entry_point
+&1900 a9 13    LDA #&13
+&1902 85 8f    STA &8f ; code_address
+&1904 a6 70    LDX &70 ; counter
+&1906 a5 70    LDA &70 ; other_counter
+&1908 86 70    STX &70 ; counter
+&190a 20 0c 19 JSR &190c ; draw
+; draw
+&190d e6 71    INC &71 ; frame
+; unused
+&190f 00 00 00
+; table
+&1912 12 34 56 78 9a bc
+&1918 ea       NOP
+
+# &1919 - &191e is copied to &0900 - &0905 at &1906
+
+; moved_routine
+&0900 a9 01    LDA #&01
+&0902 8d 10 0a STA &0a10 ; workspace
+&0905 60       RTS
+`;
+
+const config = {
+    importer: "level7",
+    id: "test",
+    licence: "LicenseRef-level7-educational",
+    source: { disassembly: "https://www.example.com/miscellany/test-disassembly.txt", sha256: "0" },
+    bytesPerAnchor: 2048,
+    spreadAnchors: 4,
+    sets: [
+        {
+            id: "game",
+            title: "Test",
+            part: "GAME",
+            regions: [
+                { name: "main", from: "entry_point", to: "&1919" },
+                { name: "low", from: "moved_routine", to: "&0906" },
+            ],
+        },
+    ],
+};
+
+describe("permissionOf", () => {
+    it("finds the author's paragraph, whatever its line breaks", () => {
+        expect(permissionOf(Text)).toBe(Permission);
+    });
+
+    it("refuses a disassembly without it", () => {
+        expect(() => permissionOf("Game disassembly\n")).toThrow("doesn't say what its author allows");
+    });
+});
+
+describe("noteMoves", () => {
+    it("takes the copying instruction from each note", () => {
+        expect(noteMoves(Text)).toEqual([0x1906]);
+    });
+});
+
+describe("textFragment", () => {
+    const text = "&1000 20 00 20 JSR &2000 ; draw  # Calls it\n&1003 60\n\n; draw  # Plots it\n&2000 60\n";
+    const lower = text.toLowerCase();
+
+    it("uses the name alone where that's the first match", () => {
+        expect(textFragment(text, lower, "JSR", text.indexOf("JSR"))).toBe(":~:text=JSR");
+    });
+
+    it("adds the words after the name until only the label matches first", () => {
+        expect(textFragment(text, lower, "draw", text.lastIndexOf("; draw ") + 2)).toBe(":~:text=draw,-%23%20Plots");
+    });
+
+    it("takes the next line's first word when the name ends its line", () => {
+        const bare = text.replaceAll(/ {2}# \w+ it/g, "");
+        expect(textFragment(bare, bare.toLowerCase(), "draw", bare.lastIndexOf("; draw\n") + 2)).toBe(
+            ":~:text=draw,-%262000",
+        );
+    });
+
+    it("gives up when nothing tells the place apart", () => {
+        const twice = "; draw\n&2000\n; draw\n&2000\n";
+        expect(textFragment(twice, twice, "draw", twice.lastIndexOf("draw"))).toBeUndefined();
+    });
+});
+
+describe("importLevel7", () => {
+    const imported = importLevel7(config, Text, { systemGlobals: new Map([[0x71, "os_frame"]]) });
+    const [set] = imported.sets;
+
+    it("makes a set the index accepts", () => {
+        expect(imported.errors).toEqual([]);
+        expect(checkSet(set.json, { file: "sets/test-game.json", mosSets: [] })).toEqual([]);
+    });
+
+    it("names each region's labels, leaving out a name the set can't keep", () => {
+        expect(set.json.regions.main.symbols).toEqual({
+            entry_point: "0x1900",
+            draw: "0x190d",
+            unused: "0x190f",
+            table: "0x1912",
+        });
+        expect(set.json.regions.low.symbols).toEqual({ moved_routine: "0x0900" });
+    });
+
+    it("takes globals from the set's own operands, the most used name for an address", () => {
+        expect(set.json.globals).toEqual({ counter: "0x0070", code_address: "0x008f", workspace: "0x0a10" });
+        expect(set.dropped).toContainEqual(["other_counter", 0x70, "the globals call it counter"]);
+        expect(set.dropped).toContainEqual(["frame", 0x71, "the system sets call it os_frame"]);
+    });
+
+    it("keeps anchors off padding and copies its notes make, and tells the loader apart", () => {
+        const anchors = Object.values(set.json.regions).flatMap((region) => region.anchors);
+        expect(anchors.every(({ at }) => at !== "0x190f")).toBe(true);
+        expect(set.json.regions.main.anchors.length).toBeGreaterThan(0);
+        expect(set.json.regions.low.anchors.length).toBeGreaterThan(0);
+    });
+
+    it("links names to their lines with text fragments, and quotes the author's permission", () => {
+        expect(set.json.nameLink).toBe("https://www.example.com/miscellany/{place}");
+        expect(set.json.places.draw).toBe("test-disassembly.txt#:~:text=draw,-%26190d");
+        expect(set.json.places.code_address).toBe("test-disassembly.txt#:~:text=code_address");
+        expect(set.json.notice).toContain(Permission);
+        expect(set.json.licence).toBe("LicenseRef-level7-educational");
+    });
+
+    it("needs a part when two have statements in a region", () => {
+        const loose = {
+            ...config,
+            sets: [{ ...config.sets[0], part: undefined, regions: [config.sets[0].regions[0]] }],
+        };
+        const lone = {
+            ...loose,
+            sets: [{ ...loose.sets[0], regions: [{ name: "main", from: "&1900", to: "&1908" }] }],
+        };
+        expect(() => importLevel7(lone, Text, { systemGlobals: new Map() })).toThrow("give its part");
+    });
+});
+
+describe("level7Text", () => {
+    let dir;
+    beforeEach(() => {
+        dir = mkdtempSync(path.join(tmpdir(), "level7-"));
+    });
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    it("reads a copy only if its hash is the config's", async () => {
+        const file = path.join(dir, "test.txt");
+        writeFileSync(file, Text);
+        const sha256 = createHash("sha256").update(Text).digest("hex");
+        await expect(level7Text({ source: { ...config.source, sha256 } }, file)).resolves.toBe(Text);
+        await expect(level7Text(config, file)).rejects.toThrow("the config pins 0");
+    });
+});
