@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     compareWithMemory,
     differingSpans,
+    draftCheck,
     draftConfig,
     inGameLabel,
     proposeRegions,
@@ -106,6 +107,18 @@ ${run(0x1200, 0x10, "loader").join("\n")}
             { name: "main", part: "Game", from: "&1000", to: "&1400" },
         ]);
     });
+
+    it("cuts a few bytes off a region that overlaps a bigger one at its end, rather than leaving it out", () => {
+        const { regions } = held(`${heading("Game")}
+${run(0x1000, 0x40, "code").join("\n")}
+${heading("Loader")}
+${run(0x13e0, 0x20, "loader").join("\n")}
+`);
+        expect(regions.map(({ name, part, from, to }) => ({ name, part, from, to }))).toEqual([
+            { name: "main", part: "Game", from: "&1000", to: "&1400" },
+            { name: "page14", part: undefined, from: "&1400", to: "&15E0" },
+        ]);
+    });
 });
 
 describe("draftConfig", () => {
@@ -119,6 +132,16 @@ describe("draftConfig", () => {
             ["main", false],
             ["both", false],
         ]);
+    });
+});
+
+describe("draftCheck", () => {
+    it("names the model a scenario wants, when there is one", () => {
+        const options = { seconds: 10, keys: ["SPACE:2"], inGame: ["game", "main", "loop"] };
+        expect(draftCheck("Test", [], options)).not.toContain("machines");
+        expect(draftCheck("Test", [], { ...options, model: "Master" })).toContain(
+            'export const machines = { game: { model: "Master" } };',
+        );
     });
 });
 
