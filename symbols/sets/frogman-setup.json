@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "title": "Frogman's title screen",
+  "licence": "MIT",
+  "source": "https://github.com/mattgodbolt/frogman/tree/178000d1731ab26cc4afd9663fffebd59dbab469",
+  "notice": "The names are frogman's, from https://github.com/mattgodbolt/frogman/tree/178000d1731ab26cc4afd9663fffebd59dbab469, under this licence:\n\nMIT License\n\nCopyright (c) 1993-2026 Matt Godbolt and Richard Talbot-Watkins\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "madeFrom": ["80fb4c78414a4b5b028aeab7fa8653b3"],
+  "home": "https://github.com/mattgodbolt/frogman",
+  "nameLink": "https://github.com/mattgodbolt/frogman/blob/178000d1731ab26cc4afd9663fffebd59dbab469/{place}",
+  "regions": {
+    "setup": {
+      "start": "0x0900",
+      "end": "0x0a02",
+      "minAnchors": 1,
+      "anchors": [{ "at": "0x093a", "bytes": "a000b1703019" }],
+      "symbols": {
+        "setup_entry": "0x0900",
+        "setup_entry.oscli_load_data2": "0x09e3",
+        "setup_entry.oscli_load_gcode": "0x09eb",
+        "setup_entry.oscli_load_fastio": "0x09f3"
+      }
+    }
+  },
+  "globals": {},
+  "places": {
+    "setup_entry": "setup.asm#L18",
+    "setup_entry.oscli_load_data2": "setup.asm#L141",
+    "setup_entry.oscli_load_fastio": "setup.asm#L145",
+    "setup_entry.oscli_load_gcode": "setup.asm#L143"
+  }
+}

@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { environmentWithoutGit } from "../../tools/symbols/baron-build.js";
-import { assemblerOf, importerOf, withTitleSource } from "../../tools/symbols/title-build.js";
+import { assemblerOf, importerOf, isAssembled, withTitleSource } from "../../tools/symbols/title-build.js";
 
 const IsolatedGitConfig = [
     "-c",
@@ -70,6 +70,16 @@ describe("importerOf", () => {
     });
 });
 
+describe("isAssembled", () => {
+    it("is true for a baron or beebasm title, and false for the importers that read a disassembly", () => {
+        expect(isAssembled(config(undefined))).toBe(true);
+        expect(isAssembled(config("beebasm"))).toBe(true);
+        expect(isAssembled({ ...config(undefined), importer: "acornaeology" })).toBe(false);
+        expect(isAssembled({ ...config(undefined), importer: "level7" })).toBe(false);
+        expect(isAssembled({ ...config(undefined), py8dis: { repository: "r", commit: "c" } })).toBe(false);
+    });
+});
+
 describe("withTitleSource", () => {
     let dir;
     const git = (...args) =>
@@ -114,10 +124,11 @@ describe("withTitleSource", () => {
         }
     });
 
-    it("builds a beebasm title with beebasm, and has no files directory for it", async () => {
+    it("builds a beebasm title with beebasm, and gives its saved files instead of a files directory", async () => {
         const beebasm = stub("beebasm", StubBeebasm);
         const made = await withTitleSource(pinned("beebasm", "main.asm"), { beebasm }, (found) => found);
         expect(made.filesDir).toBeNull();
+        expect([...made.saved]).toEqual([["PROG", Buffer.from("X")]]);
         expect(path.basename(made.sourceDir)).toBe("source");
     });
 });

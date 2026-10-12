@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { romCopies, romImages } from "../../tools/symbols/rom-images.js";
+import { RomsDir } from "../../tools/jsbeeb.js";
+import { fetchRom, romCopies, romImages, romKey, romOf } from "../../tools/symbols/rom-images.js";
 
 const Size = 0x40;
 
@@ -28,5 +31,38 @@ describe("romCopies", () => {
 
     it("finds no copy in a bank that shares no run of the code", () => {
         expect(romCopies([{ name: "blank.rom", bytes: new Uint8Array(Size) }], Size, moved)).toEqual([]);
+    });
+});
+
+describe("fetchRom", () => {
+    const url = "https://example.com/demo.rom";
+    const rom = new Uint8Array(0x4000).map((_, i) => i * 3);
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it("returns the ROM when its key is the config's", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        expect(await fetchRom({ url, key: romKey(rom) })).toEqual(rom);
+    });
+
+    it("refuses a ROM whose key isn't the config's", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        await expect(fetchRom({ url, key: "0".repeat(32) })).rejects.toThrow(`is ROM ${romKey(rom)}`);
+    });
+
+    it("refuses a failed fetch", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
+        await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+    });
+});
+
+describe("romOf", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it("reads jsbeeb's ROM by its file, and fetches any other by URL and key", async () => {
+        expect(await romOf("BASIC.ROM")).toEqual(new Uint8Array(readFileSync(path.join(RomsDir, "BASIC.ROM"))));
+        const rom = new Uint8Array(0x2000).fill(0x60);
+        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
+        expect(await romOf({ url: "https://example.com/demo.rom", key: romKey(rom) })).toEqual(rom);
     });
 });

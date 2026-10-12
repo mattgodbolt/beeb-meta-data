@@ -20,7 +20,7 @@ rewrites `symbols/index.json`.
 node tools/symbols/import-baron.js --config symbols/configs/pipeline.json
 node tools/symbols/import-beebasm.js --config symbols/configs/nevryon.json
 node tools/symbols/import-py8dis.js --config symbols/configs/repton2.json
-node tools/symbols/import-acornaeology.js --config symbols/configs/bbc-basic-2.json
+node tools/symbols/import-acornaeology.js --config symbols/configs/bbc-basic.json
 node tools/symbols/build-index.js
 ```
 
@@ -160,12 +160,13 @@ exits 1. Since files sit at their load addresses, code a program moves to where 
 titles' files that load there.
 
 The in-memory check boots the title's disc in a headless jsbeeb (a B with DFS 1.2 unless the scenarios' `machines`
-names another model, a second processor, or no SHIFT+BREAK) and, at each moment a scenario picks, lists the regions
-whose anchors all match. A moment fails unless that's exactly the regions expected, or if two matching regions
-overlap (of one set or two), since the debugger then shows neither.
+names another model, a second processor, or no SHIFT+BREAK, or for an assembled title another `disc` or `rom` of its
+checkout) and, at each moment a scenario picks, lists the regions whose anchors all match, in whatever is paged in or
+in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
+regions overlap (of one set or two), since the debugger then shows neither.
 
-Neither takes an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb has stands in
-for the corpus check, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
+The corpus check doesn't take an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb
+has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
 
 ## What the baron importer gets wrong
 
@@ -194,40 +195,47 @@ A beebasm title's config differs from a baron title's in a few ways.
   none), since beebasm finds an INCLUDE from where it runs rather than from the file that INCLUDEs it.
 - A region names a saved file, `file`, as its SAVE writes it (`"../build/CODE"`), instead of a section, and can be cut
   with `from` and `to`. beebasm has no sections; a SAVE writes whatever is in memory between two addresses.
+- `rom`, for a sideways ROM, is `{"file": ...}`, the saved file that is the ROM. Its key is the sets' `madeFrom`, the
+  anchors tell it apart from every ROM jsbeeb has, and the in-memory check puts it in sideways RAM.
 - There's no `defines`, `stripScope`, `tableSizes`, `moves`, `globalsSections` or `leftToSystemSets` yet, as nothing
   has needed them.
 
 The build copies the checkout (a SAVE writes wherever its source says) and runs beebasm with `-v -dd -labels` on a
 wrapper that INCLUDEs the main source and then PRINTs each name the sources assign with `=`, since beebasm's dumps
 hold labels only. A name the wrapper can't PRINT, because it was assigned inside braces or a loop, is dropped and the
-build run again.
+build run again. A file a PUTFILE, PUTBASIC or PUTTEXT can't open (one the source's own build generates, like
+Frogman's maps) gets an empty stand-in, since only the disc image would hold it.
 
 Names and anchors come out much as for baron, with these differences.
 
 - beebasm doesn't say where a saved file starts, so the importer takes the address, among those listed before its
   SAVE, from which the file agrees with every statement it covers and covers the most. Its statements are those in
-  memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it.
-  SKIPTO and ALIGN padding never anchors.
+  memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it, and
+  only statements that show bytes count. SKIPTO and ALIGN padding never anchors.
 - A label in a scope with no label of its own (a FOR loop's pass, a macro's call) is left out, as baron's `@` scopes
-  are.
-- A `=` name counts as an address when the sources write it first in a non-immediate operand (`LDA ptr`,
-  `STA (vec),Y`), an instruction of the set's files uses its value as a memory operand, the MOS set doesn't name that
-  address, no label of the set's regions is at it, and no other name passing the same tests has the same value. Names
-  that share a value are all left out, since the listing's operands are numbers and which name an instruction was
-  written with is never known.
+  are, and so is any label a macro makes. A label exported with `.*name` is named alone, as the source calls it, and
+  braces with no label whose first label is exported (`{ .*routine ...}`) take its name for the labels inside.
+- A label no saved file holds (zero page workspace laid out with `ORG 0` and SKIPs) is treated as a `=` name.
+- A `=` name counts as an address when a source that defines one of the set's labels writes it first in a
+  non-immediate operand (`LDA ptr`, `STA (vec),Y`), an instruction of the set's files uses its value as a memory
+  operand, the MOS set doesn't name that address, no label of the set's regions is at it, and no other name passing
+  the same tests has the same value. Names that share a value are all left out, since the listing's operands are
+  numbers and which name an instruction was written with is never known. A ROM's set keeps no globals, since jsbeeb
+  shows them whenever the ROM is merely paged in; `leaveOut` is regular expressions for names to leave out.
 - An OS block is an `LDX #lo` beside an `LDY #hi` that make a label's address.
 - The original disc's files, where its catalogue loads them, are among the images the anchors are chosen to tell
   apart.
 - Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`) or with `=`, outside strings
-  and comments; a scoped name (`start.loop`) is found by its last part. A name that no line, or more than one, defines
-  stops the import.
+  and comments. A scoped name (`start.loop`) is found by following the braces, else by its last part. A name that no
+  line, or more than one, defines stops the import.
 
 What it gets wrong, beyond the baron importer's list: names shared by code that doesn't run together (a sound driver's
 and a title screen's workspace at one zero page address) are left out; a `=` name used only in an expression's later
 term (`LDA base + ptr`) or a macro's argument isn't seen as an operand, and the text search takes a name in a comment
 as readily as one in code; a label in braces that don't start at it (`.routine LDA #0 : {`) loses its scope's name, and
-every label inside is left out; and a file loaded in one place and run in another is only compared with the corpus
-where it loads, so the corpus check never sees Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
+every label inside is left out, as are a routine's private labels in braces that start with a plain label; and a file
+loaded in one place and run in another is only compared with the corpus where it loads, so the corpus check never sees
+Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
 
 ## py8dis disassemblies
 
@@ -276,33 +284,87 @@ since renamed; `py8dis-dump.py` puts them back so such a script runs unchanged.
 
 ## acornaeology's ROMs
 
-[acornaeology](https://github.com/acornaeology) publishes annotated disassemblies of Acorn's ROMs, each with a JSON
-file (dasmos's schema 4) of every statement with its bytes and labels, plus `external_labels` for addresses outside the
-ROM. `import-acornaeology.js` makes a set from one; only BBC BASIC II has a config so far, though the NFS, ANFS and ADFS
-repositories publish the same schema.
+[acornaeology](https://github.com/acornaeology) publishes annotated disassemblies of Acorn's ROMs, each version with a
+JSON file (dasmos's schema 4) of every statement with its bytes and labels, plus `external_labels` for addresses outside
+the ROM. `import-acornaeology.js` makes a set per version from those, one config per repository.
 
-A config has `"importer": "acornaeology"`, an `id` (also the set's file name), a `title`, the `licence`, and
+A config has `"importer": "acornaeology"` and
 
-- `source`, with the `repository`, the `commit`, the `disassembly` JSON's path in it, and the `licenceFile` whose text
-  becomes the set's notice;
-- `rom`, the file under jsbeeb's `public/roms/` the set is anchored on (from the `jsbeeb` package in
-  `node_modules`); the importer refuses a JSON whose bytes aren't that ROM's;
-- `regions`, each a `name`, `start` and `end`. A sideways ROM is cut at `&9000` and `&B000`, for the reason the
-  proposal gives;
-- `globals`, the ranges whose `external_labels` become the set's globals;
-- `bytesPerAnchor` and `spreadAnchors`, as for baron;
-- `home`, the disassembly's page on acornaeology's site. The importer fetches it, and each name whose address has an
-  anchor there (`id="addr-800E"`) links to it. The page only has anchors inside the ROM, so globals get no links, and
-  a name in the ROM with no anchor stops the import.
+- `licence`, and `source`, with the `repository`, the `commit` and the `licenceFile` whose text becomes the sets'
+  notice;
+- `globals`, the ranges whose `external_labels` become each set's globals, and `bytesPerAnchor` and `spreadAnchors`, as
+  for baron;
+- `otherRoms`, by `url` and `key`, copies the anchors must tell apart beside jsbeeb's own (other variants of the ROMs);
+- `check`, the in-memory check's scenarios;
+- `sets`, one per version, each with an `id` (its set's file name), a `title`, the
+  `disassembly` JSON's path, `home`, its page on acornaeology's site, and
+  - `rom`, its file under jsbeeb's `public/roms/`, or the `url` of a copy and its `key`; the importer refuses a JSON
+    whose bytes aren't that ROM's;
+  - `regions`, each a `name`, `start` and `end`. A sideways ROM is cut at `&9000` and `&B000`, for the reason the
+    proposal gives. A region's `sameCodeIn` names other ROMs' images (as the importer's messages do,
+    `b/DFS-1.2.rom bank 0`) that hold the same code, with a few bytes changed; its anchors keep off those bytes, so it
+    matches there too, and the importer refuses an image that differs in more than a tenth of the region. A name on a
+    statement such an image changes is left out, and the importer notes it;
+  - `globals`, if the version's differ from the config's.
 
-Every label of a statement goes to the region holding it. A name outside the ROM is a global if it's in a `globals`
+Each statement's label goes to the region holding it, and so do the labels dasmos puts inside an item (`sub_labels`).
+Where an item has more than one label, the first wins. Code the ROM copies elsewhere to run (an item with a
+`binary_addr`) has no region yet, so its labels are left out. A name outside the ROM is a global if it's in a `globals`
 range and no system set names its address, so the MOS's names for its vectors stay the MOS's; where two share an
-address, the one the JSON's `memory_map` describes wins. Constants and comments are never read. For anchors, the whole
-ROM is one section with no stores, and every bank of every ROM file jsbeeb has that's a whole number of the ROM's size
-is another image to tell it apart from.
+address, the one the JSON's `memory_map` describes wins. Constants and comments are never read. Each name links to its
+address's anchor on the version's page (`id="addr-800E"`), or a name inside an item to the item's; the page only has
+anchors inside the ROM, so globals get no links, and a name in the ROM with no anchor stops the import.
 
-The set isn't `system`, so BASIC's workspace names only name BASIC's own code's operands, and a game run from BASIC
-keeps its own names for the zero page they share.
+For anchors, the whole ROM is one section with no stores. Every bank the ROM's size of every ROM jsbeeb has, the other
+versions' ROMs and `otherRoms` are images to tell it apart from. Then every set is matched against each of those ROMs,
+and every bank of every ROM jsbeeb has, as if it were paged in where the disassembly runs, and the import fails if any
+ROM matches two regions over the same addresses; the importer prints what each ROM matches. The in-memory check puts the
+version a scenario's machine names in `sideways` into sideways RAM.
+
+The sets aren't `system`, so BASIC's workspace names only name BASIC's own code's operands, and a game run from BASIC
+keeps its own names for the zero page they share. But the address column shows a matching set's globals for any
+address no other matching set names, and a ROM's set matches whenever the ROM is paged in, not only while its code
+runs. A filing system's ROM stays paged in while a game runs from disc, so its globals would land on the game's memory;
+such a ROM's set has none until the client can scope them (jsbeeb#1252).
+
+acornaeology's other disassemblies have no sets. ADFS 1.30 (jsbeeb's `b1770/zADFS.ROM`) took its first names from
+Dominic Beesley's ADFS-multi-target, converted by a script in the repository, and its workspace names from that
+reassembly's `workspace.inc`; neither that nor Hoglet's ADFS130 has a licence, and which names acornaeology chose
+itself can't be told from the history. The 6502 Tube client runs in the second processor, whose memory jsbeeb's
+debugger doesn't show; the Econet bridge isn't a BBC Micro; and the Voltmace drivers are disc software.
+
+## NFS and ANFS
+
+`symbols/configs/nfs.json` makes a set for each of the fourteen versions in
+[acorn-nfs](https://github.com/acornaeology/acorn-nfs), `nfs-3.34` to `nfs-3.65` (8K) and `anfs-4.08.53` to `anfs-4.26`
+(16K). jsbeeb has ANFS 4.25; the others come from mdfs.net, whose copies are byte for byte the repository's, except NFS
+3.35D, which mdfs.net doesn't have, and NFS 3.62, where mdfs.net has another variant. Those two come from the repository
+at the config's commit; the BBC Micro ROM Library lists both by the same SHA-1. MAME's `bbc_rom.xml` agrees for 3.34,
+3.34B and ANFS 4.08 to 4.25; its NFS 3.60 is another dump, with a different SHA-1.
+
+jsbeeb's `b/DFS-1.2.rom` is DNFS 1.20, whose first 8K is NFS 3.60 with a few bytes changed, and `us/USDNFS.rom` is DNFS
+1.00, holding NFS 3.40 the same way. So those two versions' `low` and `high` regions have `sameCodeIn` the DNFS, and
+`high` stops where DNFS's DFS starts, with the rest of the NFS a region of its own, `tail`. The names on the statements
+DNFS changes (`title`, `cmd_net_str`, `service_handler` and `return_2`) are left out. On jsbeeb's B with DFS 1.2, NFS
+3.60's names show whenever the ROM is paged in.
+
+NFS 3.62 differs from 3.60 in its version number (in two places), two bytes at `&8C57` and a routine written into the
+padding at `&9FB5`. ANFS 4.26 differs from 4.25 in six bytes below `&9500`, the OSWORD 14 routine at `&A89A-&A931`, and
+a routine in the padding at `&BFF7`. Where the two are the same bytes, two sets' regions would both match and the
+debugger would show neither, so the older version's region names them in both: 3.62's set is its `low` region and its
+`patch`, with 3.60's `high` and `tail` matching it too, and 4.26's is `low`, `middle` and `patch`, with 4.25's `high`
+(cut at `&BFF7`, before the padding) matching it.
+
+The sets have no globals, for the reason above: on jsbeeb's B with DFS 1.2, DNFS is paged in while a game runs from
+disc.
+
+`otherRoms` are mdfs.net's Electron NFS 3.35E, whose second half 3.35D's anchors otherwise matched, and the B's ANFS
+4.21. mdfs.net's ANFS 4.25a (one byte fixed) and its NFS 3.62 match their versions' sets, rightly.
+
+The in-memory check puts each version in sideways RAM, on a B with the 1770 DFS, or a Master for ANFS 4.21 and later,
+and stops at its service entry during `*HELP` (`*HELP NET` on the Master, where a plain `*HELP` never reaches it);
+then on a B with DFS 1.2, NFS 3.60 matches in DNFS. The NFS and ANFS code each copies to the Tube host pages and zero
+page has no region; DFS 2.26's `tube` set already matches DNFS's page 5.
 
 ## PIPELINE
 
@@ -413,6 +475,28 @@ shows a picture over where GRAPHIX goes, matches nothing; the game's own title s
 [daredevil-demis](https://github.com/mattgodbolt/daredevil-demis): one region over its one saved file, which runs where
 it loads. The repository's disc, the one jsbeeb's GitHub disc list serves, is what the source builds. Its modules
 share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so those addresses go unnamed.
+
+## Frogman
+
+`symbols/configs/frogman.json` makes two sets from [frogman](https://github.com/mattgodbolt/frogman), Matt's and Rich's
+1993 game. `game` is the engine (FastI/O, up to `music_data`, which each level's tune loads over) and Gcode, each where
+it runs. `setup` is the title screen loader the rebuilt disc runs from `&0900`, a set of its own since its zero page
+isn't the game's. `leaveOut` drops the source's `OS_MODE` and `OS_CHARS_ROW`, which name `&0258` and `&0262` wrongly
+(they're OSBYTE `&C8`'s and `&D2`'s). The source rebuilds `frogman_rebuilt.ssd`, the disc jsbeeb's GitHub list serves;
+the original `frogman.ssd` decrypts its own loader and Gcode at run time and leaves the same engine and game in memory.
+The in-memory check plays both levels of the rebuilt disc on a Master and a B, and the original on a Master. Stairway to
+Hell's `Unreleased/Frogman-demo.zip` is the original disc byte for byte; its FastI/O differs from the source's in ten
+bytes the code writes, so the corpus check finds it 99% identical.
+
+## XMOS
+
+`symbols/configs/xmos.json` and `xmos-1992.json` each make one set, `rom`, from
+[xmos](https://github.com/mattgodbolt/xmos), Rich's and Matt's Master ROM, cut at `&9000` and `&B000`. The source has
+been fixed and improved since 1992, so `xmos-rom` names the ROM main builds, and `xmos-1992-rom` the original, from the
+`original-licensed` branch (the `original` tag with main's licence), which rebuilds `original.rom` byte for byte.
+Neither keeps globals: XMOS is paged in at BASIC's prompt, and jsbeeb shows a ROM set's globals whenever the ROM is
+paged in. The in-memory check puts each ROM in a Master's sideways RAM, checks no other bank matches, and runs several
+commands, with both sets loaded, so each set matches nothing while the other's ROM is in.
 
 ## level7's disassemblies
 

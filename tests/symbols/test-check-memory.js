@@ -8,14 +8,17 @@ import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
     fetchDisc,
-    fetchRom,
+    loadSets,
     loadTitleSets,
     matchingRegions,
     overlappingRegions,
+    otherTitlesSets,
+    scenarioContext,
+    scenarioMedia,
+    sidewaysRom,
     startMachine,
     typeUntil,
 } from "../../tools/symbols/check-memory.js";
-import { romKey } from "../../tools/symbols/rom-images.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
 
 const set = (regions) => parseSet({ format: 1, title: "t", licence: "CC0-1.0", source: "s", regions });
@@ -61,11 +64,14 @@ describe("overlappingRegions", () => {
     });
 });
 
+const titleConfig = (id) => JSON.parse(readFileSync(path.join(SymbolsDir, "configs", `${id}.json`), "utf8"));
+
 describe("loadTitleSets", () => {
     it("reads a title's shipped sets by their ids", () => {
-        const pipeline = loadTitleSets(path.join(SymbolsDir, "sets"), "pipeline");
+        const pipeline = loadTitleSets(path.join(SymbolsDir, "sets"), titleConfig("pipeline"));
         expect(Object.keys(pipeline)).toContain("game");
         expect(Object.keys(pipeline)).not.toContain("bbc-b-mos-1.20");
+        expect(Object.keys(loadTitleSets(path.join(SymbolsDir, "sets"), titleConfig("xmos")))).toEqual(["rom"]);
         expect(pipeline.game.regions.map(({ name }) => name)).toContain("main_high");
     });
 });
@@ -93,25 +99,11 @@ describe("fetchDisc", () => {
     });
 });
 
-describe("fetchRom", () => {
-    const url = "https://example.com/demo.rom";
-    const rom = new Uint8Array(0x4000).map((_, i) => i * 3);
-
-    afterEach(() => vi.restoreAllMocks());
-
-    it("returns the ROM when its key is the config's", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
-        expect(await fetchRom({ url, key: romKey(rom) })).toEqual(rom);
-    });
-
-    it("refuses a ROM whose key isn't the config's", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(rom));
-        await expect(fetchRom({ url, key: "0".repeat(32) })).rejects.toThrow(`is ROM ${romKey(rom)}`);
-    });
-
-    it("refuses a failed fetch", async () => {
-        vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("gone", { status: 404 }));
-        await expect(fetchRom({ url, key: romKey(rom) })).rejects.toThrow(`Fetching ${url} failed with 404`);
+describe("loadSets", () => {
+    it("loads the sets with the ids given, by their files' names", () => {
+        const loaded = loadSets(path.join(SymbolsDir, "sets"), ["bbc-basic-2"]);
+        expect(Object.keys(loaded)).toEqual(["bbc-basic-2"]);
+        expect(loaded["bbc-basic-2"].title).toBe("BBC BASIC II");
     });
 });
 
@@ -137,7 +129,7 @@ describe("startMachine", () => {
         ...Buffer.from("(C)"),
         0x00,
     ]);
-    const tubeSets = loadTitleSets(path.join(SymbolsDir, "sets"), "dfs-2.26");
+    const tubeSets = loadTitleSets(path.join(SymbolsDir, "sets"), titleConfig("dfs-2.26"));
     const tubeRegions = (session) => matchingRegions(tubeSets, (at) => session.readMemory(at, 1)[0]);
 
     it("puts a sideways ROM in sideways RAM, where the MOS finds it", async () => {
@@ -193,8 +185,82 @@ describe("typeUntil", () => {
         expect(session.registers().pc).toBe(Routine);
     });
 
+    it("runs on when typing ends before the line is read, as a ROM that takes over line input leaves it", async () => {
+        let pc = 0;
+        const late = {
+            addBreakpoint: () => 1,
+            removeBreakpoint: vi.fn(),
+            type: async () => {},
+            registers: () => ({ pc }),
+            runFor: vi.fn(async () => {
+                pc = Routine;
+            }),
+        };
+        await typeUntil(late, "*ALIAS", Routine);
+        expect(late.runFor).toHaveBeenCalledOnce();
+        expect(late.removeBreakpoint).toHaveBeenCalledWith(1);
+    });
+
     it("refuses a command that never reaches it", async () => {
         await session.runUntilPrompt(5);
         await expect(typeUntil(session, "REM", Routine)).rejects.toThrow("Typing REM never reached &0900");
+    });
+});
+
+describe("scenarioContext's check", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it("looks at the sideways bank a moment names, or else at what's paged in", () => {
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        const LoaderBank = 3;
+        const banked = new Uint8Array(0x10000);
+        banked.set([0xa9, 0x00, 0x8d, 0x01], 0x0400);
+        const session = {
+            readMemory: (at, _length, { bank }) => [bank === LoaderBank ? banked[at] : 0],
+            registers: () => ({ pc: 0 }),
+        };
+        const results = [];
+        const { check } = scenarioContext(session, { loader: sets.loader }, null, undefined, results);
+        check("in the bank", ["loader/main"], { bank: LoaderBank });
+        check("paged in", []);
+        check("paged in, wrongly expected", ["loader/main"]);
+        expect(results).toEqual([true, true, false]);
+    });
+});
+
+describe("sidewaysRom", () => {
+    it("takes the file an assembled ROM's build saves, and refuses one it doesn't", async () => {
+        const saved = new Map([["build.rom", Uint8Array.from([1, 2, 3])]]);
+        expect(await sidewaysRom({ rom: { file: "build.rom" } }, saved)).toEqual(Uint8Array.from([1, 2, 3]));
+        await expect(sidewaysRom({ rom: { file: "other.rom" } }, saved)).rejects.toThrow(
+            "The build saves no other.rom",
+        );
+    });
+
+    it("has none for a config with no ROM, or one jsbeeb has", async () => {
+        expect(await sidewaysRom({}, null)).toBeNull();
+        expect(await sidewaysRom({ rom: "BASIC.ROM" }, null)).toBeNull();
+    });
+});
+
+describe("scenarioMedia", () => {
+    it("boots the title's disc and ROM unless the machine names another of the checkout's", () => {
+        const rom = Uint8Array.from([9]);
+        expect(scenarioMedia({}, "/src", "/src/game.ssd", rom)).toEqual({ disc: "/src/game.ssd", rom });
+        const fromCheckout = scenarioMedia({ disc: "orig.ssd", rom: "README.md" }, SymbolsDir, null, rom);
+        expect(fromCheckout.disc).toBe(path.join(SymbolsDir, "orig.ssd"));
+        expect(Buffer.from(fromCheckout.rom).toString("latin1")).toContain("Symbol sets");
+    });
+
+    it("refuses another disc or ROM for a title it didn't build", () => {
+        expect(() => scenarioMedia({ disc: "orig.ssd" }, undefined, null, null)).toThrow("Only an assembled title");
+        expect(() => scenarioMedia({ rom: "orig.rom" }, undefined, null, null)).toThrow("Only an assembled title");
+    });
+});
+
+describe("otherTitlesSets", () => {
+    it("keys another title's sets by its config id and set id", () => {
+        const others = otherTitlesSets(path.join(SymbolsDir, "sets"), path.join(SymbolsDir, "configs"), ["xmos-1992"]);
+        expect(Object.keys(others)).toEqual(["xmos-1992-rom"]);
     });
 });
