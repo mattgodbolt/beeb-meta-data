@@ -160,9 +160,10 @@ exits 1. Since files sit at their load addresses, code a program moves to where 
 titles' files that load there.
 
 The in-memory check boots the title's disc in a headless jsbeeb (a B with DFS 1.2 unless the scenarios' `machines`
-names another model, a second processor, or no SHIFT+BREAK) and, at each moment a scenario picks, lists the regions
-whose anchors all match. A moment fails unless that's exactly the regions expected, or if two matching regions
-overlap (of one set or two), since the debugger then shows neither.
+names another model, a second processor, or no SHIFT+BREAK, or for an assembled title another `disc` or `rom` of its
+checkout) and, at each moment a scenario picks, lists the regions whose anchors all match, in whatever is paged in or
+in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
+regions overlap (of one set or two), since the debugger then shows neither.
 
 The corpus check doesn't take an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb
 has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
@@ -194,40 +195,47 @@ A beebasm title's config differs from a baron title's in a few ways.
   none), since beebasm finds an INCLUDE from where it runs rather than from the file that INCLUDEs it.
 - A region names a saved file, `file`, as its SAVE writes it (`"../build/CODE"`), instead of a section, and can be cut
   with `from` and `to`. beebasm has no sections; a SAVE writes whatever is in memory between two addresses.
+- `rom`, for a sideways ROM, is `{"file": ...}`, the saved file that is the ROM. Its key is the sets' `madeFrom`, the
+  anchors tell it apart from every ROM jsbeeb has, and the in-memory check puts it in sideways RAM.
 - There's no `defines`, `stripScope`, `tableSizes`, `moves`, `globalsSections` or `leftToSystemSets` yet, as nothing
   has needed them.
 
 The build copies the checkout (a SAVE writes wherever its source says) and runs beebasm with `-v -dd -labels` on a
 wrapper that INCLUDEs the main source and then PRINTs each name the sources assign with `=`, since beebasm's dumps
 hold labels only. A name the wrapper can't PRINT, because it was assigned inside braces or a loop, is dropped and the
-build run again.
+build run again. A file a PUTFILE, PUTBASIC or PUTTEXT can't open (one the source's own build generates, like
+Frogman's maps) gets an empty stand-in, since only the disc image would hold it.
 
 Names and anchors come out much as for baron, with these differences.
 
 - beebasm doesn't say where a saved file starts, so the importer takes the address, among those listed before its
   SAVE, from which the file agrees with every statement it covers and covers the most. Its statements are those in
-  memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it.
-  SKIPTO and ALIGN padding never anchors.
+  memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it, and
+  only statements that show bytes count. SKIPTO and ALIGN padding never anchors.
 - A label in a scope with no label of its own (a FOR loop's pass, a macro's call) is left out, as baron's `@` scopes
-  are.
-- A `=` name counts as an address when the sources write it first in a non-immediate operand (`LDA ptr`,
-  `STA (vec),Y`), an instruction of the set's files uses its value as a memory operand, the MOS set doesn't name that
-  address, no label of the set's regions is at it, and no other name passing the same tests has the same value. Names
-  that share a value are all left out, since the listing's operands are numbers and which name an instruction was
-  written with is never known.
+  are, and so is any label a macro makes. A label exported with `.*name` is named alone, as the source calls it, and
+  braces with no label whose first label is exported (`{ .*routine ...}`) take its name for the labels inside.
+- A label no saved file holds (zero page workspace laid out with `ORG 0` and SKIPs) is treated as a `=` name.
+- A `=` name counts as an address when a source that defines one of the set's labels writes it first in a
+  non-immediate operand (`LDA ptr`, `STA (vec),Y`), an instruction of the set's files uses its value as a memory
+  operand, the MOS set doesn't name that address, no label of the set's regions is at it, and no other name passing
+  the same tests has the same value. Names that share a value are all left out, since the listing's operands are
+  numbers and which name an instruction was written with is never known. A ROM's set keeps no globals, since jsbeeb
+  shows them whenever the ROM is merely paged in; `leaveOut` is regular expressions for names to leave out.
 - An OS block is an `LDX #lo` beside an `LDY #hi` that make a label's address.
 - The original disc's files, where its catalogue loads them, are among the images the anchors are chosen to tell
   apart.
 - Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`) or with `=`, outside strings
-  and comments; a scoped name (`start.loop`) is found by its last part. A name that no line, or more than one, defines
-  stops the import.
+  and comments. A scoped name (`start.loop`) is found by following the braces, else by its last part. A name that no
+  line, or more than one, defines stops the import.
 
 What it gets wrong, beyond the baron importer's list: names shared by code that doesn't run together (a sound driver's
 and a title screen's workspace at one zero page address) are left out; a `=` name used only in an expression's later
 term (`LDA base + ptr`) or a macro's argument isn't seen as an operand, and the text search takes a name in a comment
 as readily as one in code; a label in braces that don't start at it (`.routine LDA #0 : {`) loses its scope's name, and
-every label inside is left out; and a file loaded in one place and run in another is only compared with the corpus
-where it loads, so the corpus check never sees Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
+every label inside is left out, as are a routine's private labels in braces that start with a plain label; and a file
+loaded in one place and run in another is only compared with the corpus where it loads, so the corpus check never sees
+Nevryon's CODE (loaded at `&0E00`, run at `&1100`).
 
 ## py8dis disassemblies
 
@@ -467,6 +475,28 @@ shows a picture over where GRAPHIX goes, matches nothing; the game's own title s
 [daredevil-demis](https://github.com/mattgodbolt/daredevil-demis): one region over its one saved file, which runs where
 it loads. The repository's disc, the one jsbeeb's GitHub disc list serves, is what the source builds. Its modules
 share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so those addresses go unnamed.
+
+## Frogman
+
+`symbols/configs/frogman.json` makes two sets from [frogman](https://github.com/mattgodbolt/frogman), Matt's and Rich's
+1993 game. `game` is the engine (FastI/O, up to `music_data`, which each level's tune loads over) and Gcode, each where
+it runs. `setup` is the title screen loader the rebuilt disc runs from `&0900`, a set of its own since its zero page
+isn't the game's. `leaveOut` drops the source's `OS_MODE` and `OS_CHARS_ROW`, which name `&0258` and `&0262` wrongly
+(they're OSBYTE `&C8`'s and `&D2`'s). The source rebuilds `frogman_rebuilt.ssd`, the disc jsbeeb's GitHub list serves;
+the original `frogman.ssd` decrypts its own loader and Gcode at run time and leaves the same engine and game in memory.
+The in-memory check plays both levels of the rebuilt disc on a Master and a B, and the original on a Master. Stairway to
+Hell's `Unreleased/Frogman-demo.zip` is the original disc byte for byte; its FastI/O differs from the source's in ten
+bytes the code writes, so the corpus check finds it 99% identical.
+
+## XMOS
+
+`symbols/configs/xmos.json` and `xmos-1992.json` each make one set, `rom`, from
+[xmos](https://github.com/mattgodbolt/xmos), Rich's and Matt's Master ROM, cut at `&9000` and `&B000`. The source has
+been fixed and improved since 1992, so `xmos-rom` names the ROM main builds, and `xmos-1992-rom` the original, from the
+`original-licensed` branch (the `original` tag with main's licence), which rebuilds `original.rom` byte for byte.
+Neither keeps globals: XMOS is paged in at BASIC's prompt, and jsbeeb shows a ROM set's globals whenever the ROM is
+paged in. The in-memory check puts each ROM in a Master's sideways RAM, checks no other bank matches, and runs several
+commands, with both sets loaded, so each set matches nothing while the other's ROM is in.
 
 ## level7's disassemblies
 

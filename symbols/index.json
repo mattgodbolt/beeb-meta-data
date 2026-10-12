@@ -395,6 +395,39 @@
       }
     },
     {
+      "url": "sets/frogman-game.json",
+      "licence": "MIT",
+      "regions": {
+        "engine": {
+          "start": "0x0700",
+          "end": "0x0c7a",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0967", "bytes": "a50a8502a900" }]
+        },
+        "game": {
+          "start": "0x4800",
+          "end": "0x5800",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x48aa", "bytes": "bd974c8d00fe" },
+            { "at": "0x5027", "bytes": "a41288840ba511" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/frogman-setup.json",
+      "licence": "MIT",
+      "regions": {
+        "setup": {
+          "start": "0x0900",
+          "end": "0x0a02",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x093a", "bytes": "a000b1703019" }]
+        }
+      }
+    },
+    {
       "url": "sets/hopper-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -1162,6 +1195,70 @@
             { "at": "0x2d80", "bytes": "2b2c0d083332" },
             { "at": "0x4a60", "bytes": "03033c3d3e3f" }
           ]
+        }
+      }
+    },
+    {
+      "url": "sets/xmos-1992-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8459", "bytes": "584d4f5300a9ff" },
+            { "at": "0x883f", "bytes": "5aa904a200a000" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x900f", "bytes": "fadaa981a0ff" },
+            { "at": "0x9806", "bytes": "5aa002b1ae206e96" },
+            { "at": "0xa156", "bytes": "42524b054f52" },
+            { "at": "0xae55", "bytes": "414e44800041" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0xb001", "bytes": "ca014e4f54ac" }]
+        }
+      }
+    },
+    {
+      "url": "sets/xmos-rom.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x8000",
+          "end": "0x9000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x8459", "bytes": "584d4f5300a9ff" },
+            { "at": "0x8844", "bytes": "5aa904a200a000" }
+          ]
+        },
+        "middle": {
+          "start": "0x9000",
+          "end": "0xb000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x9014", "bytes": "fadaa981a0ff" },
+            { "at": "0x980a", "bytes": "a5ae8d7d9ca5af" },
+            { "at": "0xa169", "bytes": "42524b054f52" },
+            { "at": "0xae68", "bytes": "414e44800041" }
+          ]
+        },
+        "high": {
+          "start": "0xb000",
+          "end": "0xc000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0xb002", "bytes": "4483004d4f56" }]
         }
       }
     }

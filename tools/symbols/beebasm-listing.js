@@ -19,10 +19,13 @@ const InstructionText = /^((?:[0-9A-F]{2} ){1,3}) *([A-Z]{3})(?: (.*))?$/;
 const DataText = /^((?:[0-9A-F]{2} ?)*)(\.\.\.)?\s*(INCBIN\b.*)?$/;
 const LabelLine = /^\.([A-Za-z_]\w*)$/;
 const SaveLine = /^Saving file '(.*)'$/;
+const MacroStartLine = /^Macro \w+:$/;
+const MacroEndLine = /^End macro \w+$/;
 const DumpEntry = /'([^']*)':(-?\d+)L/g;
 const MemoryOperand = /^\(?&([0-9A-F]{1,4})\b/;
 const BranchMnemonics = new Set(["BCC", "BCS", "BEQ", "BMI", "BNE", "BPL", "BVC", "BVS", "BRA"]);
 const Separator = ".";
+export const UnnamedScope = "{}";
 
 /**
  * @typedef {object} ListedStatement
@@ -35,7 +38,7 @@ const Separator = ".";
  * @property {boolean} truncated - an EQUS or INCBIN, whose bytes the listing cuts at three
  * @property {boolean} skip - a SKIP, whose bytes the listing doesn't show
  *
- * @typedef {{order: number, name: string}} ListedLabel
+ * @typedef {{order: number, name: string, inMacro: boolean}} ListedLabel - `inMacro` for one a macro's call made
  * @typedef {{order: number, file: string}} ListedSave
  */
 
@@ -57,7 +60,10 @@ export function parseBeebasmListing(text, printPrefix) {
     const labels = [];
     const saves = [];
     const printed = new Map();
+    let macroDepth = 0;
     text.split(/\r\n|\r|\n/).forEach((line, order) => {
+        if (MacroStartLine.test(line)) macroDepth++;
+        else if (MacroEndLine.test(line)) macroDepth--;
         if (line.startsWith(`${printPrefix}:`)) {
             const [name, ...value] = line.slice(printPrefix.length + 1).split(":");
             printed.set(name, value.join(":").trim());
@@ -65,7 +71,7 @@ export function parseBeebasmListing(text, printPrefix) {
         }
         const label = LabelLine.exec(line);
         if (label) {
-            labels.push({ order, name: label[1] });
+            labels.push({ order, name: label[1], inMacro: macroDepth > 0 });
             return;
         }
         const save = SaveLine.exec(line);
@@ -124,17 +130,48 @@ export function parseLabelDump(text) {
 }
 
 /**
- * A dumped label's name, its scopes joined with `.`, and whether it's inside a scope beebasm made up (a
- * brace with no label, a FOR loop's pass or a macro's call), however far out: one whose own identifier
- * no label has.
+ * A dumped label's name, its scopes joined with `.`, whether it's inside a scope beebasm made up (a brace
+ * with no label, a FOR loop's pass or a macro's call), however far out: one whose own identifier no label
+ * has, and how the source qualifies it (`written`, as definitionsIn does). A label the source
+ * exported (`.*name`, in `exported` as it's written) is named alone, at the top level, as the source uses
+ * it, and a made-up scope `scopeNames` names takes that name.
  * @param {Set<string>} labelled - every identifier the dump holds
+ * @param {Set<string>} [exported]
+ * @param {Map<string, string>} [scopeNames] - see exportedScopeNames
  */
-export function labelName(identifier, labelled) {
+export function labelName(identifier, labelled, exported = new Set(), scopeNames = new Map()) {
     const parts = identifier.split(Separator).filter(Boolean);
     const scopes = parts.slice(0, -1).map((_, i) => `${Separator}${parts.slice(0, i + 1).join(Separator)}`);
+    const made = scopes.map((scope) => !labelled.has(scope));
+    const plain = parts.map((part, i) => (made[i] ? UnnamedScope : part)).join(Separator);
+    if (exported.has(plain)) return { name: parts.at(-1), scope: [], internal: false, written: plain };
+    const named = parts.map((part, i) => (made[i] ? (scopeNames.get(scopes[i]) ?? part) : part));
+    const written = named.map((part, i) => (made[i] && !scopeNames.has(scopes[i]) ? UnnamedScope : part));
     return {
-        name: parts.join(Separator),
-        scope: parts.slice(0, -1),
-        internal: scopes.some((scope) => !labelled.has(scope)),
+        name: named.join(Separator),
+        scope: named.slice(0, -1),
+        internal: made.some((isMade, i) => isMade && !scopeNames.has(scopes[i])),
+        written: written.join(Separator),
     };
+}
+
+/**
+ * Names for the braces with no label whose first label the source exported, `{ .*routine ... }`, as a
+ * routine with private labels is often written: each such scope's identifier, to its exported label.
+ * @param {string[]} identifiers - the dump's, in its order
+ * @param {Set<string>} labelled
+ * @param {Set<string>} exported
+ */
+export function exportedScopeNames(identifiers, labelled, exported) {
+    const first = new Map();
+    for (const identifier of identifiers) {
+        const scope = identifier.slice(0, identifier.lastIndexOf(Separator));
+        if (scope && !labelled.has(scope) && !first.has(scope)) first.set(scope, identifier);
+    }
+    const out = new Map();
+    for (const [scope, identifier] of first) {
+        const { name, scope: inside } = labelName(identifier, labelled, exported);
+        if (!inside.length && identifier !== `${Separator}${name}`) out.set(scope, name);
+    }
+    return out;
 }
