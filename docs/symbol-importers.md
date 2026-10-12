@@ -561,12 +561,24 @@ game's turn times out stops the typing early.
 Monsters, Cyborg Warriors, Kix, Frak, Zalaga, Dare Devil Denis, Bug Eyes II, Omega Orb, Myorem, Project Thesius, The
 Last Ninja, The Sentinel, Contraption, Skirmish, Elixir, Future Shock, Kissin' Kousins, Eagle's Wing, Nightshade, Sabre
 Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR,
-Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission and Bruce Lee were added that way, with Hopper,
-Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
+Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee, 3D Pool, Atic Atac, Bonecruncher,
+Castle Quest, Citadel, Codename Droid, Doctor Who and the Mines of Terror, Doctor Who and the Warlord, Escape from
+Enthar Seven, Firetrack, Fortress, Killer Gorilla, Knight Lore, Lode Runner, Moon Raider, Palace of Magic, Ravenskull,
+Rick Hanson, Shark, Sim, Space Agent Zelda Meets the Bug Eyes, Space Hi-way, Spy Hunter, Star Wars, Starquake, Stryker's
+Run, The Hunt, The Way of the Exploding Fist and Vindaloo were added that way, with Hopper, Super Invaders, Arcadians,
+Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
 check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
 Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
 `avoid`s that half and sits in the weapon tables, which Last Ninja 2 doesn't share. Zalaga has no region for its
 run-once loader, which a cheat disc patches by a tenth while keeping its anchors.
+
+The enhanced versions of By Fair Means or Foul and Stryker's Run, and Castle Quest, are checked on a Master: the
+first two want its shadow and sideways RAM, and Castle Quest's loader stops with an error on a B. Each enhanced set
+names only its `main`, which is all that differs from the standard version, and its check plays the standard version
+too. Citadel is checked on a cheat disc, since the original's loader misses a key pressed for less than a second or
+two. The Hunt's file is of the tape version, whose code the disc version has moved, so its set names only the part from
+&350A that the two share. Escape from Enthar Seven's added code begins with Rick Hanson's, byte for byte, so its anchor
+`avoid`s that.
 
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
 `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists
