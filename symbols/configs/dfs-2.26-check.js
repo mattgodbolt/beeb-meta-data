@@ -19,8 +19,8 @@ const Tube = ["tube/page4", "tube/page5"];
 const finish = (session) => runSeconds(session, CommandSecs);
 
 /**
- * Holds Z through a power-on reset, which puts the DFS in its 8271 compatibility mode. Through a soft BREAK
- * the DFS puts its saved workspace back over the OSBYTE hook it has just made, and the next OSBYTE meets a BRK.
+ * Holds Z through a power-on reset, which puts the DFS in its 8271 compatibility mode (a soft BREAK won't do;
+ * docs/symbol-importers.md says why).
  */
 async function compatibility8271(session) {
     session.keyDownRaw(BBC.Z);

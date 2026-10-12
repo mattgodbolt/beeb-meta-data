@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createZipBlob } from "jsbeeb/src/archive.js";
+import { RomsDir } from "../../tools/jsbeeb.js";
 import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
@@ -165,8 +167,10 @@ describe("startMachine", () => {
 
     it("starts the model asked for", async () => {
         const session = await startMachine(null, { model: "B1770", autoboot: false });
+        const header = (bank) => Buffer.from(session.readMemory(0x8000, 0x20, { bank })).toString("latin1");
+        const dfs = readFileSync(path.join(RomsDir, "b1770/dfs1770.rom")).subarray(0, 0x20).toString("latin1");
         try {
-            expect(session.modelName).toBe("B1770");
+            expect(Array.from({ length: 16 }, (_, bank) => header(bank))).toContain(dfs);
         } finally {
             session.destroy();
         }
