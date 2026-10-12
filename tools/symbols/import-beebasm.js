@@ -23,9 +23,10 @@ import { parseArgs } from "node:util";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors, storesIn } from "./anchor-chooser.js";
 import { BuildOptions, BuildUsage, PrintPrefix, withBeebasmBuild } from "./beebasm-build.js";
-import { labelName, parseBeebasmListing, parseLabelDump } from "./beebasm-listing.js";
+import { exportedScopeNames, labelName, parseBeebasmListing, parseLabelDump } from "./beebasm-listing.js";
 import { readMosSets, SymbolsDir } from "./build-index.js";
 import { placedFiles } from "./placed-files.js";
+import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 import { evaluate, isOnGitHub, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
 
 const AddressLimit = 0x10000;
@@ -53,14 +54,20 @@ function lastAtMost(sorted, key, keyOf) {
 
 /**
  * The statements in memory when a SAVE runs: of those listed before it, each that nothing listed later
- * has assembled over.
+ * has assembled over. An EQUS, INCBIN or SKIP, whose bytes the listing doesn't all show, reaches the next
+ * statement listed.
  */
 function statementsInMemory(statements, before) {
     const owner = new Map();
-    for (const statement of statements) {
-        if (statement.order > before) break;
-        for (let i = 0; i < Math.max(1, statement.bytes.length); i++) owner.set(statement.address + i, statement);
-    }
+    statements.forEach((statement, i) => {
+        if (statement.order > before) return;
+        const next = statements[i + 1];
+        const reach =
+            (statement.truncated || statement.skip) && next?.address > statement.address
+                ? next.address - statement.address
+                : Math.max(1, statement.bytes.length);
+        for (let at = 0; at < reach; at++) owner.set(statement.address + at, statement);
+    });
     return [...new Set(owner.values())]
         .filter((statement) => owner.get(statement.address) === statement)
         .sort((a, b) => a.address - b.address);
@@ -74,7 +81,8 @@ const agrees = (statement, data, start) =>
 
 /**
  * Where a saved file starts, which the listing doesn't say: the address, of a statement or label listed
- * before its SAVE, from which the file agrees with every statement it covers and covers the most.
+ * before its SAVE, from which the file agrees with every statement it covers and covers the most that
+ * show bytes.
  */
 export function savedStart(name, data, inMemory, labelAddresses) {
     const starts = [...new Set([...inMemory.map((s) => s.address), ...labelAddresses])].sort((a, b) => a - b);
@@ -84,11 +92,12 @@ export function savedStart(name, data, inMemory, labelAddresses) {
         const first = lastAtMost(inMemory, start - 1, (s) => s.address) + 1;
         const last = lastAtMost(inMemory, start + data.length - 1, (s) => s.address);
         const covered = inMemory.slice(first, last + 1);
-        if (!covered.length || !covered.every((statement) => agrees(statement, data, start))) continue;
-        if (covered.length > bestCount) {
+        const count = covered.filter((statement) => statement.bytes.length).length;
+        if (!count || !covered.every((statement) => agrees(statement, data, start))) continue;
+        if (count > bestCount) {
             best = [start];
-            bestCount = covered.length;
-        } else if (covered.length === bestCount) best.push(start);
+            bestCount = count;
+        } else if (count === bestCount) best.push(start);
     }
     if (best.length !== 1)
         throw new Error(
@@ -104,18 +113,23 @@ export function savedStart(name, data, inMemory, labelAddresses) {
  * labels, every label, and the `=` names that hold numbers.
  * @param {ReturnType<typeof import("./beebasm-build.js").assemble>} build
  */
-export function beebasmBuild({ listing, dump, saved, names, operandNames, definitions }) {
+export function beebasmBuild({ listing, dump, saved, names, operandNames, definitions, exported = new Set() }) {
     const parsed = parseBeebasmListing(listing, PrintPrefix);
     const dumped = parseLabelDump(dump);
     if (dumped.length !== parsed.labels.length)
         throw new Error(`The listing shows ${parsed.labels.length} labels and the dump ${dumped.length}`);
     const labelled = new Set(dumped.map(({ identifier }) => identifier));
-    const labels = parsed.labels.map(({ order, name }, i) => {
+    const scopeNames = exportedScopeNames(
+        dumped.map(({ identifier }) => identifier),
+        labelled,
+        exported,
+    );
+    const labels = parsed.labels.map(({ order, name, inMacro }, i) => {
         const { identifier, address } = dumped[i];
-        const qualified = labelName(identifier, labelled);
+        const qualified = labelName(identifier, labelled, exported, scopeNames);
         if (qualified.name.split(".").at(-1) !== name)
             throw new Error(`The listing's label ${i}, ${name}, is ${identifier} in the dump`);
-        return { order, address, ...qualified };
+        return { order, address, inMacro, ...qualified };
     });
     const constants = new Map();
     for (const name of names) {
@@ -214,15 +228,21 @@ class Importer {
     /**
      * @param {{name: string, data: Uint8Array}[]} discFiles - the original disc's files, placed where they load
      * @param {Set<number>} system - addresses a system set names
+     * @param {{name: string, bytes: Uint8Array}[] | undefined} otherRoms - for a ROM's config, the ROMs its
+     *     anchors tell it apart from: every one jsbeeb has, unless given
      */
-    constructor(config, build, discFiles, system) {
-        this.config = config;
+    constructor(config, build, discFiles, system, otherRoms) {
         this.build = build;
+        const rom = config.rom === undefined ? null : this.file(config.rom.file);
+        this.config = rom ? { ...config, madeFrom: [romKey(rom.data)] } : config;
         this.system = system;
         this.errors = [];
         this.notes = [];
         this.reasons = [];
         this.labelAddresses = new Set(build.labels.map(({ address }) => address));
+        this.written = new Map(build.labels.map(({ name, written }) => [name, written]));
+        const saved = new Set([...build.files.values()].flatMap((file) => file.labels));
+        this.unsavedLabels = build.labels.filter((label) => !label.internal && !label.inMacro && !saved.has(label));
         const programFiles = new Set(config.sets.flatMap((spec) => spec.regions.map((r) => r.file)));
         this.images = [
             ...[...build.files.values()].map((file) => ({
@@ -235,7 +255,20 @@ class Importer {
                 memory: new Map([...data].map((byte, i) => [load + i, byte])),
                 program: false,
             })),
+            ...(rom ? romImages(otherRoms ?? otherRomsThan(null, rom.data.length), rom.start, rom.data.length) : []),
         ];
+    }
+
+    /** Where a name is defined: where the source's scopes say, else wherever its last part is. */
+    placesOf(name) {
+        for (const written of [this.written.get(name), name]) {
+            const exact = this.build.definitions.get(written) ?? [];
+            if (exact.length === 1) return exact;
+        }
+        const last = name.split(".").at(-1);
+        return [...this.build.definitions]
+            .filter(([defined]) => defined.split(".").at(-1) === last)
+            .flatMap(([, places]) => places);
     }
 
     lookup(name) {
@@ -299,6 +332,10 @@ class Importer {
                     dropped.push([label.name, label.address, "in a scope beebasm names itself"]);
                     continue;
                 }
+                if (label.inMacro) {
+                    dropped.push([label.name, label.address, "made by a macro"]);
+                    continue;
+                }
                 const homes = regions.filter((region) => region.file === file && holds(region, label.address));
                 if (homes.length !== 1) {
                     dropped.push([label.name, label.address, "in no region"]);
@@ -310,12 +347,13 @@ class Importer {
 
         const code = files.flatMap((file) => file.statements.filter((s) => s.code && s.target !== null));
         const byValue = new Map();
-        for (const [name, value] of this.build.constants) {
-            if (value < 0 || value >= AddressLimit || !this.build.operandNames.has(name)) continue;
+        const valued = [...this.build.constants, ...this.unsavedLabels.map(({ name, address }) => [name, address])];
+        for (const [name, value] of valued) {
+            if (value < 0 || value >= AddressLimit || !this.build.operandNames.has(name.split(".").at(-1))) continue;
             if (!byValue.has(value)) byValue.set(value, []);
             byValue.get(value).push(name);
         }
-        const order = new Map([...this.build.constants.keys()].map((name, i) => [name, i]));
+        const order = new Map(valued.map(([name], i) => [name, i]));
         const labelled = new Set(regions.flatMap((region) => [...named.get(region).keys()]));
         for (const [value, names] of byValue) {
             const uses = code.filter((statement) => statement.target === value);
@@ -354,10 +392,7 @@ class Importer {
         const every = [...regions.flatMap((region) => [...region.symbols.keys()]), ...globals.keys()];
         const twice = [...new Set([...repeated, ...every.filter((name, i) => every.indexOf(name) !== i)])].sort();
         if (twice.length) throw new Error(`${spec.id}: names given twice: ${twice.join(", ")}`);
-        // A scoped name's label is written as its last part.
-        const definitions = new Map(
-            every.map((name) => [name, this.build.definitions.get(name.split(".").at(-1)) ?? []]),
-        );
+        const definitions = new Map(every.map((name) => [name, this.placesOf(name)]));
         const places = isOnGitHub(this.config) ? onePlaceEach(spec.id, every, definitions, this.errors) : null;
 
         const { stores } = storesIn(
@@ -377,13 +412,16 @@ class Importer {
 }
 
 /**
- * A title's sets from its beebasm build, as its config describes them.
+ * A title's sets from its beebasm build, as its config describes them. For a ROM's config, whose `rom`
+ * names the saved `file` that is the ROM, that gives the sets' `madeFrom`, and the anchors tell it apart
+ * from other ROMs.
  * @param {ReturnType<typeof beebasmBuild>} build
- * @param {{discFiles?: {name: string, load: number, data: Uint8Array}[], system?: Set<number>}} context
+ * @param {{discFiles?: {name: string, load: number, data: Uint8Array}[], system?: Set<number>,
+ *     otherRoms?: {name: string, bytes: Uint8Array}[]}} context
  */
-export function importBeebasm(config, build, { discFiles = [], system = systemAddresses() } = {}) {
+export function importBeebasm(config, build, { discFiles = [], system = systemAddresses(), otherRoms } = {}) {
     if (config.licence === undefined) throw new Error(`${config.id}: the config gives no licence, so it makes no sets`);
-    const importer = new Importer(config, build, discFiles, system);
+    const importer = new Importer(config, build, discFiles, system, otherRoms);
     const sets = config.sets.map((spec) => ({
         id: spec.id,
         file: `${config.id}-${spec.id}.json`,

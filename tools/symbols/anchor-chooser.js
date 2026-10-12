@@ -69,7 +69,7 @@ const ZeroPageIndexed = "zp,i";
 const Absolute = "abs";
 const AbsoluteIndexed = "abs,i";
 
-/** Stores and read-modify-writes whose target the instruction names, by opcode. */
+/** Stores and read-modify-writes whose target the instruction names, by opcode, with the 65C02's STZ, TSB and TRB. */
 const StoreModes = new Map([
     [0x85, ZeroPage],
     [0x95, ZeroPageIndexed],
@@ -82,6 +82,14 @@ const StoreModes = new Map([
     [0x84, ZeroPage],
     [0x94, ZeroPageIndexed],
     [0x8c, Absolute],
+    [0x64, ZeroPage],
+    [0x74, ZeroPageIndexed],
+    [0x9c, Absolute],
+    [0x9e, AbsoluteIndexed],
+    [0x04, ZeroPage],
+    [0x0c, Absolute],
+    [0x14, ZeroPage],
+    [0x1c, Absolute],
 ]);
 for (const opcode of [0x06, 0x26, 0x46, 0x66, 0xc6, 0xe6]) {
     StoreModes.set(opcode, ZeroPage);

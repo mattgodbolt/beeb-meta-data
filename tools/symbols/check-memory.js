@@ -13,8 +13,9 @@
  * disc in the source repository, with the title built as its importer builds it, for the scenarios that
  * read its files; or `disc`, a disc image in a zip the config names by its URL, its path in the zip and
  * its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by
- * URL and key, is put in sideways RAM. With no SCENARIO, it runs them all, each on a fresh machine. Exits
- * 1 if any moment fails.
+ * URL and key, or as the `file` an assembled title's build saves, is put in sideways RAM. An assembled
+ * title's scenario can boot another `disc` or `rom` of its checkout instead (scenarioMedia). With no
+ * SCENARIO, it runs them all, each on a fresh machine. Exits 1 if any moment fails.
  */
 
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -31,13 +32,14 @@ import { regionMatches } from "jsbeeb/src/symbol-names.js";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir } from "./build-index.js";
 import { romKey } from "./rom-images.js";
-import { BuildOptions, BuildUsage, withTitleSource } from "./title-build.js";
+import { Assemblers, BuildOptions, BuildUsage, importerOf, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
 const Model = "B-DFS1.2";
 const SidewaysBase = 0x8000;
 const SidewaysRamBank = 7;
 const BootTimeoutSecs = 30;
+const LineReadSecs = 2;
 const DefaultKeyFrames = 3;
 export const ReleaseFrames = 2;
 const RandomMinHoldFrames = 5;
@@ -119,12 +121,14 @@ export async function pressKey(session, key, frames = DefaultKeyFrames) {
 
 /**
  * Types a line, which `session.type` ends with RETURN itself, stopping where the PC first reaches `address`,
- * as the command the line starts runs.
+ * as the command the line starts runs. Typing can end before the line is read (by a ROM that takes over
+ * line input, say), so it runs on for a while after.
  */
 export async function typeUntil(session, text, address) {
     const id = session.addBreakpoint("execute", address);
     try {
         await session.type(text);
+        if (session.registers().pc !== address) await session.runFor(LineReadSecs * CyclesPerSecond);
     } finally {
         session.removeBreakpoint(id);
     }
@@ -198,7 +202,8 @@ export async function runScript(session, commands, { shots } = {}) {
 
 /**
  * The context a scenario gets: the machine, the sets, the build's built files, where to save screenshots (if anywhere),
- * `address(set, region, name)` for a symbol's address, and `check(moment, expected)`.
+ * `address(set, region, name)` for a symbol's address, and `check(moment, expected)`, which can take `{ bank }`
+ * to look at that sideways bank instead of the one paged in.
  */
 function scenarioContext(session, sets, filesDir, shots, results) {
     const address = (id, regionName, name) => {
@@ -207,14 +212,15 @@ function scenarioContext(session, sets, filesDir, shots, results) {
         if (!found) throw new Error(`There's no ${name} in ${id}/${regionName}`);
         return found[0];
     };
-    const check = (moment, expected) => {
-        const peek = (at) => session.readMemory(at, 1)[0];
+    const check = (moment, expected, { bank } = {}) => {
+        const peek = (at) => session.readMemory(at, 1, { bank })[0];
         const found = matchingRegions(sets, peek);
         const want = [...expected].sort();
         const overlaps = overlappingRegions(sets, found);
         const ok = found.length === want.length && found.every((r, i) => r === want[i]) && !overlaps.length;
         const pc = session.registers().pc;
-        console.log(`${ok ? "ok  " : "FAIL"} ${moment} (PC ${hex(pc)}): ${found.join(", ") || "nothing"}`);
+        const where = bank === undefined ? `PC ${hex(pc)}` : `PC ${hex(pc)}, bank ${bank}`;
+        console.log(`${ok ? "ok  " : "FAIL"} ${moment} (${where}): ${found.join(", ") || "nothing"}`);
         if (!ok) {
             console.log(`     expected: ${want.join(", ")}`);
             for (const pair of overlaps) console.log(`     overlapping: ${pair}`);
@@ -251,14 +257,23 @@ export async function fetchRom({ url, key }) {
 }
 
 /**
- * Runs `use` with the disc a config's scenarios boot: an assembled title's `source.disc`, in its build,
- * a disc the config's `disc` fetches from an archive, or none for a ROM's config that names none.
+ * Runs `use` with what a config's scenarios boot: for an assembled title, its build and checkout, with
+ * `source.disc` in it if it names one; a disc the config's `disc` fetches from an archive; or no disc,
+ * for a ROM's config that names none.
  */
 async function withTitleDisc(config, options, use) {
-    if (config.source.disc !== undefined)
-        return withTitleSource(config, options, ({ sourceDir, filesDir }) =>
-            use({ disc: path.join(sourceDir, config.source.disc), filesDir }),
+    if (Assemblers.includes(importerOf(config))) {
+        if (config.source.disc === undefined && config.rom === undefined)
+            throw new Error("The config names no disc to boot in source.disc, and no rom");
+        return withTitleSource(config, options, ({ sourceDir, filesDir, saved }) =>
+            use({
+                disc: config.source.disc === undefined ? null : path.join(sourceDir, config.source.disc),
+                sourceDir,
+                filesDir,
+                saved,
+            }),
         );
+    }
     if (config.disc === undefined) {
         if (config.rom === undefined) throw new Error("The config names no disc to boot, in source.disc or disc");
         return use({ disc: null });
@@ -271,6 +286,29 @@ async function withTitleDisc(config, options, use) {
     } finally {
         rmSync(temp, { recursive: true, force: true });
     }
+}
+
+/** The ROM a config puts in sideways RAM: one its build saves, one it fetches, or none for a ROM jsbeeb has. */
+async function sidewaysRom(config, saved) {
+    if (config.rom?.file !== undefined) {
+        const rom = saved?.get(config.rom.file);
+        if (!rom) throw new Error(`The build saves no ${config.rom.file}`);
+        return rom;
+    }
+    return typeof config.rom === "object" ? fetchRom(config.rom) : null;
+}
+
+/**
+ * What a scenario's machine boots: the title's disc and ROM, unless its `machines` entry names a `disc`
+ * or a `rom` of the title's checkout instead (the original release beside the rebuilt one, say).
+ */
+function scenarioMedia(machine, sourceDir, disc, rom) {
+    if ((machine.disc !== undefined || machine.rom !== undefined) && sourceDir === undefined)
+        throw new Error("Only an assembled title's scenarios can boot a disc or ROM of its checkout");
+    return {
+        disc: machine.disc === undefined ? disc : path.join(sourceDir, machine.disc),
+        rom: machine.rom === undefined ? rom : readFileSync(path.join(sourceDir, machine.rom)),
+    };
 }
 
 async function main() {
@@ -293,11 +331,13 @@ async function main() {
     for (const name of wanted) if (!scenarios[name]) throw new Error(`There's no scenario ${name}`);
     if (values.shots) mkdirSync(values.shots, { recursive: true });
     const results = [];
-    const sideways = typeof config.rom === "object" ? await fetchRom(config.rom) : null;
-    await withTitleDisc(config, values, async ({ disc, filesDir }) => {
+    await withTitleDisc(config, values, async ({ disc, sourceDir, filesDir, saved }) => {
+        const sideways = await sidewaysRom(config, saved);
         for (const name of wanted) {
             console.log(`-- ${name}`);
-            const session = await startMachine(disc, machines[name], sideways);
+            const machine = machines[name] ?? {};
+            const media = scenarioMedia(machine, sourceDir, disc, sideways);
+            const session = await startMachine(media.disc, machine, media.rom);
             try {
                 await scenarios[name](scenarioContext(session, sets, filesDir, values.shots, results));
             } finally {

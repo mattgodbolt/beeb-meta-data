@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { labelName, memoryOperand, parseBeebasmListing, parseLabelDump } from "../../tools/symbols/beebasm-listing.js";
+import {
+    exportedScopeNames,
+    labelName,
+    memoryOperand,
+    parseBeebasmListing,
+    parseLabelDump,
+} from "../../tools/symbols/beebasm-listing.js";
 
 const Prefix = "@test";
 const BytesWidth = 11;
@@ -107,8 +113,9 @@ describe("labelName", () => {
             name: "scan_keys.not_down",
             scope: ["scan_keys"],
             internal: false,
+            written: "scan_keys.not_down",
         });
-        expect(labelName(".main", labelled)).toEqual({ name: "main", scope: [], internal: false });
+        expect(labelName(".main", labelled)).toEqual({ name: "main", scope: [], internal: false, written: "main" });
     });
 
     it("marks a label in a scope beebasm named itself: a brace with no label, a FOR loop's pass, a macro's call", () => {
@@ -126,5 +133,25 @@ describe("labelName", () => {
     it("keeps a label in a scope a label of the source's names, whatever that label looks like", () => {
         expect(labelName("._row_0.next", labelled).internal).toBe(false);
         expect(labelName("._private", labelled).internal).toBe(false);
+    });
+
+    it("names an exported label alone, and a routine's private labels after it", () => {
+        const dumped = ["._0.handle_help", "._0.print_loop", ".check_gravity", ".check_gravity.check_fall", "._1.x"];
+        const all = new Set([...labelled, ...dumped]);
+        const exported = new Set(["{}.handle_help", "check_gravity.check_fall"]);
+        const scopeNames = exportedScopeNames(dumped, all, exported);
+        expect([...scopeNames]).toEqual([["._0", "handle_help"]]);
+        expect(labelName("._0.handle_help", all, exported, scopeNames)).toMatchObject({
+            name: "handle_help",
+            internal: false,
+        });
+        expect(labelName("._0.print_loop", all, exported, scopeNames)).toEqual({
+            name: "handle_help.print_loop",
+            scope: ["handle_help"],
+            internal: false,
+            written: "handle_help.print_loop",
+        });
+        expect(labelName(".check_gravity.check_fall", all, exported, scopeNames).name).toBe("check_fall");
+        expect(labelName("._1.x", all, exported, scopeNames).internal).toBe(true);
     });
 });

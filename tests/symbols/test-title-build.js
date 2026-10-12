@@ -114,10 +114,11 @@ describe("withTitleSource", () => {
         }
     });
 
-    it("builds a beebasm title with beebasm, and has no files directory for it", async () => {
+    it("builds a beebasm title with beebasm, and gives its saved files instead of a files directory", async () => {
         const beebasm = stub("beebasm", StubBeebasm);
         const made = await withTitleSource(pinned("beebasm", "main.asm"), { beebasm }, (found) => found);
         expect(made.filesDir).toBeNull();
+        expect([...made.saved]).toEqual([["PROG", Buffer.from("X")]]);
         expect(path.basename(made.sourceDir)).toBe("source");
     });
 });

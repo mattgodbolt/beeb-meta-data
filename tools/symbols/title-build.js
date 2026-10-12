@@ -18,7 +18,7 @@ import { importPy8dis, Py8disOptions, Py8disUsage, withPy8disTitle } from "./imp
 export const BuildOptions = { ...baron.BuildOptions, ...beebasm.BuildOptions, ...Py8disOptions };
 export const BuildUsage = `[--baron <path>] [--beebasm <path>] ${Py8disUsage}; for a level7 title, ${Level7Usage}`;
 
-const Assemblers = [baron.Baron, beebasm.Beebasm];
+export const Assemblers = [baron.Baron, beebasm.Beebasm];
 const Py8dis = "py8dis";
 
 /**
@@ -64,13 +64,15 @@ export function importTitle(configPath, options) {
 
 /**
  * Runs `use` with the checkout of the config's commit and, for a baron title, the directory of its
- * built files (null for a beebasm one, whose SAVEs go where its source says).
- * @param {(made: {sourceDir: string, filesDir: string | null}) => any} use
+ * built files, or for a beebasm one, whose SAVEs go where its source says, each file by its SAVE's name.
+ * @param {(made: {sourceDir: string, filesDir: string | null, saved: Map<string, Uint8Array> | null}) => any} use
  */
 export function withTitleSource(config, options, use) {
     if (assemblerOf(config) === beebasm.Beebasm)
-        return beebasm.withBeebasmBuild(config, options, ({ sourceDir }) => use({ sourceDir, filesDir: null }));
+        return beebasm.withBeebasmBuild(config, options, ({ sourceDir, build }) =>
+            use({ sourceDir, filesDir: null, saved: build.saved }),
+        );
     return baron.withBaronBuild(config, options, ({ sourceDir, buildDir }) =>
-        use({ sourceDir, filesDir: path.join(buildDir, baron.BuildLayout.files) }),
+        use({ sourceDir, filesDir: path.join(buildDir, baron.BuildLayout.files), saved: null }),
     );
 }

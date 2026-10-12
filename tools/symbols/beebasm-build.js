@@ -12,6 +12,7 @@ import path from "node:path";
 
 import { checkAssembler, checkDisc, checkSourceCommit, cloneSource } from "./baron-build.js";
 import { Mnemonics } from "./baron-listing.js";
+import { UnnamedScope } from "./beebasm-listing.js";
 
 export const BuildOptions = { source: { type: "string" }, beebasm: { type: "string" } };
 export const BuildUsage = "[--source <checkout>] [--beebasm <path>]";
@@ -29,11 +30,15 @@ const SavingFile = /^Saving file '(.*)'$/gm;
 const Assignment = /(?:^|:)[ \t]*([A-Za-z_]\w*)[ \t]*=/gm;
 const QuotedOrCharacter = /"(?:[^"]|"")*"|'.'/g;
 const Comment = /[;\\].*$/;
-const Definition = /^[ \t]*(?:\.([A-Za-z_]\w*)|([A-Za-z_]\w*)[ \t]*=(?!=))/;
+const Definition = /^[ \t]*(?:\.(\*?)([A-Za-z_]\w*)|([A-Za-z_]\w*)[ \t]*=(?!=))/;
+const Braces = /[{}]/g;
+const LoneLabel = /^[ \t]*\.\*?([A-Za-z_]\w*)[ \t]*$/;
 const VersionLine = /^beebasm (\d+)\.(\d+)/;
 const UnwritableSave = /^Error: (.*): Could not open object file for writing\.$/m;
+const UnreadablePut = /: error: Error opening file\.\s*\n\s*PUT(?:FILE|BASIC|TEXT)\s+"((?:[^"]|"")*)"/;
+const CmosMemoryMnemonics = ["STZ", "TRB", "TSB"];
 const MemoryOperandName = new RegExp(
-    String.raw`(?:^|[\s:])(?:${[...Mnemonics].join("|")})[ \t]+\(?[ \t]*([A-Za-z_]\w*)`,
+    String.raw`(?:^|[\s:])(?:${[...Mnemonics, ...CmosMemoryMnemonics].join("|")})[ \t]+\(?[ \t]*([A-Za-z_]\w*)`,
     "gim",
 );
 
@@ -61,22 +66,55 @@ export function assignedNames(text) {
 }
 
 /**
- * Each label (`.name`) and `=` name a source defines, with the line it's on, from 1: every statement of a
- * line, outside its strings and its comment.
- * @returns {[string, number][]}
+ * Each label (`.name`, or `.*name`, which beebasm `exported` to the top level) and `=` name a source
+ * defines, with the line it's on, from 1: every statement of a line, outside its strings and its comment.
+ * A name inside braces is qualified as beebasm's label dump has it, with the label of each enclosing
+ * pair's own statement just before its `{` (`routine.loop`). A pair with no such label is named after its
+ * first label if that's exported, as labelName names it, and otherwise gets a part no dumped name has.
+ * @returns {{name: string, line: number, exported: boolean}[]}
  */
-export function definitionLines(text) {
+export function definitionsIn(text) {
+    const scopes = [];
+    const unnamed = [];
+    let loneLabel = null;
     return text.split(/\r\n|\r|\n/).flatMap((line, i) =>
         line
             .replace(QuotedOrCharacter, '""')
             .replace(Comment, "")
             .split(":")
             .flatMap((statement) => {
+                if (!statement.trim()) return [];
                 const match = Definition.exec(statement);
-                return match ? [[match[1] ?? match[2], i + 1]] : [];
+                const found = [];
+                if (match) {
+                    const name = match[2] ?? match[3];
+                    const exported = match[1] === "*";
+                    found.push({ name: [...scopes, name].join("."), line: i + 1, exported });
+                    const top = scopes.length - 1;
+                    if (match[2] !== undefined && unnamed[top]) {
+                        if (exported) scopes[top] = name;
+                        unnamed[top] = false;
+                    }
+                }
+                const braces = statement.match(Braces) ?? [];
+                for (const brace of braces) {
+                    if (brace === "{") {
+                        scopes.push(loneLabel ?? UnnamedScope);
+                        unnamed.push(loneLabel === null);
+                    } else {
+                        scopes.pop();
+                        unnamed.pop();
+                    }
+                    loneLabel = null;
+                }
+                if (!braces.length) loneLabel = LoneLabel.exec(statement)?.[1] ?? null;
+                return found;
             }),
     );
 }
+
+/** definitionsIn's names with their lines. */
+export const definitionLines = (text) => definitionsIn(text).map(({ name, line }) => [name, line]);
 
 /** Every name a source writes first in an instruction's operand, other than after `#`. */
 export function memoryOperandNames(text) {
@@ -105,10 +143,12 @@ function undefinedAt(output, wrapper) {
 
 /**
  * Runs beebasm on the wrapper in `runDir` until every name it PRINTs is one the source assigns at the top
- * level, dropping each that isn't.
+ * level, dropping each that isn't. A file in `workDir` that a PUTFILE, PUTBASIC or PUTTEXT can't open (one the
+ * source's own build generates) gets an empty stand-in, since only a disc image, which this build doesn't make,
+ * would hold it.
  * @returns {{stdout: string, stderr: string, names: string[]}}
  */
-function runWrapped(beebasm, runDir, buildDir, main, names) {
+function runWrapped(beebasm, workDir, runDir, buildDir, main, names) {
     const wrapper = path.join(buildDir, Wrapper);
     const labels = path.join(buildDir, LabelsFile);
     let kept = [...names];
@@ -129,6 +169,15 @@ function runWrapped(beebasm, runDir, buildDir, main, names) {
             mkdirSync(dir, { recursive: true });
             continue;
         }
+        const missing = UnreadablePut.exec(output)?.[1].replaceAll('""', '"');
+        if (missing !== undefined) {
+            const file = path.resolve(runDir, missing);
+            if (existsSync(file) || path.relative(workDir, file).startsWith(".."))
+                throw new Error(`beebasm can't read ${missing}, which the importer won't stand in for`);
+            mkdirSync(path.dirname(file), { recursive: true });
+            writeFileSync(file, "");
+            continue;
+        }
         const line = undefinedAt(output, wrapper);
         // The wrapper's first line is its INCLUDE, so its PRINTs start at line 2.
         const name = line === null ? undefined : kept[line - 2];
@@ -144,28 +193,31 @@ function runWrapped(beebasm, runDir, buildDir, main, names) {
  * Assembles the config's main source (`source.assemble`) in `workDir`, a copy of the checkout, running
  * beebasm in `source.directory` (the root if it names none), as source INCLUDEs are found from there.
  * @returns {{listing: string, dump: string, saved: Map<string, Uint8Array>, names: string[],
- *     operandNames: Set<string>, definitions: Map<string, string[]>}} the listing, the label dump, each
- *     SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the sources write as an
- *     instruction's memory operand, and every place (`<file>#L<line>`, from the root) each name is defined
+ *     operandNames: Set<string>, definitions: Map<string, string[]>, exported: Set<string>}} the listing,
+ *     the label dump, each SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the
+ *     sources write as an instruction's memory operand, every place (`<file>#L<line>`, from the root) each
+ *     name is defined, and the labels written `.*name`, each as definitionsIn qualifies it
  */
 export function assemble(config, workDir, buildDir, beebasm) {
     const runDir = path.join(workDir, config.source.directory ?? ".");
     const main = path.join(workDir, config.source.assemble);
     mkdirSync(buildDir, { recursive: true });
-    const first = runWrapped(beebasm, runDir, buildDir, main, []);
+    const first = runWrapped(beebasm, workDir, runDir, buildDir, main, []);
     const sources = new Set([...first.stderr.matchAll(Including)].map(([, file]) => path.resolve(runDir, file)));
     const texts = [...sources].map((file) => readFileSync(file, "latin1"));
     const definitions = new Map();
+    const exported = new Set();
     [...sources].forEach((file, i) => {
         const fromRoot = path.relative(workDir, file).split(path.sep);
         if (fromRoot[0] === "..") return;
-        for (const [name, line] of definitionLines(texts[i])) {
+        for (const { name, line, exported: isExported } of definitionsIn(texts[i])) {
             if (!definitions.has(name)) definitions.set(name, []);
             definitions.get(name).push(`${fromRoot.join("/")}#L${line}`);
+            if (isExported) exported.add(name);
         }
     });
     const names = [...new Set(texts.flatMap(assignedNames))];
-    const { stdout, names: kept } = runWrapped(beebasm, runDir, buildDir, main, names);
+    const { stdout, names: kept } = runWrapped(beebasm, workDir, runDir, buildDir, main, names);
     const saved = new Map();
     for (const [, file] of stdout.matchAll(SavingFile)) {
         if (saved.has(file)) throw new Error(`${config.source.assemble} saves ${file} twice`);
@@ -178,6 +230,7 @@ export function assemble(config, workDir, buildDir, beebasm) {
         names: kept,
         operandNames: new Set(texts.flatMap(memoryOperandNames)),
         definitions,
+        exported,
     };
 }
 

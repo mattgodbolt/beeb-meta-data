@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { PrintPrefix } from "../../tools/symbols/beebasm-build.js";
 import { checkSet, readMosSets } from "../../tools/symbols/build-index.js";
+import { romKey } from "../../tools/symbols/rom-images.js";
 import {
     beebasmBuild,
     discFilesOf,
@@ -145,6 +146,25 @@ describe("beebasmBuild", () => {
         ]);
     });
 
+    it("drops a statement an EQUS listed later covers past the bytes the listing shows", () => {
+        const overlaid = {
+            ...made(),
+            listing: [
+                instruction(0x2000, [0xa9, 0x05], "LDA #&05"),
+                instruction(0x2002, [0x85, 0x70], "STA &70"),
+                instruction(0x2004, [0x60], "RTS"),
+                "     2000   48 45 4C ...",
+                data(0x2005, [0x00]),
+                "Saving file 'TEXT'",
+            ].join("\n"),
+            dump: "[{}]",
+            saved: new Map([["TEXT", Uint8Array.from([0x48, 0x45, 0x4c, 0x4c, 0x4f, 0x00])]]),
+        };
+        const file = beebasmBuild(overlaid).files.get("TEXT");
+        expect(file.start).toBe(0x2000);
+        expect(file.statements.map((s) => s.address)).toEqual([0x2000, 0x2005]);
+    });
+
     it("refuses a dump that doesn't agree with the listing's labels", () => {
         expect(() => beebasmBuild({ ...made(), dump: dump.replace("'.block'", "'.blob'") })).toThrow("is .blob");
         expect(() => beebasmBuild({ ...made(), dump: "[{'.start':6400L}]" })).toThrow("labels");
@@ -159,6 +179,11 @@ describe("savedStart", () => {
         expect(savedStart("F", Uint8Array.from([1, 2, 3, 4, 5, 6]), inMemory, [])).toBe(0x2000);
         expect(savedStart("F", Uint8Array.from([3, 4, 5, 6]), inMemory, [])).toBe(0x2002);
         expect(savedStart("F", Uint8Array.from([0, 0, 1, 2]), inMemory, [0x1ffe])).toBe(0x1ffe);
+    });
+
+    it("counts only statements that show bytes, so workspace SKIPs can't outvote a file's code", () => {
+        const skips = [0, 1, 2, 3].map((address) => statement(address, []));
+        expect(savedStart("F", Uint8Array.from([1, 2, 3, 4]), [...skips, ...inMemory], [])).toBe(0x2000);
     });
 
     it("refuses a file that agrees with nothing, or that could start in more than one place", () => {
@@ -314,6 +339,63 @@ describe("importBeebasm", () => {
     it("makes no sets from a config with no licence", () => {
         const { licence: _licence, ...unlicensed } = config();
         expect(() => importBeebasm(unlicensed, beebasmBuild(made()), { system })).toThrow("gives no licence");
+    });
+});
+
+describe("importBeebasm on a program with workspace it doesn't save, a macro, and a ROM", () => {
+    const code = [0x85, 0x70, 0xe6, 0x70, 0xa9, 0x01, 0x8d, 0x00, 0x30, 0xa2, 0x42, 0x60];
+    const small = {
+        listing: [
+            ".count",
+            "     0070",
+            ".entry",
+            instruction(0x8000, [0x85, 0x70], "STA &70"),
+            instruction(0x8002, [0xe6, 0x70], "INC &70"),
+            instruction(0x8004, [0xa9, 0x01], "LDA #&01"),
+            instruction(0x8006, [0x8d, 0x00, 0x30], "STA &3000"),
+            "Macro LOADX:",
+            ".inside",
+            instruction(0x8009, [0xa2, 0x42], "LDX #&42"),
+            "End macro LOADX",
+            instruction(0x800b, [0x60], "RTS"),
+            "Saving file 'ROM'",
+        ].join("\n"),
+        dump: "[{'.count':112L,'.entry':32768L,'.entry.inside':32777L}]",
+        saved: new Map([["ROM", Uint8Array.from(code)]]),
+        names: [],
+        operandNames: new Set(["count"]),
+        definitions: new Map(),
+    };
+    const romConfig = {
+        ...config([{ name: "rom", file: "ROM" }]),
+        rom: { file: "ROM" },
+        bytesPerAnchor: 4,
+        spreadAnchors: 1,
+    };
+
+    it("makes a label no saved file holds a global, and leaves out a macro's labels", () => {
+        const { json, dropped } = importBeebasm(romConfig, beebasmBuild(small), { system, otherRoms: [] }).sets[0];
+        expect(json.globals).toEqual({ count: "0x0070" });
+        expect(json.regions.rom.symbols).toEqual({ entry: "0x8000" });
+        expect(dropped).toContainEqual(["entry.inside", 0x8009, "made by a macro"]);
+    });
+
+    it("gives a ROM's set the ROM's key, and tells it apart from other ROMs", () => {
+        const rom = Uint8Array.from(code);
+        const { sets, errors } = importBeebasm(romConfig, beebasmBuild(small), { system, otherRoms: [] });
+        expect(errors).toEqual([]);
+        expect(sets[0].json.madeFrom).toEqual([romKey(rom)]);
+        const [anchor] = sets[0].regions[0].anchors;
+        const outside = code.findIndex(
+            (_, i) => i < anchor.at - 0x8000 || i >= anchor.at - 0x8000 + anchor.data.length,
+        );
+        const copy = Uint8Array.from(rom);
+        copy[outside] ^= 0xff;
+        const withCopy = importBeebasm(romConfig, beebasmBuild(small), {
+            system,
+            otherRoms: [{ name: "copy.rom", bytes: copy }],
+        });
+        expect(withCopy.reasons).toEqual([expect.stringContaining("copy.rom")]);
     });
 });
 

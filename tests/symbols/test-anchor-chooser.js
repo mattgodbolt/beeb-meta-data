@@ -55,6 +55,24 @@ describe("storesIn", () => {
         ]);
     });
 
+    it("counts the 65C02's STZ, TSB and TRB", () => {
+        const { stores } = storesIn(
+            [
+                code(0x1900, [0x64, 0x70]),
+                code(0x1902, [0x9e, 0x00, 0x20]),
+                code(0x1905, [0x0c, 0x00, 0x30]),
+                code(0x1908, [0x14, 0x71]),
+            ],
+            NoTables,
+        );
+        expect(stores.map(({ first, last }) => [first, last])).toEqual([
+            [0x70, 0x70],
+            [0x2000, 0x20ff],
+            [0x3000, 0x3000],
+            [0x71, 0x71],
+        ]);
+    });
+
     it("reaches a table's size where it's given, and not at all for a move", () => {
         const table = { ...code(0x1900, [0x9d, 0x00, 0x01]), base: 0x100 };
         const move = code(0x1903, [0x99, 0x00, 0x04]);
