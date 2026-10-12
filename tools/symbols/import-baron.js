@@ -647,7 +647,7 @@ export async function writeSets({ sets, errors }, { out, titleId, mosSets, other
         const target = path.join(out, file);
         formatted.push([target, await formatJson(json, target)]);
     }
-    const othersFiles = otherTitleIds.filter((id) => id !== titleId).map((id) => `${id}-`);
+    const othersFiles = otherTitleIds.filter((id) => id.startsWith(`${titleId}-`)).map((id) => `${id}-`);
     const isStale = (name) =>
         name.startsWith(`${titleId}-`) &&
         name.endsWith(".json") &&
