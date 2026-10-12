@@ -500,6 +500,23 @@
       }
     },
     {
+      "url": "sets/citadel-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0750",
+          "end": "0x4482",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x13a0", "bytes": "078018080040" },
+            { "at": "0x2504", "bytes": "84018600a032" },
+            { "at": "0x2643", "bytes": "6085018600b99b01" },
+            { "at": "0x3558", "bytes": "6904ca10fb8501" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/codename-droid-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

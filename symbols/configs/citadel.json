@@ -1,0 +1,31 @@
+{
+  "importer": "level7",
+  "id": "citadel",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/citadel-disassembly.txt",
+    "sha256": "4edca22726f6a2692fb71ca7859ff7fc64530525ec2a093f302b0767669d7ef2"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Cheats/CHT_Citadel-Immortality.zip",
+    "image": "Cheats/CHT_Citadel-Immortality.ssd",
+    "key": "fc25ccc79afefbb32fe0eabdb60e9dce"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "citadel-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Citadel",
+      "regions": [
+        {
+          "name": "main",
+          "part": "CITAM",
+          "from": "&0750",
+          "to": "&4482"
+        }
+      ]
+    }
+  ]
+}
