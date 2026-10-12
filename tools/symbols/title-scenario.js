@@ -6,7 +6,17 @@
  */
 
 import { BBC } from "jsbeeb/src/keymap.js";
-import { pressKey, pressRandomKeys, runScript, runSeconds, seededRandom, typeUntil } from "./check-memory.js";
+import {
+    FramesPerSecond,
+    hexAddress,
+    holdUntil,
+    pressKey,
+    pressRandomKeys,
+    runScript,
+    runSeconds,
+    seededRandom,
+    typeUntil,
+} from "./check-memory.js";
 
 const StartHoldFrames = 50;
 const StartWaitSecs = 2;
@@ -20,13 +30,41 @@ const KeyGapSecs = 3;
 const ReplySecs = 2;
 
 /**
- * Presses each key in turn, again and again, until the PC reaches `address`: a title screen often
- * only reads its keys at some moments, or wants one screen's key and then the next's.
+ * A key step as a scenario's options give it: the name of a key in jsbeeb's BBC keymap, pressed for
+ * `frames`; or `NAME:SECS`, held that many seconds, for a loader that only takes a key held a while; or
+ * `NAME:&ADDRESS`, held until the PC reaches the address.
  */
-export async function pressUntil(session, keys, address) {
+export function keyStep(text, frames) {
+    const [name, hold, ...rest] = text.split(":");
+    if (BBC[name] === undefined) throw new Error(`There's no key ${name} in jsbeeb's BBC keymap`);
+    if (hold === undefined) return { key: BBC[name], frames };
+    const shapes = `${text} isn't KEY, KEY:SECS or KEY:&ADDRESS`;
+    if (rest.length) throw new Error(shapes);
+    if (hold.startsWith("&")) return { key: BBC[name], until: hexAddress(hold) };
+    const held = /^\d+(\.\d+)?$/.test(hold) ? Math.round(Number(hold) * FramesPerSecond) : 0;
+    if (!held) throw new Error(`${shapes}, held for a frame or more`);
+    return { key: BBC[name], frames: held };
+}
+
+/** Takes a step; a hold until an address that the PC never reaches says which address. */
+export async function pressStep(session, { key, frames, until }) {
+    if (until === undefined) return pressKey(session, key, frames);
+    try {
+        await holdUntil(session, key, until);
+    } catch (error) {
+        if (!NotReached.test(error.message)) throw error;
+        throw new Error(`Holding a key, the PC never reached &${until.toString(16).toUpperCase()}`, { cause: error });
+    }
+}
+
+/**
+ * Takes each step (`keyStep`'s) in turn, again and again, until the PC reaches `address`: a title screen
+ * often only reads its keys at some moments, or wants one screen's key and then the next's.
+ */
+export async function pressUntil(session, steps, address) {
     for (let tries = 0; tries < StartTries; tries++)
-        for (const key of keys) {
-            await pressKey(session, key, StartHoldFrames);
+        for (const step of steps) {
+            await pressStep(session, step);
             try {
                 await session.runUntilAddress(address, StartWaitSecs);
                 return;
@@ -42,7 +80,7 @@ export async function pressUntil(session, keys, address) {
  * @param {string[]} options.loaded - the regions that match once the game has loaded, before a game
  * @param {string[]} options.playing - the regions that match in a game
  * @param {number} options.loadSecs - how long the disc takes to load the game
- * @param {string[]} options.start - names of keys in jsbeeb's BBC keymap that start a game
+ * @param {string[]} options.start - the key steps (`keyStep`) that start a game
  * @param {[string, string, string]} options.inGame - set, region and name of code that only runs in a game
  * @param {string[]} options.moves - names of the keys to play with
  * @param {number} [options.moments]
@@ -55,7 +93,7 @@ export function playScenario({ loaded, playing, loadSecs, start, inGame, moves, 
         await runScript(session, ["shot loaded"], { shots });
         await pressUntil(
             session,
-            start.map((key) => BBC[key]),
+            start.map((text) => keyStep(text, StartHoldFrames)),
             address(...inGame),
         );
         check(`${inGame[2]}, in a game`, playing);
@@ -75,28 +113,42 @@ export function playScenario({ loaded, playing, loadSecs, start, inGame, moves, 
 
 /**
  * The same for a text adventure: boot, wait for it to load, press `keys` in turn (pages of
- * instructions, an option), then type each command, checking that the game's code reaches `inGame` as
- * it takes the command.
+ * instructions, an option), wait `keysSecs` for the game to load, press `afterKeys` (a RETURN once it
+ * has), then type each command, checking that the game's code reaches `inGame` as it takes the command.
  * @param {object} options
  * @param {string[]} options.loaded
  * @param {string[]} options.playing
  * @param {number} options.loadSecs
- * @param {string[]} [options.keys] - names of keys in jsbeeb's BBC keymap, each pressed briefly
+ * @param {string[]} [options.keys] - key steps (`keyStep`), a key name alone pressed briefly
  * @param {number} [options.keysSecs] - how long the game takes to load after the keys
+ * @param {string[]} [options.afterKeys] - key steps for once it has
  * @param {string[]} options.commands
  * @param {[string, string, string]} options.inGame - set, region and name of code that takes a command
  */
-export function typedScenario({ loaded, playing, loadSecs, keys = [], keysSecs = 0, commands, inGame }) {
+export function typedScenario({
+    loaded,
+    playing,
+    loadSecs,
+    keys = [],
+    keysSecs = 0,
+    afterKeys = [],
+    commands,
+    inGame,
+}) {
     return async ({ session, address, shots, check }) => {
         check("booting", []);
         await runSeconds(session, loadSecs);
         check("loaded, before a game", loaded);
         await runScript(session, ["shot loaded"], { shots });
-        for (const key of keys) {
-            await pressKey(session, BBC[key]);
-            await runSeconds(session, KeyGapSecs);
-        }
+        const pressAll = async (texts) => {
+            for (const text of texts) {
+                await pressStep(session, keyStep(text));
+                await runSeconds(session, KeyGapSecs);
+            }
+        };
+        await pressAll(keys);
         await runSeconds(session, keysSecs);
+        await pressAll(afterKeys);
         for (const command of commands) {
             await typeUntil(session, command, address(...inGame));
             await runSeconds(session, ReplySecs);

@@ -1,48 +1,12 @@
 import { deflateSync, gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { decodeTape, pulsesToRuns, tapeBlocks, tapeCrc, tapeKey, tapeRuns } from "../../tools/registry/tape.js";
+import { block, carrier, data, fileBlocks, LastBlock, le16, le32, plainUef, uef } from "./tape-images.js";
 
-const MaxBlockLength = 256;
-const LastBlock = 0x80;
 const Locked = 0x01;
 const CswRate = 44100;
 
-const le16 = (v) => [v & 0xff, (v >> 8) & 0xff];
-const le32 = (v) => [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >>> 24) & 0xff];
-const be16 = (v) => [(v >> 8) & 0xff, v & 0xff];
-
-function block({ name, load = 0xffff1900, exec = 0xffff8023, number, flags = 0, data, badDataCrc = false }) {
-    const header = [...name].map((c) => c.charCodeAt(0));
-    header.push(0, ...le32(load), ...le32(exec), ...le16(number), ...le16(data.length), flags, 0, 0, 0, 0);
-    const bytes = [0x2a, ...header, ...be16(tapeCrc(Uint8Array.from(header)))];
-    if (data.length) bytes.push(...data, ...be16(tapeCrc(Uint8Array.from(data)) ^ (badDataCrc ? 1 : 0)));
-    return bytes;
-}
-
-function fileBlocks(name, data, { load, exec, flags = 0 } = {}) {
-    const blocks = [];
-    for (let number = 0, pos = 0; number === 0 || pos < data.length; ++number, pos += MaxBlockLength) {
-        const chunk = data.slice(pos, pos + MaxBlockLength);
-        const last = pos + MaxBlockLength >= data.length;
-        blocks.push(block({ name, load, exec, number, flags: flags | (last ? LastBlock : 0), data: chunk }));
-    }
-    return blocks;
-}
-
 const content = (length, seed) => Array.from({ length }, (_, i) => (i * 13 + seed * 101 + (i >> 8)) & 0xff);
-
-function uef(chunks) {
-    const out = [..."UEF File!"].map((c) => c.charCodeAt(0));
-    out.push(0, 10, 0);
-    for (const [id, body] of chunks) out.push(...le16(id), ...le32(body.length), ...body);
-    return Uint8Array.from(out);
-}
-
-const carrier = (cycles) => [0x0110, le16(cycles)];
-const data = (bytes) => [0x0100, bytes];
-
-// One block per data chunk, each after a carrier, as most UEF writers lay a tape out.
-const plainUef = (blocks) => uef(blocks.flatMap((b) => [carrier(600), data(b)]));
 
 // Bits at 1200 baud as half-cycle lengths, with the two halves of each cycle recorded unevenly.
 function cswPulses(bytes, { rate = CswRate, skew = 0.2 } = {}) {

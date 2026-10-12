@@ -6,38 +6,44 @@
  * sets are made, which of their anchors memory disagrees with. The disassembly is often of the tape
  * version, and a disc can load or relocate it differently.
  *
- * Usage: node tools/symbols/level7-compare.js --config symbols/configs/hopper.json [--source <file>]
- *            [--seconds 25] [--keys SPACE,RETURN] [--wait 3]
- *        node tools/symbols/level7-compare.js --disassembly <url> --disc Acornsoft/Monsters [--image <name>]
- *            [--seconds 25] [--keys SPACE] [--wait 3] [--draft <id>]
+ * Usage: node tools/symbols/level7-compare.js --config symbols/configs/hopper.json [--source <file>] [--boot-tape]
+ *            [--seconds 25] [--keys SPACE,RETURN] [--wait 3] [--model Master] [--script <commands>] [--shots DIR]
+ *        node tools/symbols/level7-compare.js --disassembly <url> (--disc Acornsoft/Monsters | --tape Acornsoft/Hunt)
+ *            [--image <name>] [--seconds 25] [--keys SPACE] [--wait 3] [--model Master] [--draft <id>]
  *
- * The config needs only `source` and `disc`. Without one, `--disassembly` and `--disc`, a zip's path
- * under Stairway to Hell's disc images, stand in for them, and `--draft ID` writes
- * symbols/configs/ID.json and ID-check.js from what it found, regions and moments for a curator to
- * check, unless they're already there. KEYS are names in jsbeeb's BBC keymap, each pressed in turn
- * with WAIT seconds after it.
+ * The config needs only `source` and `disc` or `tape`; it boots the disc if it has both, unless `--boot-tape`.
+ * Without one, `--disassembly` and `--disc` or `--tape`, a zip's path under Stairway to Hell's disc or tape
+ * images, stand in for them, and `--draft ID` writes symbols/configs/ID.json and ID-check.js from what it
+ * found, regions and moments for a curator to check, unless they're already there. KEYS are key steps
+ * (title-scenario.js's keyStep), each taken in turn with WAIT seconds after it. A SCRIPT, instead, is
+ * check-memory.js's runScript commands separated by `;`, where `report` says how much memory holds there;
+ * the script's end does too. A draft needs KEYS, not a SCRIPT, for its check's start.
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { unzip } from "jsbeeb/src/archive.js";
-import { BBC } from "jsbeeb/src/keymap.js";
 import { format, resolveConfig } from "prettier";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
-import { fetchDisc, loadTitleSets, pressKey, runSeconds, startMachine } from "./check-memory.js";
+import { decodeTape, tapeKey } from "../registry/tape.js";
+import { bootsTape, fetchDisc, fetchTape, loadTitleSets, runScript, runSeconds, startMachine } from "./check-memory.js";
 import { hex, importLevel7, Level7, level7Text, partCalled } from "./import-level7.js";
 import { readLevel7 } from "./level7-text.js";
+import { keyStep, pressStep } from "./title-scenario.js";
 
 const MemoryTop = 0x8000;
 const KeyFrames = 50;
 const ShortestRun = 16;
-const DiscArchive = "https://bbc.xania.org/archive/sth/diskimages/";
+const Archives = {
+    disc: { url: "https://bbc.xania.org/archive/sth/diskimages/", images: /\.[sd]sd$/i },
+    tape: { url: "https://bbc.xania.org/archive/sth/tapeimages/", images: /\.uef$/i },
+};
 // A run this much the same as memory is the code that's there.
 const Held = 0.9;
 // Runs of one part closer than this make one region.
@@ -49,6 +55,8 @@ const HotLabels = 12;
 const DraftMoves = ["Z", "X", "COLON_STAR", "SLASH", "RETURN", "SPACE"];
 // Smaller regions are usually a few bytes of data (envelopes, characters) that anchor poorly.
 const SmallestRegion = 0x80;
+// A region overlapping a bigger one by no more than this loses the overlap rather than being left out.
+const TrimmableOverlap = 0x40;
 const FewestLabels = 2;
 // Every program's workspace, which a region's anchors can't tell apart.
 const ZeroPageEnd = 0x100;
@@ -96,7 +104,8 @@ const share = ({ held, same }) => (held ? same / held : 0);
  * Regions for a draft config from the comparisons at each moment (`compareWithMemory`'s, in the same
  * order): every run memory holds at some moment, those of a part within MergeGap of each other and held
  * at the same moments made one, each with whether it's held at each moment. Small ones, those in zero
- * page or with fewer than two labels, and those overlapping a bigger one are left out. The biggest is
+ * page or with fewer than two labels, and those overlapping a bigger one are left out, unless the overlap
+ * is at one end and small, when it's cut off instead. The biggest is
  * `main`; the others are named by their page, or else their first label. A region gets its part when
  * another part has statements there.
  */
@@ -129,17 +138,24 @@ export function proposeRegions(parts, moments) {
             regions.push(current);
         }
     });
+    const worthKeeping = (r) =>
+        r.end - r.start >= SmallestRegion &&
+        r.start >= ZeroPageEnd &&
+        r.part.labels.filter((l) => l.address >= r.start && l.address < r.end).length >= FewestLabels;
     const kept = [];
-    const bySize = regions
-        .filter(
-            (r) =>
-                r.end - r.start >= SmallestRegion &&
-                r.start >= ZeroPageEnd &&
-                r.part.labels.filter((l) => l.address >= r.start && l.address < r.end).length >= FewestLabels,
-        )
-        .sort((a, b) => b.end - b.start - (a.end - a.start));
-    for (const region of bySize)
-        if (!kept.some((other) => other.start < region.end && region.start < other.end)) kept.push(region);
+    const bySize = regions.filter(worthKeeping).sort((a, b) => b.end - b.start - (a.end - a.start));
+    for (const region of bySize) {
+        for (const other of kept) {
+            if (!(other.start < region.end && region.start < other.end)) continue;
+            if (other.start <= region.start && other.end - region.start <= TrimmableOverlap) region.start = other.end;
+            else if (other.end >= region.end && region.end - other.start <= TrimmableOverlap) region.end = other.start;
+            else {
+                region.end = region.start;
+                break;
+            }
+        }
+        if (region.start < region.end && worthKeeping(region)) kept.push(region);
+    }
     kept.sort((a, b) => regions.indexOf(a) - regions.indexOf(b));
     const biggest = kept.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a), kept[0]);
     const names = new Set();
@@ -210,28 +226,41 @@ async function fetchRetrying(url) {
         }
 }
 
-async function sourceAndDisc(values) {
+/** The config, the disassembly's text, and what to boot: a disc's bytes or a tape's name and bytes. */
+export async function sourceAndMedia(values) {
     if (values.config) {
         const config = JSON.parse(readFileSync(values.config, "utf8"));
-        return { config, text: await level7Text(config, values.source), disc: await fetchDisc(config.disc) };
+        if (config.disc === undefined && config.tape === undefined)
+            throw new Error(`${values.config} names no disc or tape to boot`);
+        const text = await level7Text(config, values.source);
+        if (bootsTape(config.disc !== undefined, config.tape !== undefined, values["boot-tape"]))
+            return { config, text, tape: { name: config.tape.image, data: await fetchTape(config.tape) } };
+        return { config, text, disc: await fetchDisc(config.disc) };
     }
-    if (!values.disassembly || !values.disc)
-        throw new Error("Give --config, or --disassembly and --disc to start a title");
+    if (values["boot-tape"]) throw new Error("--boot-tape picks a config's tape; give --tape to start a title");
+    const kind = values.tape ? "tape" : "disc";
+    if (!values.disassembly || !values[kind] || (values.tape && values.disc))
+        throw new Error("Give --config, or --disassembly and one of --disc and --tape to start a title");
     const response = await fetchRetrying(values.disassembly);
     if (!response.ok) throw new Error(`Fetching ${values.disassembly} failed with ${response.status}`);
     const bytes = Buffer.from(await response.arrayBuffer());
-    const url = `${DiscArchive}${values.disc}.zip`;
+    const url = `${Archives[kind].url}${values[kind]}.zip`;
     const zip = await fetchRetrying(url);
     if (!zip.ok) throw new Error(`Fetching ${url} failed with ${zip.status}`);
     const members = await unzip(new Uint8Array(await zip.arrayBuffer()));
-    const images = Object.keys(members).filter((name) => /\.[sd]sd$/i.test(name));
+    const images = Object.keys(members).filter((name) => Archives[kind].images.test(name));
     const image = values.image ?? (images.length === 1 ? images[0] : undefined);
     if (!members[image]) throw new Error(`${url} holds ${images.join(", ")}; pick one with --image`);
-    const config = {
-        source: { disassembly: values.disassembly, sha256: createHash("sha256").update(bytes).digest("hex") },
-        disc: { url, image, key: fingerprint(image, members[image]).discKey },
-    };
-    return { config, text: bytes.toString("latin1"), disc: members[image] };
+    const data = members[image];
+    const source = { disassembly: values.disassembly, sha256: createHash("sha256").update(bytes).digest("hex") };
+    const text = bytes.toString("latin1");
+    if (kind === "tape")
+        return {
+            config: { source, tape: { url, image, key: tapeKey(decodeTape(data).files) } },
+            text,
+            tape: { name: image, data },
+        };
+    return { config: { source, disc: { url, image, key: fingerprint(image, data).discKey } }, text, disc: data };
 }
 
 /**
@@ -266,6 +295,7 @@ export function draftConfig(id, title, config, regions) {
         licence: DraftLicence,
         source: config.source,
         disc: config.disc,
+        tape: config.tape,
         bytesPerAnchor: DraftBytesPerAnchor,
         spreadAnchors: DraftSpreadAnchors,
         check: `${id}-check.js`,
@@ -311,12 +341,13 @@ export function inGameLabel(set, regions, hot, regionOf) {
     return label && [DraftSetId, regionOf(label).name, label.name];
 }
 
-function draftCheck(title, regions, { seconds, keys, inGame }) {
+export function draftCheck(title, regions, { seconds, keys, inGame, model }) {
     const at = (i) => JSON.stringify(regions.filter((r) => r.heldAt.at(i)).map((r) => `${DraftSetId}/${r.name}`));
+    const machines = model ? `\nexport const machines = { game: { model: ${JSON.stringify(model)} } };\n` : "";
     return `/** ${title}${title.endsWith("s") ? "'" : "'s"} moments for tools/symbols/check-memory.js. */
 
 import { playScenario } from "../../tools/symbols/title-scenario.js";
-
+${machines}
 export const scenarios = {
     game: playScenario({
         loaded: ${at(0)},
@@ -364,8 +395,10 @@ function positiveSeconds(option, text) {
     return seconds;
 }
 
-async function main() {
+/** Runs the tool on `args`, its command line's arguments. */
+export async function main(args = process.argv.slice(2)) {
     const { values } = parseArgs({
+        args,
         options: {
             config: { type: "string" },
             source: { type: "string" },
@@ -373,25 +406,38 @@ async function main() {
             disc: { type: "string" },
             image: { type: "string" },
             seconds: { type: "string", default: "25" },
+            tape: { type: "string" },
+            "boot-tape": { type: "boolean" },
             keys: { type: "string", default: "" },
             wait: { type: "string", default: "3" },
+            model: { type: "string" },
+            script: { type: "string" },
+            shots: { type: "string" },
             draft: { type: "string" },
         },
     });
     const seconds = positiveSeconds("seconds", values.seconds);
     const wait = positiveSeconds("wait", values.wait);
-    const { config, text, disc: discBytes } = await sourceAndDisc(values);
+    const { config, text, disc: discBytes, tape } = await sourceAndMedia(values);
     const { parts } = readLevel7(text);
     const keys = values.keys.split(",").filter(Boolean);
-    for (const key of keys) if (BBC[key] === undefined) throw new Error(`There's no key ${key} in jsbeeb's BBC keymap`);
+    const steps = keys.map((key) => keyStep(key, KeyFrames));
+    if (keys.length && values.script) throw new Error("Give --keys or --script, not both");
+    if (values.draft && values.script)
+        throw new Error("--draft needs --keys, which become the check's start; a script's moments can't");
+    const script = (values.script ?? "")
+        .split(";")
+        .map((command) => command.trim())
+        .filter(Boolean);
+    if (values.shots) mkdirSync(values.shots, { recursive: true });
     const labels = labelsByAddress(parts);
-    const sets = values.config ? loadTitleSets(path.join(SymbolsDir, "sets"), config.id) : {};
+    const sets = values.config ? loadTitleSets(path.join(SymbolsDir, "sets"), config) : {};
     const moments = [];
     const temp = mkdtempSync(path.join(tmpdir(), "symbols-level7-"));
     try {
-        const disc = path.join(temp, path.basename(config.disc.image));
-        writeFileSync(disc, discBytes);
-        const session = await startMachine(disc);
+        const disc = discBytes ? path.join(temp, path.basename(config.disc.image)) : null;
+        if (disc) writeFileSync(disc, discBytes);
+        const session = await startMachine(disc, { model: values.model }, null, tape);
         try {
             await runSeconds(session, Math.max(0, seconds - SampleSecs));
             const sample = async (title) => {
@@ -404,12 +450,23 @@ async function main() {
             };
             await sample(`After ${seconds} seconds`);
             if (keys.length) {
-                for (const key of keys) {
-                    await pressKey(session, BBC[key], KeyFrames);
+                for (const step of steps) {
+                    await pressStep(session, step);
                     await runSeconds(session, wait);
                 }
                 await sample(`After ${keys.join(", ")}`);
             }
+            let since = [];
+            for (const command of script) {
+                if (command !== "report") {
+                    await runScript(session, [command], { shots: values.shots });
+                    since.push(command);
+                    continue;
+                }
+                await sample(`After ${since.join("; ") || "nothing more"}`);
+                since = [];
+            }
+            if (since.length) await sample(`After ${since.join("; ")}`);
         } finally {
             session.destroy();
         }
@@ -439,9 +496,9 @@ async function main() {
             `  ${r.name} ${r.from}-${r.to}${part} held: ${r.heldAt.join(", ")}${overlaps.length ? `; overlaps ${overlaps.join(", ")}` : ""}`,
         );
     }
-    if (keys.length)
+    if (moments.length > 1)
         console.log(
-            `Labels only after the keys, routines first: ${newHot
+            `Labels only at the end, routines first: ${newHot
                 .slice(0, HotLabels)
                 .map((l) => `${regionOf(l).name}/${l.name}`)
                 .join(", ")}`,
@@ -462,7 +519,10 @@ async function main() {
         const formatted = async (source, file) =>
             format(source, { ...(await resolveConfig(file, { editorconfig: true })), filepath: file });
         const configText = await formatted(json, configFile);
-        const checkText = await formatted(draftCheck(title, regions, { seconds, keys, inGame }), checkFile);
+        const checkText = await formatted(
+            draftCheck(title, regions, { seconds, keys, inGame, model: values.model }),
+            checkFile,
+        );
         writeFileSync(checkFile, checkText);
         writeFileSync(configFile, configText);
         console.log(`Wrote ${configFile} and ${checkFile}`);

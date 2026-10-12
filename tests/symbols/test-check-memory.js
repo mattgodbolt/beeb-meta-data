@@ -5,14 +5,19 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { createZipBlob } from "jsbeeb/src/archive.js";
 import { RomsDir } from "../../tools/jsbeeb.js";
 import { fingerprint } from "../../tools/registry/fingerprint.js";
+import { decodeTape, tapeKey } from "../../tools/registry/tape.js";
 import { SymbolsDir } from "../../tools/symbols/build-index.js";
 import {
+    bootsTape,
     fetchDisc,
+    fetchTape,
+    holdUntil,
     loadSets,
     loadTitleSets,
     matchingRegions,
     overlappingRegions,
     otherTitlesSets,
+    runScript,
     scenarioContext,
     scenarioMedia,
     sidewaysRom,
@@ -20,6 +25,7 @@ import {
     typeUntil,
 } from "../../tools/symbols/check-memory.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
+import { basicTape, TapeLoadCycles } from "../registry/tape-images.js";
 
 const set = (regions) => parseSet({ format: 1, title: "t", licence: "CC0-1.0", source: "s", regions });
 const anchored = (start, end, at, bytes) => ({
@@ -99,6 +105,30 @@ describe("fetchDisc", () => {
     });
 });
 
+const Poked = 0x0900;
+const PokedValue = 0x42;
+const pokeTape = basicTape("?&900=&42");
+
+describe("fetchTape", () => {
+    const url = "https://example.com/demo.zip";
+    const image = "Games/Demo.uef";
+    const key = tapeKey(decodeTape(pokeTape).files);
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it("takes the named tape out of the zip when its tape key is the config's, and refuses it otherwise", async () => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(
+            async () => new Response(createZipBlob([{ name: image, data: pokeTape }])),
+        );
+        expect(await fetchTape({ url, image, key })).toEqual(pokeTape);
+        await expect(fetchTape({ url, image, key: "0".repeat(32) })).rejects.toThrow(`is tape ${key}`);
+    });
+
+    it("refuses a tape image jsbeeb can't load", async () => {
+        await expect(fetchTape({ url, image: "Games/Demo.csw", key })).rejects.toThrow("only UEF tapes");
+    });
+});
+
 describe("loadSets", () => {
     it("loads the sets with the ids given, by their files' names", () => {
         const loaded = loadSets(path.join(SymbolsDir, "sets"), ["bbc-basic-2"]);
@@ -154,6 +184,16 @@ describe("startMachine", () => {
             } finally {
                 session.destroy();
             }
+        }
+    });
+
+    it("runs a tape's first program", { timeout: 60000 }, async () => {
+        const session = await startMachine(null, {}, null, { name: "poke.uef", data: pokeTape });
+        try {
+            await session.runFor(TapeLoadCycles);
+            expect(session.readMemory(Poked, 1)).toEqual([PokedValue]);
+        } finally {
+            session.destroy();
         }
     });
 
@@ -226,6 +266,65 @@ describe("scenarioContext's check", () => {
         check("paged in, wrongly expected", ["loader/main"]);
         expect(results).toEqual([true, true, false]);
     });
+
+    it("looks at shadow or main RAM when a moment says which", () => {
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        const session = {
+            readMemory: (at, _length, { shadow }) => [
+                shadow ? memoryWith([[0x0400, [0xa9, 0x00, 0x8d, 0x01]]])(at) : 0,
+            ],
+            registers: () => ({ pc: 0 }),
+        };
+        const results = [];
+        const { check } = scenarioContext(session, { loader: sets.loader }, null, undefined, results);
+        check("in shadow RAM", ["loader/main"], { shadow: true });
+        check("in main RAM", [], { shadow: false });
+        expect(results).toEqual([true, true]);
+    });
+});
+
+describe("runScript", () => {
+    const recording = ({ reaches = true } = {}) => {
+        const calls = [];
+        return {
+            calls,
+            keyDown: (code) => calls.push(`down ${code}`),
+            keyUp: (code) => calls.push(`up ${code}`),
+            keyDownRaw: (key) => calls.push(`down ${key}`),
+            keyUpRaw: (key) => calls.push(`up ${key}`),
+            runUntilAddress: async (address) => {
+                calls.push(`until ${address}`);
+                if (!reaches) throw new Error("did not hit appropriate breakpoint");
+            },
+        };
+    };
+
+    it("holds a key until the PC reaches an address, or runs until it does", async () => {
+        const session = recording();
+        await runScript(session, ["hold Space &1F00", "until &2000"]);
+        expect(session.calls).toEqual(["down Space", "until 7936", "up Space", "until 8192"]);
+    });
+
+    it("refuses an address that isn't &hex", async () => {
+        await expect(runScript(recording(), ["until 1F00"])).rejects.toThrow("not 1F00");
+    });
+
+    it("lets go of a held key when the PC never gets there, as holdUntil does", async () => {
+        const session = recording({ reaches: false });
+        await expect(runScript(session, ["hold Space &1F00"])).rejects.toThrow("breakpoint");
+        await expect(holdUntil(session, "SPACE", 0x1f00)).rejects.toThrow("breakpoint");
+        expect(session.calls.filter((call) => call.startsWith("up"))).toEqual(["up Space", "up SPACE"]);
+    });
+});
+
+describe("bootsTape", () => {
+    it("boots the tape when there's no disc or it's asked for, and refuses to when there's none", () => {
+        expect(bootsTape(true, true)).toBe(false);
+        expect(bootsTape(false, true)).toBe(true);
+        expect(bootsTape(true, true, true)).toBe(true);
+        expect(bootsTape(true, false)).toBe(false);
+        expect(() => bootsTape(true, false, true)).toThrow("the config names none");
+    });
 });
 
 describe("sidewaysRom", () => {
@@ -246,10 +345,22 @@ describe("sidewaysRom", () => {
 describe("scenarioMedia", () => {
     it("boots the title's disc and ROM unless the machine names another of the checkout's", () => {
         const rom = Uint8Array.from([9]);
-        expect(scenarioMedia({}, "/src", "/src/game.ssd", rom)).toEqual({ disc: "/src/game.ssd", rom });
+        expect(scenarioMedia({}, "/src", "/src/game.ssd", rom)).toEqual({ disc: "/src/game.ssd", rom, tape: null });
         const fromCheckout = scenarioMedia({ disc: "orig.ssd", rom: "README.md" }, SymbolsDir, null, rom);
         expect(fromCheckout.disc).toBe(path.join(SymbolsDir, "orig.ssd"));
         expect(Buffer.from(fromCheckout.rom).toString("latin1")).toContain("Symbol sets");
+    });
+
+    it("boots the tape when there's no disc, or the machine asks for it", () => {
+        const tape = { name: "game.uef", data: pokeTape };
+        expect(scenarioMedia({}, undefined, null, null, tape)).toEqual({ disc: null, rom: null, tape });
+        expect(scenarioMedia({}, undefined, "game.ssd", null, tape).tape).toBeNull();
+        expect(scenarioMedia({ tape: true }, undefined, "game.ssd", null, tape)).toEqual({
+            disc: null,
+            rom: null,
+            tape,
+        });
+        expect(() => scenarioMedia({ tape: true }, undefined, "game.ssd", null)).toThrow("the config names none");
     });
 
     it("refuses another disc or ROM for a title it didn't build", () => {

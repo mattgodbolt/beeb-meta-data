@@ -175,11 +175,14 @@ identical. 90% identical or more is the same code (a crack, a compilation); anyt
 exits 1. Since files sit at their load addresses, code a program moves to where it runs is only compared with other
 titles' files that load there.
 
-The in-memory check boots the title's disc in a headless jsbeeb (a B with DFS 1.2 unless the scenarios' `machines`
-names another model, a second processor, or no SHIFT+BREAK, or for an assembled title another `disc` or `rom` of its
-checkout) and, at each moment a scenario picks, lists the regions whose anchors all match, in whatever is paged in or
-in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
-regions overlap (of one set or two), since the debugger then shows neither.
+The in-memory check boots the title's disc in a headless jsbeeb (a B with DFS 1.2 unless the scenarios' `machines` names
+another model, a second processor, or no SHIFT+BREAK, or for an assembled title another `disc` or `rom` of its checkout)
+and, at each moment a scenario picks, lists the regions whose anchors all match, in whatever is paged in or in the
+sideways bank the moment names (`bank`), or a Master's shadow or main RAM (`shadow: true` or `false`). A moment fails
+unless that's exactly the regions expected, or if two matching regions overlap (of one set or two), since the debugger
+then shows neither. A config can name a UEF `tape` as it names a `disc`, by the zip's URL, the image in it and its tape
+key. The check runs its first program with `*TAPE` and `CHAIN""` when the config has no disc, or the scenario's
+`machines` entry says `tape: true`; otherwise it boots the disc.
 
 The corpus check doesn't take an acornaeology or ACME config. For a ROM, the importer's own comparison against every ROM
 jsbeeb has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
@@ -608,7 +611,19 @@ statements memory holds once loaded and once the keys are pressed, and where the
 `--draft ID` it writes `ID.json` and `ID-check.js` from that: a region for each stretch of a part memory holds, `main`
 the biggest, `overwritten` where it's only held before a game, and an `avoid` for each run of bytes the disc's version
 differs in; and a check that waits for `update_player` or `main_game_loop` if the set has one, else for a routine the
-PC was only in after the keys. Run with `--config` and the sets made, it also lists the anchors memory disagrees with.
+PC was only in after the keys. A region that overlaps a bigger one by a few bytes at one end loses those bytes; one
+that overlaps it more is left out. Run with `--config` and the sets made, it also lists the anchors memory disagrees
+with.
+
+`--tape` takes a zip's path in Stairway to Hell's tape images instead of `--disc` (`Robico/TheHuntSearchForShauna_B`),
+for a disassembly of the tape version; with `--config`, `--boot-tape` boots the config's tape rather than its disc.
+`--model` boots another jsbeeb model (`Master`), and the draft's check asks for it in `machines`. A key in `--keys`, and
+in `playScenario`'s `start` and `typedScenario`'s `keys`, can be held: `RETURN:2` for two seconds, for a loader that
+misses a short press, or `SPACE:&1F00` until the PC reaches `&1F00`. `typedScenario`'s `afterKeys` are pressed once
+`keysSecs` have passed, for a game that wants RETURN after a long load. For anything else, `--script` takes
+`check-memory.js`'s script commands separated by `;` (`key Space 100`, `down ShiftLeft`, `hold Space &1F00`, `until
+&1F00`, `type TEXT`, `shot NAME` with `--shots`), and `report` says how much of each run memory holds at that point. A
+script can't be drafted from, since a check's start is keys.
 
 A draft is a start. What's left to the curator, title by title:
 

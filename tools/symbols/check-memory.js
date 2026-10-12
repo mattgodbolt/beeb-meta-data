@@ -9,14 +9,15 @@
  *            [--baron <path>] [--beebasm <path>] [--sets symbols/sets] [--shots DIR] [SCENARIO...]
  *
  * The config's `check` names the module of scenarios, beside it, which can also export `machines`, the machine each
- * scenario wants by its name (see startMachine), and `titles`, other titles whose sets are checked alongside
- * (otherTitlesSets). They boot `source.disc`, the original disc in the source repository, with the title built as its
- * importer builds it, for the scenarios that read its files; or `disc`, a disc image in a zip the config names by its
- * URL, its path in the zip and its key; or no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's
- * `rom` gives by URL and key, or as the `file` an assembled title's build saves, is put in sideways RAM; for an
- * acornaeology config, the ROM of the version a scenario's machine names in `sideways`. An assembled title's scenario
- * can boot another `disc` or `rom` of its checkout instead (scenarioMedia). With no SCENARIO, it runs them all, each on
- * a fresh machine. Exits 1 if any moment fails.
+ * scenario wants by its name (see startMachine and scenarioMedia), and `titles`, other titles whose sets are checked
+ * alongside (otherTitlesSets). They boot `source.disc`, the original disc in the source repository, with the title
+ * built as its importer builds it, for the scenarios that read its files; or `disc`, a disc image in a zip the config
+ * names by its URL, its path in the zip and its key; or `tape`, a tape image named the same way, by its tape key; or
+ * no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by URL and key, or as the
+ * `file` an assembled title's build saves, is put in sideways RAM; for an acornaeology config, the ROM of the version
+ * a scenario's machine names in `sideways`. An assembled title's scenario can boot another `disc` or `rom` of its
+ * checkout instead (scenarioMedia). With no SCENARIO, it runs them all, each on a fresh machine. Exits 1 if any
+ * moment fails.
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -30,7 +31,9 @@ import { BBC } from "jsbeeb/src/keymap.js";
 import { MachineSession } from "jsbeeb/src/machine-session.js";
 import { parseSet } from "jsbeeb/src/symbol-sets.js";
 import { regionMatches } from "jsbeeb/src/symbol-names.js";
+import { loadTapeFromData } from "jsbeeb/src/tapes.js";
 import { fingerprint } from "../registry/fingerprint.js";
+import { decodeTape, tapeKey } from "../registry/tape.js";
 import { SymbolsDir } from "./build-index.js";
 import { fetchRom, romOf } from "./rom-images.js";
 import { BuildOptions, BuildUsage, isAssembled, withTitleSource } from "./title-build.js";
@@ -45,6 +48,7 @@ const DefaultKeyFrames = 3;
 export const ReleaseFrames = 2;
 const RandomMinHoldFrames = 5;
 const RandomHoldFrameRange = 40;
+export const FramesPerSecond = 50;
 
 const hex = (address) => `&${address.toString(16).toUpperCase().padStart(4, "0")}`;
 
@@ -100,14 +104,29 @@ export function overlappingRegions(sets, found) {
 /**
  * A machine with the disc in (if any), booted with SHIFT+BREAK: a B with DFS 1.2 unless `machine` names
  * another jsbeeb model, with a second processor if it says `tube`, and left at the prompt if it says
- * `autoboot: false`. A `sideways` ROM goes in sideways RAM before the machine starts.
+ * `autoboot: false`. A `sideways` ROM goes in sideways RAM before the machine starts. Given a `tape`
+ * (its image's name and bytes) instead, it runs the tape's first program with `*TAPE` and `CHAIN""`.
  */
-export async function startMachine(disc, { model = Model, tube = false, autoboot = true } = {}, sideways = null) {
+export async function startMachine(
+    disc,
+    { model = Model, tube = false, autoboot = true } = {},
+    sideways = null,
+    tape = null,
+) {
     const session = new MachineSession(model, { tube });
     await session.initialise();
     if (sideways) session.writeMemory(SidewaysBase, [...sideways], { bank: SidewaysRamBank });
     await session.boot(BootTimeoutSecs);
     if (disc) session.loadDisc(disc);
+    if (tape) {
+        // MachineSession has no way to put a tape in (jsbeeb#1258).
+        const processor = session._machine.processor;
+        processor.acia.setTape(await loadTapeFromData(tape.name, tape.data, processor.model));
+        if (!autoboot) return session;
+        await session.type("*TAPE");
+        await session.type('CHAIN""');
+        return session;
+    }
     if (!autoboot) return session;
     session.keyDownRaw(BBC.SHIFT);
     try {
@@ -174,10 +193,17 @@ export async function pressRandomKeys(session, keys, random, frames) {
     }
 }
 
+/** An address as scripts and key steps give it, `&1F00`. */
+export function hexAddress(text) {
+    if (!/^&[0-9a-f]{1,4}$/i.test(text ?? "")) throw new Error(`An address is hex, &1F00, not ${text}`);
+    return parseInt(text.slice(1), 16);
+}
+
 /**
  * Runs a little script of host keys, each command one of: `wait SECS`, `key CODE [FRAMES]` (pressed and
- * released), `down CODE`, `up CODE`, `type TEXT`, and `shot NAME`, which saves NAME.png in `shots` if
- * that's given. CODE is a KeyboardEvent.code.
+ * released), `down CODE`, `up CODE`, `hold CODE ADDRESS` (held until the PC reaches it), `until ADDRESS`,
+ * `type TEXT`, and `shot NAME`, which saves NAME.png in `shots` if that's given. CODE is a
+ * KeyboardEvent.code; ADDRESS is hex, `&1F00`.
  */
 export async function runScript(session, commands, { shots } = {}) {
     for (const command of commands) {
@@ -198,6 +224,17 @@ export async function runScript(session, commands, { shots } = {}) {
             case "up":
                 session.keyUp(args[0]);
                 break;
+            case "hold":
+                session.keyDown(args[0]);
+                try {
+                    await session.runUntilAddress(hexAddress(args[1]));
+                } finally {
+                    session.keyUp(args[0]);
+                }
+                break;
+            case "until":
+                await session.runUntilAddress(hexAddress(args[0]));
+                break;
             case "shot":
                 if (shots) writeFileSync(path.join(shots, `${args[0]}.png`), await session.screenshotActive());
                 break;
@@ -213,7 +250,8 @@ export async function runScript(session, commands, { shots } = {}) {
 /**
  * The context a scenario gets: the machine, the sets, the build's built files, where to save screenshots (if anywhere),
  * `address(set, region, name)` for a symbol's address, and `check(moment, expected)`, which can take `{ bank }`
- * to look at that sideways bank instead of the one paged in.
+ * to look at that sideways bank instead of the one paged in, or `{ shadow }` to look at a Master's shadow RAM
+ * (true) or main RAM (false) at &3000 to &7FFF instead of the one the machine has paged.
  */
 export function scenarioContext(session, sets, filesDir, shots, results) {
     const address = (id, regionName, name) => {
@@ -222,14 +260,18 @@ export function scenarioContext(session, sets, filesDir, shots, results) {
         if (!found) throw new Error(`There's no ${name} in ${id}/${regionName}`);
         return found[0];
     };
-    const check = (moment, expected, { bank } = {}) => {
-        const peek = (at) => session.readMemory(at, 1, { bank })[0];
+    const check = (moment, expected, { bank, shadow } = {}) => {
+        const peek = (at) => session.readMemory(at, 1, { bank, shadow })[0];
         const found = matchingRegions(sets, peek);
         const want = [...expected].sort();
         const overlaps = overlappingRegions(sets, found);
         const ok = found.length === want.length && found.every((r, i) => r === want[i]) && !overlaps.length;
         const pc = session.registers().pc;
-        const where = bank === undefined ? `PC ${hex(pc)}` : `PC ${hex(pc)}, bank ${bank}`;
+        const where = [
+            `PC ${hex(pc)}`,
+            ...(bank === undefined ? [] : [`bank ${bank}`]),
+            ...(shadow === undefined ? [] : [shadow ? "shadow RAM" : "main RAM"]),
+        ].join(", ");
         console.log(`${ok ? "ok  " : "FAIL"} ${moment} (${where}): ${found.join(", ") || "nothing"}`);
         if (!ok) {
             console.log(`     expected: ${want.join(", ")}`);
@@ -240,24 +282,38 @@ export function scenarioContext(session, sets, filesDir, shots, results) {
     return { session, sets, filesDir, shots, address, check };
 }
 
+async function fetchZipMember(url, image) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
+    const members = await unzip(new Uint8Array(await response.arrayBuffer()));
+    if (!members[image]) throw new Error(`${url} holds no ${image}`);
+    return members[image];
+}
+
 /**
  * Fetches a zip of disc images and takes the one `image` names out of it, refusing it unless its key is `key`.
  * @returns {Promise<Uint8Array>}
  */
 export async function fetchDisc({ url, image, key }) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
-    const members = await unzip(new Uint8Array(await response.arrayBuffer()));
-    if (!members[image]) throw new Error(`${url} holds no ${image}`);
-    const { discKey } = fingerprint(image, members[image]);
+    const disc = await fetchZipMember(url, image);
+    const { discKey } = fingerprint(image, disc);
     if (discKey !== key) throw new Error(`${image} in ${url} is image ${discKey}, and the config names ${key}`);
-    return members[image];
+    return disc;
+}
+
+/** The same for a tape image, by its tape key. */
+export async function fetchTape({ url, image, key }) {
+    if (!/\.uef$/i.test(image)) throw new Error(`jsbeeb loads only UEF tapes, and ${image} isn't one`);
+    const tape = await fetchZipMember(url, image);
+    const found = tapeKey(decodeTape(tape).files);
+    if (found !== key) throw new Error(`${image} in ${url} is tape ${found}, and the config names ${key}`);
+    return tape;
 }
 
 /**
  * Runs `use` with what a config's scenarios boot: for an assembled title, its build and checkout, with
- * `source.disc` in it if it names one; a disc the config's `disc` fetches from an archive; or no disc,
- * for a ROM's config that names none.
+ * `source.disc` in it if it names one; a disc the config's `disc` fetches from an archive, and a tape its
+ * `tape` does; or neither, for a ROM's config that names none.
  */
 async function withTitleDisc(config, options, use) {
     if (isAssembled(config)) {
@@ -272,16 +328,17 @@ async function withTitleDisc(config, options, use) {
             }),
         );
     }
+    const tape = config.tape === undefined ? null : { name: config.tape.image, data: await fetchTape(config.tape) };
     if (config.disc === undefined) {
-        if (config.rom === undefined && !config.sets?.some(({ rom }) => rom !== undefined))
-            throw new Error("The config names no disc to boot, in source.disc or disc");
-        return use({ disc: null });
+        if (!tape && config.rom === undefined && !config.sets?.some(({ rom }) => rom !== undefined))
+            throw new Error("The config names no disc to boot, in source.disc or disc, and no tape");
+        return use({ disc: null, tape });
     }
     const temp = mkdtempSync(path.join(tmpdir(), "symbols-disc-"));
     try {
         const disc = path.join(temp, path.basename(config.disc.image));
         writeFileSync(disc, await fetchDisc(config.disc));
-        return await use({ disc });
+        return await use({ disc, tape });
     } finally {
         rmSync(temp, { recursive: true, force: true });
     }
@@ -297,16 +354,25 @@ export async function sidewaysRom(config, saved) {
     return typeof config.rom === "object" ? fetchRom(config.rom) : null;
 }
 
+/** Whether a title with a disc and a tape (either or both) boots the tape: when it has no disc, or that's asked for. */
+export function bootsTape(hasDisc, hasTape, wantsTape = false) {
+    if (wantsTape && !hasTape) throw new Error("The tape is asked for, and the config names none");
+    return hasTape && (wantsTape || !hasDisc);
+}
+
 /**
  * What a scenario's machine boots: the title's disc and ROM, unless its `machines` entry names a `disc`
- * or a `rom` of the title's checkout instead (the original release beside the rebuilt one, say).
+ * or a `rom` of the title's checkout instead (the original release beside the rebuilt one, say). The
+ * title's tape is booted instead of its disc when it has no disc, or the entry says `tape: true`.
  */
-export function scenarioMedia(machine, sourceDir, disc, rom) {
+export function scenarioMedia(machine, sourceDir, disc, rom, tape = null) {
     if ((machine.disc !== undefined || machine.rom !== undefined) && sourceDir === undefined)
         throw new Error("Only an assembled title's scenarios can boot a disc or ROM of its checkout");
+    const fromTape = bootsTape(disc !== null, tape !== null, machine.tape);
     return {
-        disc: machine.disc === undefined ? disc : path.join(sourceDir, machine.disc),
+        disc: fromTape ? null : machine.disc === undefined ? disc : path.join(sourceDir, machine.disc),
         rom: machine.rom === undefined ? rom : readFileSync(path.join(sourceDir, machine.rom)),
+        tape: fromTape ? tape : null,
     };
 }
 
@@ -344,14 +410,14 @@ async function main() {
         if (!version) throw new Error(`There's no version ${id} to put in sideways RAM`);
         return romOf(version.rom);
     };
-    await withTitleDisc(config, values, async ({ disc, sourceDir, filesDir, saved }) => {
+    await withTitleDisc(config, values, async ({ disc, tape, sourceDir, filesDir, saved }) => {
         const configRom = await sidewaysRom(config, saved);
         for (const name of wanted) {
             console.log(`-- ${name}`);
             const machine = machines[name] ?? {};
             const rom = machine.sideways === undefined ? configRom : await versionRom(machine.sideways);
-            const media = scenarioMedia(machine, sourceDir, disc, rom);
-            const session = await startMachine(media.disc, machine, media.rom);
+            const media = scenarioMedia(machine, sourceDir, disc, rom, tape);
+            const session = await startMachine(media.disc, machine, media.rom, media.tape);
             try {
                 await scenarios[name](scenarioContext(session, sets, filesDir, values.shots, results));
             } finally {
