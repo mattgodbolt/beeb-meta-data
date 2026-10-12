@@ -561,6 +561,23 @@
       }
     },
     {
+      "url": "sets/by-fair-means-or-foul-enhanced-shadow.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "code": {
+          "start": "0x3000",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x326a", "bytes": "fffefdf3f7f6" },
+            { "at": "0x4300", "bytes": "bd5a438570bd5d43" },
+            { "at": "0x440c", "bytes": "c90dd0034cc344" },
+            { "at": "0x4e21", "bytes": "984820be4f68" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/by-fair-means-or-foul-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -2713,6 +2730,17 @@
             { "at": "0x4689", "bytes": "c907f0036c3d25" },
             { "at": "0x4f02", "bytes": "c8b18e843320254e" },
             { "at": "0x5bbc", "bytes": "0a03258b3b85" }
+          ]
+        },
+        "page4": {
+          "start": "0x0400",
+          "end": "0x350a",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0dbc", "bytes": "207224a975202a1d" },
+            { "at": "0x1104", "bytes": "60c014f0034c9b11" },
+            { "at": "0x1c89", "bytes": "20000e60a903" },
+            { "at": "0x28cd", "bytes": "14051d022a25" }
           ]
         }
       }

@@ -11,6 +11,11 @@
     "image": "Robico/TheHuntSearchForShauna.ssd",
     "key": "93feed7bf2bc1fe09d71c94ef105ee45"
   },
+  "tape": {
+    "url": "https://bbc.xania.org/archive/sth/tapeimages/Robico/TheHuntSearchForShauna_B.zip",
+    "image": "TheHuntSearchForShauna_B.uef",
+    "key": "74aee027cf7b63556209d173802d181d"
+  },
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,
   "check": "the-hunt-check.js",
@@ -47,6 +52,21 @@
             ["&6702", "&670A"],
             ["&6746", "&67AE"],
             ["&67C0", "&67C2"]
+          ]
+        },
+        {
+          "name": "page4",
+          "part": "HUNT2",
+          "from": "&0400",
+          "to": "&350A",
+          "avoid": [
+            ["&07E0", "&07E6"],
+            ["&0912", "&091A"],
+            ["&0980", "&0A01"],
+            ["&0DDE", "&0DFF"],
+            ["&123B", "&123F"],
+            ["&1B5F", "&1B60"],
+            ["&1D2F", "&1D30"]
           ]
         }
       ]

@@ -654,10 +654,11 @@ run-once loader, which a cheat disc patches by a tenth while keeping its anchors
 The enhanced versions of By Fair Means or Foul and Stryker's Run, and Castle Quest, are checked on a Master: the
 first two want its shadow and sideways RAM, and Castle Quest's loader stops with an error on a B. Each enhanced set
 names only its `main`, which is all that differs from the standard version, and its check plays the standard version
-too. Citadel is checked on a cheat disc, since the original's loader misses a key pressed for less than a second or
-two. The Hunt's file is of the tape version, whose code the disc version has moved, so its set names only the part from
-&350A that the two share. Escape from Enthar Seven's added code begins with Rick Hanson's, byte for byte, so its anchor
-`avoid`s that.
+too. By Fair Means or Foul's enhanced version has a second set, `shadow`, for its match information screen's code in
+shadow RAM, which its check reads with `shadow: true`. Citadel's loader misses a key pressed for less than a second
+or two, so its check holds each for two. The Hunt's file is of the tape version, whose code below &350A the
+disc version has moved, so that part (`page4`) is checked on the tape, and the disc holds only `main`. Escape from
+Enthar Seven's added code begins with Rick Hanson's, byte for byte, so its anchor `avoid`s that.
 
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
 `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists

@@ -7,9 +7,9 @@
     "sha256": "4edca22726f6a2692fb71ca7859ff7fc64530525ec2a093f302b0767669d7ef2"
   },
   "disc": {
-    "url": "https://bbc.xania.org/archive/sth/diskimages/Cheats/CHT_Citadel-Immortality.zip",
-    "image": "Cheats/CHT_Citadel-Immortality.ssd",
-    "key": "fc25ccc79afefbb32fe0eabdb60e9dce"
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Citadel.zip",
+    "image": "Superior/Citadel.ssd",
+    "key": "9690c38f1f590134cf4a7e5d8ab3daf7"
   },
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,
