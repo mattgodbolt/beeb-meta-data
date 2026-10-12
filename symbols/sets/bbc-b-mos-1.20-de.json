@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "title": "BBC Micro MOS 1.20 (German)",
+  "licence": "CC-BY-NC-4.0",
+  "source": "https://github.com/TobyLobster/mos/blob/c3f39cd93d50381fe6be34666fdcfc3d3ffa3d48/docs/os120de_acme.a",
+  "notice": "The names are Toby Nelson's (TobyLobster), from his MOS reassembly at https://github.com/TobyLobster/mos/tree/c3f39cd93d50381fe6be34666fdcfc3d3ffa3d48. He gave its licence, CC BY-NC, at https://stardot.org.uk/forums/viewtopic.php?p=494593#p494593. The licence is at https://creativecommons.org/licenses/by-nc/4.0/.",
+  "madeFrom": ["4ffa241de80f28ebe7d5cf4950ea3041"],
+  "home": "https://tobylobster.github.io/mos/mos120de.html",
+  "nameLink": "https://github.com/TobyLobster/mos/blob/c3f39cd93d50381fe6be34666fdcfc3d3ffa3d48/{place}",
+  "system": true,
+  "regions": {
+    "low": {
+      "start": "0xc000",
+      "end": "0xc310",
+      "minAnchors": 1,
+      "anchors": [{ "at": "0xc307", "bytes": "0d41636f726e" }],
+      "symbols": { "characterDefinitions": "0xc000", "initialiseScreenOnReset": "0xc300", "bootMessage": "0xc307" }
+    },
+    "boot": {
+      "start": "0xdb67",
+      "end": "0xdb6e",
+      "minAnchors": 1,
+      "anchors": [{ "at": "0xdb67", "bytes": "2d6702101ba006" }],
+      "symbols": {}
+    }
+  },
+  "globals": {},
+  "places": {
+    "bootMessage": "docs/os120de_acme.a#L3722",
+    "characterDefinitions": "docs/os120de_acme.a#L2809",
+    "initialiseScreenOnReset": "docs/os120de_acme.a#L3684"
+  }
+}

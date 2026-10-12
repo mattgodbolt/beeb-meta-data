@@ -754,7 +754,6 @@
     "zp_irq_enable": "0x009c",
     "zp_level_num": "0x009d",
     "zp_9F": "0x009f",
-    "zp_FC": "0x00fc",
     "irq1v_hi": "0x0205",
     "loader_lives_save": "0x0cf3",
     "loader_score_save": "0x0cf4",
@@ -769,7 +768,10 @@
     "lev_spawn_col": "0x7b00",
     "lev_spawn_attr": "0x7b80",
     "lev_map_upper": "0x7e10",
-    "lev_map_lower": "0x7f10"
+    "lev_map_lower": "0x7f10",
+    "uvia_t1l_l": "0xfe64",
+    "uvia_t1l_h": "0xfe65",
+    "uvia_acr": "0xfe6b"
   },
   "places": {
     "KEY_DOWN": "disasm/Nevryon.6502#L243",
@@ -1438,6 +1440,9 @@
     "update_npc_bullets": "disasm/CODE.6502#L2216",
     "update_pickup": "disasm/CODE.6502#L3705",
     "update_player_missiles": "disasm/CODE.6502#L985",
+    "uvia_acr": "disasm/Nevryon.6502#L270",
+    "uvia_t1l_h": "disasm/Nevryon.6502#L269",
+    "uvia_t1l_l": "disasm/Nevryon.6502#L268",
     "wait_one_frame": "disasm/CODE2.6502#L1193",
     "zp_0D": "disasm/CODE.6502#L72",
     "zp_0E": "disasm/CODE.6502#L73",
@@ -1457,7 +1462,6 @@
     "zp_98": "disasm/CODE3.6502#L34",
     "zp_9A": "disasm/CODE.6502#L86",
     "zp_9F": "disasm/CODE.6502#L87",
-    "zp_FC": "disasm/GRAPHIX.6502#L25",
     "zp_continues": "disasm/Nevryon.6502#L59",
     "zp_dest_x_hi": "disasm/Nevryon.6502#L33",
     "zp_dest_x_lo": "disasm/Nevryon.6502#L32",

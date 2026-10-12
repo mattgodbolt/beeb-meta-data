@@ -926,7 +926,6 @@
     "player_two_trapulator_screen_address_high": "0x0099",
     "irq1_vector_high": "0x0205",
     "irq2_vector_high": "0x0207",
-    "event_vector_high": "0x0221",
     "swap_table": "0x0a00",
     "player_one_rooms_visited": "0x1000",
     "player_two_rooms_visited": "0x1039"
@@ -1058,7 +1057,6 @@
     "end_of_death_by_flying": "spy-vs-spy-disassembly.txt#:~:text=end_of_death_by_flying,-%264635",
     "event_handler": "spy-vs-spy-disassembly.txt#:~:text=event_handler,-%262d40",
     "event_state": "spy-vs-spy-disassembly.txt#:~:text=event_state,-%262e06",
-    "event_vector_high": "spy-vs-spy-disassembly.txt#:~:text=event_vector_high,-%262e11",
     "explode_time_bomb": "spy-vs-spy-disassembly.txt#:~:text=explode_time_bomb,-%23",
     "f0_not_pressed": "spy-vs-spy-disassembly.txt#:~:text=f0_not_pressed,-%2640ae",
     "f0_pressed": "spy-vs-spy-disassembly.txt#:~:text=f0_pressed",

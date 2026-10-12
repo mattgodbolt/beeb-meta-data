@@ -45,8 +45,8 @@ describe("the shipped ROM sets", () => {
         expect(names.sets.map(({ title }) => title).sort()).toEqual(["BBC BASIC II", "BBC Micro MOS 1.20"]);
         expect(nameOf(0x8b9d, 0x0b)).toBe("zp_text_ptr");
         expect(nameOf(0x2000, 0x8b9b)).toBe("statement_loop");
-        expect(nameOf(0x8b9d, 0xffee)).toBe("oswrch");
-        expect(nameOf(0x8b9d, 0xf2)).toBe("os_text_ptr");
+        expect(nameOf(0x8b9d, 0xffee)).toBe("OSWRCH");
+        expect(nameOf(0x8b9d, 0xf2)).toBe("stringInputBufferAddressLow");
         expect(nameOf(0xe0a4, 0x0b)).toBeUndefined();
         expect(nameOf(0x2000, 0x0b)).toBeUndefined();
         expect(names.address(0x0000)?.name).toBe("zp_lomem");
@@ -76,7 +76,7 @@ describe("the shipped ROM sets", () => {
         async (address) => {
             const names = await namesFor(withRoms("b/DFS-1.2.rom"));
             expect(names.sets.map(({ title }) => title)).toContain("Acorn NFS 3.60");
-            expect(names.address(address)?.name).toBeUndefined();
+            expect(names.address(address)?.set.title).not.toBe("Acorn NFS 3.60");
         },
     );
 
@@ -114,13 +114,13 @@ describe("the shipped ROM sets", () => {
         const names = await namesFor((address) => cpu.peekmem(address));
         const nameOf = (at, target) => names.operand(at, target)?.name;
         expect(names.sets.map(({ title }) => title)).toEqual(["BBC Micro MOS 1.20"]);
-        expect(nameOf(0x2000, 0xffee)).toBe("oswrch");
-        expect(nameOf(0x2000, 0xfe40)).toBe("system_via_register_b");
-        expect(nameOf(0xe0a4, 0x20e)).toBe("wrchv");
-        expect(nameOf(0x2000, 0xf2)).toBe("os_text_ptr");
+        expect(nameOf(0x2000, 0xffee)).toBe("OSWRCH");
+        expect(nameOf(0x2000, 0xfe40)).toBe("systemVIARegisterB");
+        expect(nameOf(0xe0a4, 0x20e)).toBe("vectorWRCHV");
+        expect(nameOf(0x2000, 0xf2)).toBe("stringInputBufferAddressLow");
         expect(nameOf(0x2000, 0x20f)).toBeUndefined();
-        expect(nameOf(0x2000, 0xe0a4)).toBeUndefined();
-        expect(names.address(0xfff4)?.name).toBe("osbyte");
+        expect(nameOf(0x2000, 0xe0a4)).toBe("oswrchEntryPoint");
+        expect(names.address(0xfff4)?.name).toBe("OSBYTE");
     });
 
     it("leaves a Master's addresses plain", async () => {
@@ -139,10 +139,29 @@ describe("the shipped ROM sets", () => {
         expect(names.sets).toEqual([]);
     });
 
-    it.each(["bpos.rom", "usmos.rom", "os01.rom", "compact/os51.rom"])("leaves %s's addresses plain", async (rom) => {
+    const withMos = (rom) => {
         const memory = new Uint8Array(0x10000);
         memory.set(readFileSync(path.join(RomsDir, rom)).subarray(0, OsSize), OsBase);
-        const names = await namesFor((address) => memory[address]);
-        expect(names.sets).toEqual([]);
+        return (address) => memory[address];
+    };
+
+    it.each([
+        ["bpos.rom", ["BBC Micro B+ MOS 2.00"]],
+        ["usmos.rom", ["BBC Micro MOS 1.20 (US)"]],
+        ["os01.rom", ["BBC Micro MOS 0.10"]],
+        ["deos.rom", ["BBC Micro MOS 1.20", "BBC Micro MOS 1.20 (German)"]],
+        ["compact/os51.rom", []],
+    ])("names %s with its own MOS's sets only", async (rom, titles) => {
+        const names = await namesFor(withMos(rom));
+        expect(names.sets.map(({ title }) => title).sort()).toEqual(titles);
+    });
+
+    it.each([
+        ["os.rom", "BBC Micro MOS 1.20", 0xc303],
+        ["deos.rom", "BBC Micro MOS 1.20 (German)", 0xc307],
+    ])("names %s's boot message from its own set", async (rom, title, address) => {
+        const names = await namesFor(withMos(rom));
+        expect(names.address(address)).toMatchObject({ name: "bootMessage", set: { title } });
+        expect(names.address(0xffee)?.name).toBe("OSWRCH");
     });
 });

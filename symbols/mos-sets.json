@@ -1,1 +1,7 @@
-["sets/bbc-b-mos-1.20.json"]
+[
+  "sets/bbc-b-mos-1.20.json",
+  "sets/bbc-b-mos-1.20-us.json",
+  "sets/bbc-b-mos-1.20-de.json",
+  "sets/bbc-b-mos-0.10.json",
+  "sets/bbc-bplus-mos-2.00.json"
+]
