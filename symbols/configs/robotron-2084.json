@@ -1,0 +1,45 @@
+{
+  "importer": "level7",
+  "id": "robotron-2084",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/robotron-2084-disassembly.txt",
+    "sha256": "e15bf92cca0fab8add67e1753e0abcbacc3db4b69172933823858601ee4f9ce9"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Atarisoft/Robotron.zip",
+    "image": "Atarisoft/Robotron.ssd",
+    "key": "1582764e59e20ef7129226c7dc8f814e"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "robotron-2084-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Robotron 2084",
+      "regions": [
+        {
+          "name": "pagec",
+          "part": "Game disassembly",
+          "from": "&0C00",
+          "to": "&1E00",
+          "avoid": [
+            ["&0D59", "&0D6F"],
+            ["&0DD9", "&0DED"],
+            ["&1DC0", "&1E00"]
+          ]
+        },
+        {
+          "name": "main",
+          "from": "&1E00",
+          "to": "&5800",
+          "avoid": [
+            ["&2556", "&2557"],
+            ["&4A00", "&4DFF"]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "importer": "level7",
+  "id": "project-thesius",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/project-thesius-disassembly.txt",
+    "sha256": "cfe758b347cbc033546c8d70b2a3b04d3f5343a7111452b6c6607ea4608afec1"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Robico/ProjectThesius-v2.0.zip",
+    "image": "Robico/ProjectThesius-v2.0.ssd",
+    "key": "d198e3cc74b36eda786ae71507650871"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "project-thesius-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Project Thesius (Saga of a Spy - The Rick Hanson Trilogy, Part 2)",
+      "regions": [
+        { "name": "rooms", "from": "&08C0", "to": "&0CB5" },
+        { "name": "list_all_exits", "from": "&1E86", "to": "&2CAD" },
+        { "name": "main", "from": "&2EFA", "to": "&5F00" }
+      ]
+    }
+  ]
+}

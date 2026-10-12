@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "frak",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/frak-disassembly.txt",
+    "sha256": "efae730ef227f149acbfce82275264e54b5d1fb756609a487df3000e182e9c76"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Aardvark/Frak.zip",
+    "image": "Aardvark/Frak.ssd",
+    "key": "d1267aabac2f8275b9143901dbd182e0"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "frak-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Frak!",
+      "regions": [
+        { "name": "title_screen", "from": "&0380", "to": "&08A4", "overwritten": true },
+        { "name": "main", "part": "Frak3", "from": "&0A00", "to": "&3000" }
+      ]
+    }
+  ]
+}

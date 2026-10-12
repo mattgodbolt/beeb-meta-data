@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "zalaga",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/zalaga-disassembly.txt",
+    "sha256": "a8426b34992c4ea80350ef7f29531983f07fd0465deefbb37cf6b1175e62a501"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Aardvark/Zalaga.zip",
+    "image": "Aardvark/Zalaga.ssd",
+    "key": "a1dc4390eb854834acee3354ca452262"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "zalaga-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Zalaga",
+      "regions": [
+        { "name": "main", "part": "?", "from": "&0643", "to": "&2FE8" },
+        { "name": "loader", "from": "&4522", "to": "&481B", "overwritten": true }
+      ]
+    }
+  ]
+}

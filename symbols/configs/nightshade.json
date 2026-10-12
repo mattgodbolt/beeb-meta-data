@@ -1,0 +1,31 @@
+{
+  "importer": "level7",
+  "id": "nightshade",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/nightshade-disassembly.txt",
+    "sha256": "5a4379efea4f03a1b6532d4fe2e28683958fcf1b7d70ea73ed85dab82ab2e5d7"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Ultimate/Nightshade.zip",
+    "image": "Ultimate/Nightshade.ssd",
+    "key": "20b009066a7d153e3573af670fb1d08e"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "nightshade-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Nightshade",
+      "regions": [
+        {
+          "name": "main",
+          "part": "(no filename)",
+          "from": "&1100",
+          "to": "&6D90"
+        }
+      ]
+    }
+  ]
+}

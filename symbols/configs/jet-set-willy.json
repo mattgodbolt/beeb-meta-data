@@ -1,0 +1,55 @@
+{
+  "importer": "level7",
+  "id": "jet-set-willy",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/jet-set-willy-disassembly.txt",
+    "sha256": "2a6e56086f95d005815a91be403d5d50c2d7b6db24ab93812d0cd5b13b7f0f91"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Tynesoft/JetSetWilly.zip",
+    "image": "Tynesoft/JetSetWilly.ssd",
+    "key": "7bfc0ecfda1b8d68d3c4fa083fdb1930"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "jet-set-willy-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Jet Set Willy",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&0400",
+          "to": "&3000",
+          "avoid": [
+            ["&050C", "&050D"],
+            ["&0777", "&077E"],
+            ["&0807", "&0840"],
+            ["&0870", "&0880"],
+            ["&08BF", "&08C0"],
+            ["&0900", "&0A2F"],
+            ["&0A52", "&0A5C"],
+            ["&0F17", "&0F18"],
+            ["&1129", "&112B"],
+            ["&1900", "&1E47"]
+          ]
+        },
+        {
+          "name": "page5a",
+          "from": "&5A00",
+          "to": "&8000",
+          "avoid": [
+            ["&6E00", "&7000"],
+            ["&7020", "&703E"],
+            ["&7080", "&70B0"],
+            ["&7301", "&74A0"],
+            ["&74C2", "&74F6"],
+            ["&7FFF", "&8000"]
+          ]
+        }
+      ]
+    }
+  ]
+}

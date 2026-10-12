@@ -1,0 +1,31 @@
+{
+  "importer": "level7",
+  "id": "sabrewulf",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/sabrewulf-disassembly.txt",
+    "sha256": "f4c2331b2268f903c9f0f5b2909ba7d39aabe850fd32d0f911ffb40daa3617f0"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Ultimate/SabreWulf.zip",
+    "image": "Ultimate/SabreWulf.ssd",
+    "key": "80e3f9662ee99062647c8c46e4824016"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "sabrewulf-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Sabre Wulf",
+      "regions": [
+        {
+          "name": "main",
+          "part": "<THE.GAME>",
+          "from": "&0300",
+          "to": "&4900"
+        }
+      ]
+    }
+  ]
+}

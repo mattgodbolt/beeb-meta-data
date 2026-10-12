@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "monsters",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/monsters-disassembly.txt",
+    "sha256": "b698e5217e0edd42bc16e0f27d0007dfeb61e29e72c9e223c8d475fa7f01c21a"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Acornsoft/Monsters.zip",
+    "image": "Acornsoft/Monsters.ssd",
+    "key": "9abf8a7289ea9459b11f0bd74e246ff9"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "monsters-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Monsters",
+      "regions": [{ "name": "main", "from": "&0E00", "to": "&3000" }]
+    }
+  ]
+}

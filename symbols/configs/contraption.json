@@ -1,0 +1,28 @@
+{
+  "importer": "level7",
+  "id": "contraption",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/contraption-disassembly.txt",
+    "sha256": "33882ff1316875fd68f2bfe2e3b87e447c318a178ff5c2321e8f671f2d8b4208"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Icon/Contraption.zip",
+    "image": "Icon/Contraption.ssd",
+    "key": "11666ad47e42a22aecb38d9d32169dad"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "contraption-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Contraption",
+      "regions": [
+        { "name": "page4", "from": "&0400", "to": "&0C29" },
+        { "name": "main", "part": "Game disassembly", "from": "&0E00", "to": "&3000" },
+        { "name": "page74", "from": "&7400", "to": "&7F00" }
+      ]
+    }
+  ]
+}

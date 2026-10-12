@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "skirmish",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/skirmish-disassembly.txt",
+    "sha256": "1051f9e7740ac29a535598aa99c9d4e05ac92e2c59e35a93f455d969c3fede7f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Godax/Skirmish.zip",
+    "image": "Godax/Skirmish.ssd",
+    "key": "af1812b7ad35ee540cccb9d63b2ed359"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "skirmish-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Skirmish",
+      "regions": [
+        { "name": "page1", "from": "&0100", "to": "&01A5" },
+        { "name": "main", "part": "Game disassembly", "from": "&0400", "to": "&3257" }
+      ]
+    }
+  ]
+}

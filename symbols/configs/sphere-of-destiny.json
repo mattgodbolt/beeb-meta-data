@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "sphere-of-destiny",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/sphere-of-destiny-disassembly.txt",
+    "sha256": "bfd2893ef8e42d33a9f2ad59cfe29e181b738183b3e509d475ee50e24767fd63"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Audiogenic/SphereOfDestiny.zip",
+    "image": "Audiogenic/SphereOfDestiny.ssd",
+    "key": "f52f6528fe3d4b58ab8778af1a17096b"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "sphere-of-destiny-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Sphere of Destiny",
+      "regions": [
+        { "name": "main", "part": "(no filename)", "from": "&0300", "to": "&30B0" },
+        { "name": "player_mask", "from": "&3650", "to": "&5000" }
+      ]
+    }
+  ]
+}

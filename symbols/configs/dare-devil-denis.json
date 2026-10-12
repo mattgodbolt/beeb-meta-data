@@ -1,0 +1,28 @@
+{
+  "importer": "level7",
+  "id": "dare-devil-denis",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/dare-devil-denis-disassembly.txt",
+    "sha256": "ae26b2c9595fb140901f62544c5f359072918e95aa99546b2331931f41ce788d"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Visions/DareDevilDenis.zip",
+    "image": "Visions/DareDevilDenis.ssd",
+    "key": "d5f80b93c3e98cf71198a05d4bb6dfc9"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "dare-devil-denis-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Dare Devil Denis",
+      "regions": [
+        { "name": "loader", "from": "&4000", "to": "&4B00", "overwritten": true },
+        { "name": "main", "part": "DDDenis3", "from": "&0E00", "to": "&2EDF" },
+        { "name": "title", "from": "&2EEC", "to": "&3490", "overwritten": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "bruce-lee",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/bruce-lee-disassembly.txt",
+    "sha256": "4f25569ef61ffe28e8f788a13da557a971da0cef1970c0b050bd345ae187f791"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/USGold/BruceLee.zip",
+    "image": "USGold/BruceLee.ssd",
+    "key": "c8d465c51faea6c70df14ad378277613"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "bruce-lee-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Bruce Lee",
+      "regions": [{ "name": "main", "part": "BRUCE1", "from": "&0900", "to": "&3A00" }]
+    }
+  ]
+}
