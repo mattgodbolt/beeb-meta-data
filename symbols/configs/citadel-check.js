@@ -7,7 +7,7 @@ export const scenarios = {
         loaded: [],
         playing: ["game/main"],
         loadSecs: 30,
-        start: ["SPACE", "RETURN", "K1", "Y"],
+        start: ["SPACE:2", "K1:2", "Y:2", "RETURN:2"],
         inGame: ["game", "main", "main_game_loop"],
         moves: ["Z", "X", "COLON_STAR", "SLASH", "RETURN", "SPACE"],
     }),
