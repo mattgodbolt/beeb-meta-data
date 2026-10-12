@@ -158,6 +158,24 @@ describe("importLevel7", () => {
         expect(set.json.licence).toBe("LicenseRef-level7-educational");
     });
 
+    it("leaves out statements that disagree at an address, and the pieces a region says to", () => {
+        const typo = Text.replace("&1918 ea       NOP", "&1918 ea       NOP\n; stray_label\n&1912 ff");
+        const noted = importLevel7(config, typo, { systemGlobals: new Map() });
+        expect(noted.notes.some((note) => note.includes("disagree with others at the same address"))).toBe(true);
+        expect(noted.sets[0].json.regions.main.symbols.table).toBeUndefined();
+        expect(noted.sets[0].json.regions.main.symbols.stray_label).toBeUndefined();
+
+        const unrelocated = Text.replace("; moved_routine", "; tape_name\n&1918 54 41 50 45\n\n; moved_routine");
+        const spec = config.sets[0];
+        const leaving = {
+            ...config,
+            sets: [{ ...spec, regions: [{ ...spec.regions[0], leaveOut: ["&1918"] }, spec.regions[1]] }],
+        };
+        const left = importLevel7(leaving, unrelocated, { systemGlobals: new Map() });
+        expect(left.notes.some((note) => note.includes("disagree"))).toBe(false);
+        expect(left.sets[0].json.regions.main.symbols.tape_name).toBeUndefined();
+    });
+
     it("needs a part when two have statements in a region", () => {
         const loose = {
             ...config,

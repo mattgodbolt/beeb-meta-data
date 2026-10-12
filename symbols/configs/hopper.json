@@ -1,0 +1,30 @@
+{
+  "importer": "level7",
+  "id": "hopper",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/hopper-disassembly.txt",
+    "sha256": "9d69139eb1c3b83bcc67ea7cff902ffa5535a8b742902ce6aafd720d110d8ad5"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Acornsoft/Hopper.zip",
+    "image": "Acornsoft/Hopper.ssd",
+    "key": "99a2e62bea482994e7cf90bd71c83ed2"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "hopper-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Hopper",
+      "part": "Game disassembly",
+      "regions": [
+        { "name": "main", "from": "&0E00", "to": "&3000" },
+        { "name": "page9", "from": "&0900", "to": "&0B00" },
+        { "name": "pagec", "from": "&0C00", "to": "&0D00" },
+        { "name": "startup", "from": "&3000", "to": "&3600", "overwritten": true }
+      ]
+    }
+  ]
+}

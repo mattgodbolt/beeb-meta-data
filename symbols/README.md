@@ -21,6 +21,7 @@ describes. None of this data is under this repository's GPL; each set has its ow
 | `nevryon-game.json`         | [Nevryon's disassembly](https://github.com/waitingforvsync/nevryon)           | `import-beebasm.js`      |
 | `daredevil-demis-game.json` | [Daredevil Demis's source](https://github.com/mattgodbolt/daredevil-demis)    | `import-beebasm.js`      |
 | `repton2-game.json`         | [Repton 2's disassembly](https://github.com/gfoot/repton2disassembly)         | `import-py8dis.js`       |
+| the level7 titles' sets     | [level7's disassemblies](https://www.level7.org.uk/miscellany/)               | `import-level7.js`       |
 
 The importers are under `tools/symbols/`, and each config pins its source's commit.
 [The importers' doc](../docs/symbol-importers.md) says how to remake and check each set.

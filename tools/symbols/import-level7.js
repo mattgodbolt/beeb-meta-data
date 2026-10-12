@@ -120,6 +120,31 @@ function piecesOf(part) {
     return pieces;
 }
 
+/** The statement a label names: the first after it at its address. */
+const labelled = (part, label) => part.statements.find((s) => s.line > label.line && s.address === label.address);
+
+/**
+ * Statements with each address once: one whose bytes all repeat earlier ones' is left out; two that
+ * disagree are a typo in one of their addresses, and neither is kept.
+ */
+function agreeingStatements(statements) {
+    const byAddress = new Map();
+    for (const statement of statements)
+        statement.data.forEach((_, i) => {
+            const at = statement.address + i;
+            if (!byAddress.has(at)) byAddress.set(at, []);
+            byAddress.get(at).push(statement);
+        });
+    const conflicting = new Set();
+    for (const [at, here] of byAddress)
+        if (new Set(here.map((s) => s.data[at - s.address])).size > 1) here.forEach((s) => conflicting.add(s));
+    const repeated = new Set(statements.filter((s) => s.data.every((_, i) => byAddress.get(s.address + i)[0] !== s)));
+    return {
+        statements: statements.filter((s) => !conflicting.has(s) && !repeated.has(s)),
+        conflicting: statements.filter((s) => conflicting.has(s)),
+    };
+}
+
 const memoryOf = (statements) =>
     new Map(statements.flatMap(({ address, data }) => data.map((byte, i) => [address + i, byte])));
 
@@ -179,18 +204,31 @@ class Importer {
                 `${where}: ${parts.length} parts have statements at ${hex(start)}-${hex(end)}; give its part`,
             );
         const [part] = parts;
-        const statements = part.statements.filter((s) => s.address >= start && s.address < end);
+        const leftOut = new Set((regionSpec.leaveOut ?? []).map((at) => evaluate(at, find)));
+        const unplaced = [...leftOut].filter(
+            (at) => !this.pieces.some((piece) => piece.part === part && piece.start === at),
+        );
+        if (unplaced.length)
+            throw new Error(`${where}: no piece of ${part.name} starts at ${unplaced.map(hex).join(", ")}`);
+        const { statements, conflicting } = agreeingStatements(
+            this.pieces
+                .filter((piece) => piece.part === part && !leftOut.has(piece.start))
+                .flatMap((piece) => piece.statements)
+                .filter((s) => s.address >= start && s.address < end),
+        );
+        if (conflicting.length)
+            this.notes.push(
+                `${where}: left out statements that disagree with others at the same address, on lines ${conflicting.map((s) => s.line).join(", ")}`,
+            );
         const memory = new Map();
         for (const { address, data } of statements)
             data.forEach((byte, i) => {
-                if (memory.has(address + i))
-                    throw new Error(`${where}: ${part.name} has two statements at ${hex(address + i)}`);
                 if (address + i < end) memory.set(address + i, byte);
             });
         const modified = statements
             .filter((s) => s.modified)
             .map(({ address, data }) => [address, address + data.length]);
-        const piece = this.pieces.find((p) => p.part === part && holds(p, statements[0].address));
+        const piece = this.pieces.find((p) => p.statements.includes(statements[0]));
         return {
             name: regionSpec.name,
             fullName: where,
@@ -200,8 +238,10 @@ class Importer {
                 org: part.file ? part.file.load & 0xffff : start,
                 end: Math.max(...part.statements.map((s) => s.address + s.data.length)),
                 exec: part.file ? part.file.exec : null,
-                statements: part.statements,
-                labels: part.labels,
+                statements: part.statements.filter((s) => !holds({ start, end }, s.address) || statements.includes(s)),
+                labels: part.labels.filter(
+                    (label) => !holds({ start, end }, label.address) || statements.includes(labelled(part, label)),
+                ),
             },
             start,
             end,
@@ -246,7 +286,9 @@ class Importer {
     /** The labels of the set's regions: one name per address, the last before its statement, and each name once. */
     regionNames(regions, dropped) {
         const labels = regions.flatMap((region) =>
-            region.part.labels.filter((label) => holds(region, label.address)).map((label) => ({ ...label, region })),
+            region.sectionInfo.labels
+                .filter((label) => holds(region, label.address))
+                .map((label) => ({ ...label, region })),
         );
         const addressesOf = new Map();
         for (const { name, address } of labels)

@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "syncron",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/syncron-disassembly.txt",
+    "sha256": "db178fa00af25a9170411ac742b9a73c19cacb1dc561f40b29137e3a5d151ad4"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Syncron.zip",
+    "image": "Superior/Syncron.ssd",
+    "key": "9305b99ecba9fbd149eb98975a34d413"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "syncron-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Syncron",
+      "regions": [{ "name": "main", "from": "&0300", "to": "&5800" }]
+    }
+  ]
+}

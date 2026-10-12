@@ -48,6 +48,7 @@ The tools each importer needs, and where it looks for them:
 | `import-py8dis.js`       | Python 3, and py8dis  | `--python`, `$PYTHON`, else `python3`         |
 | `import-acornaeology.js` | the network           | jsbeeb's ROMs come from `node_modules/jsbeeb` |
 | `make-mos-set.js`        | Python 3              | `python3`                                     |
+| `import-level7.js`       | the network           | `--source`, a copy of the disassembly         |
 
 Baron before 0.5.0 wrote a flat symbol dump, which the importer refuses. The in-memory check doesn't read the dumps,
 so any baron that builds the source does for that. For beebasm, the sets here were made with
@@ -369,3 +370,44 @@ shows a picture over where GRAPHIX goes, matches nothing; the game's own title s
 [daredevil-demis](https://github.com/mattgodbolt/daredevil-demis): one region over its one saved file, which runs where
 it loads. The repository's disc, the one jsbeeb's GitHub disc list serves, is what the source builds. Its modules
 share zero page workspace (`strp`, `sfx_ptr` and `ttl_str` are all `&90`), so those addresses go unnamed.
+
+## level7's disassemblies
+
+[level7](https://www.level7.org.uk/miscellany/) has disassemblies of 75 games as plain text, by an author who doesn't
+give their name. Each says the author "imposes no additional copyright restrictions beyond those already present on the
+game itself" and that it's "provided for educational purposes only"; Matt agreed to use them on that basis, borrowing
+the names and linking back. So a set's `licence` is `LicenseRef-level7-educational`, and its `notice` quotes that
+paragraph from the file, which the importer refuses a file without.
+
+`level7-text.js` reads a file. A statement is a line of its address and bytes, and an instruction if a mnemonic
+follows (`&1400 a9 13    LDA #&13`); a label is a line of its own before its statement (`; entry_point`); and an
+instruction's operand is often followed by the name of what it addresses (`STA &8f ; code_address_high`). A heading
+(`Game disassembly`, underlined) or a file's header (`; HOPPER` and then `; ff0e00 ff8023 000800`) starts a part. Code
+the program moves is listed where it runs, after a note that says so, and the importer takes the note's copying
+instruction as a move (`# &3200 - &33ff is copied to &0900 - &0aff at &3011`). An instruction followed by `#
+actually` or `# or` changes as the program runs, so its bytes never anchor. An instruction whose bytes don't fit its
+operand (`STA &01A`, `LDA &....`) is read as data.
+
+A config has `"importer": "level7"`, and differs from a py8dis title's in these.
+
+- `source` is the file's `disassembly` URL and the `sha256` of what was fetched. `--source` takes a copy instead.
+- A set can name its `part`, by its file's name or its heading, and so can a region; a region is `from` and `to`, in
+  label names or addresses, and needs a part when more than one part has statements there.
+- A region's `leaveOut` names pieces of its part, by the address they start at, that aren't where it runs: a
+  disassembly sometimes lists a routine "used unrelocated" at its load address amid the relocated code.
+- Two statements that disagree at an address are a typo in one address, and neither is kept.
+
+Names come from labels in the set's regions: the last before a statement wins, and a name the file gives several
+addresses (`leave`, `unused`) is left out. Globals are the names the set's own instructions give addresses outside
+its regions, below `&8000`, unless a label or the MOS's set has them; an address with several takes the one most
+instructions use. There are no anchors in a text file, so a name's place is a
+[text fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments): the name and as
+many of the words after it as make the label line the first match (`hopper-disassembly.txt#:~:text=update_object,-%23%20Called`),
+else the statement's address and the words after it; a global's is its first mention. The files are often of the tape
+version. `tools/symbols/level7-compare.js --config <file>` boots the config's disc and says how much of each run of
+statements memory holds, which is how to choose a title and its regions.
+
+Hopper, Super Invaders, Arcadians, Starship Command and Syncron have sets. Their discs run the code the files list,
+relocated as the files list it; none loads where it runs, so the corpus check finds nothing to compare. Each `main`
+stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians' `relocate`, Starship Command's
+`entry`) has a region of its own. Arcadians' main leaves out the four routines the file lists unrelocated.
