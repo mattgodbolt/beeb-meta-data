@@ -1,0 +1,47 @@
+{
+  "importer": "level7",
+  "id": "wizadore",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/wizadore-disassembly.txt",
+    "sha256": "36d12f97444551b5a64ae7b9bf6f64cc4db8b6c87a8028639a342243a745d83f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Imagine/Wizadore.zip",
+    "image": "Imagine/Wizadore.ssd",
+    "key": "cd45eb0f3853d13eeb9c256fc941a7c5"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "wizadore-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Wizadore",
+      "regions": [
+        {
+          "name": "main",
+          "part": "$.WIZADORE",
+          "from": "&03C9",
+          "to": "&3E03",
+          "avoid": [
+            ["&0820", "&082C"],
+            ["&122D", "&122E"],
+            ["&13F6", "&1427"],
+            ["&14F1", "&14F4"],
+            ["&154F", "&1553"],
+            ["&1593", "&1594"],
+            ["&15C0", "&15C1"],
+            ["&1854", "&185A"],
+            ["&18AE", "&18B1"],
+            ["&1DE3", "&1DE6"],
+            ["&3287", "&3294"],
+            ["&382D", "&382E"],
+            ["&3870", "&3871"],
+            ["&3D03", "&3D69"]
+          ]
+        }
+      ]
+    }
+  ]
+}

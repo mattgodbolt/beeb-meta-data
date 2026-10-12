@@ -518,8 +518,9 @@ bytes never anchor. An instruction whose bytes don't fit its operand (`STA &01A`
 A config has `"importer": "level7"`, and differs from a py8dis title's in these.
 
 - `source` is the file's `disassembly` URL and the `sha256` of what was fetched. `--source` takes a copy instead.
-- A set can name its `part`, by its file's name or its heading, and so can a region; a region is `from` and `to`, in
-  label names or addresses, and needs a part when more than one part has statements there.
+- A set can name its `part`, by its file's name or its heading, and so can a region; where two files have the same
+  name, `heading/name` picks one. A region is `from` and `to`, in label names or addresses, and needs a part when more
+  than one part has statements there. Regions mustn't overlap.
 - A region's `leaveOut` names pieces of its part, by the address they start at, that aren't where it runs: a
   disassembly sometimes lists a routine "used unrelocated" at its load address amid the relocated code.
 - Two statements that disagree at an address are a typo in one address, and neither is kept. Where a data row and
@@ -533,11 +534,40 @@ fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Te
 the words after it as make the label line the first match
 (`hopper-disassembly.txt#:~:text=update_object,-%23%20Called`), else the statement's address and the words after it; a
 global's is the first instruction of the set's that uses it, at its address. The files are often of the tape version.
-`tools/symbols/level7-compare.js --config <file>` boots the config's disc and says how much of each run of statements
-memory holds, which is how to choose a title and its regions.
 
-Hopper, Super Invaders, Arcadians, Starship Command and Syncron have sets. Their discs run the code the files list,
-relocated as the files list it. None loads where it runs, so the corpus check only meets the run-once regions, which
-match the original discs and a cheat disc, the same code. Each `main` stops where the screen starts, and run-once loader
-code (Hopper's `startup`, Arcadians' `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main
-leaves out the pieces the file lists unrelocated in the middle of it.
+### Adding a title
+
+`tools/symbols/level7-compare.js` starts one. Given the file's URL with `--disassembly`, a disc's path in Stairway to
+Hell's archive with `--disc` (`Superior/Kix`), the seconds the game takes to load with `--seconds`, and the keys that
+start a game with `--keys` (and `--wait`, the seconds after each), it boots the disc and says how much of each run of
+statements memory holds once loaded and once the keys are pressed, and where the PC spends its time at each. With
+`--draft ID` it writes `ID.json` and `ID-check.js` from that: a region for each stretch of a part memory holds, `main`
+the biggest, `overwritten` where it's only held before a game, and an `avoid` for each run of bytes the disc's version
+differs in; and a check that waits for `update_player` or `main_game_loop` if the set has one, else for a routine the
+PC was only in after the keys. Run with `--config` and the sets made, it also lists the anchors memory disagrees with.
+
+A draft is a start. What's left to the curator, title by title:
+
+- the keys. The draft's moment after them is only right if they start a game, so look at the check's screenshots
+  (`--shots`): demonstration modes, intros that need a minute, options pages and a key the title wants first
+  (Dare Devil Denis wants SPACE then a difficulty) all fool it;
+- the routine to wait for, when the main loop has another name or runs before a game;
+- regions that hold little: a table of one or two names, or one the importer can't anchor, is better left out.
+
+A text adventure's check is `typedScenario` (in `title-scenario.js`): it presses the keys that get past its pages, then
+types commands, waiting each time for a routine that only runs on what was typed. A routine that also runs when the
+game's turn times out stops the typing early.
+
+Monsters, Cyborg Warriors, Kix, Frak, Zalaga, Dare Devil Denis, Bug Eyes II, Omega Orb, Myorem, Project Thesius, The
+Last Ninja, The Sentinel, Contraption, Skirmish, Elixir, Future Shock, Kissin' Kousins, Eagle's Wing, Nightshade, Sabre
+Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR,
+Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission and Bruce Lee were added that way, with Hopper,
+Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
+check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
+Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
+`avoid`s that half and sits in the weapon tables, which Last Ninja 2 doesn't share. Zalaga has no region for its
+run-once loader, which a cheat disc patches by a tenth while keeping its anchors.
+
+In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
+`relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists
+unrelocated in the middle of it.

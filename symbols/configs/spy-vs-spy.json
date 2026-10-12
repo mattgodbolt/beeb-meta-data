@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "spy-vs-spy",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/spy-vs-spy-disassembly.txt",
+    "sha256": "afdaa1d4376513fa3714fbf36945e40994bb8869017f86263b944b22be9d9442"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Tynesoft/SpyVsSpy-disk.zip",
+    "image": "Tynesoft/SpyVsSpy-disk.ssd",
+    "key": "506947687104255efdac74c56778675e"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "spy-vs-spy-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Spy vs. Spy",
+      "regions": [
+        { "name": "main", "part": "Game disassembly/SPYvsSPY", "from": "&1100", "to": "&5BC0" },
+        { "name": "update_music", "from": "&7EC0", "to": "&8000" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "twin-kingdom-valley",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/twin-kingdom-valley-disassembly.txt",
+    "sha256": "e883cc445d6f91e3a80a308edf9a8098ae0bbb0c344517feb2e9d18f323dafc2"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/BugByte/TwinKingdomValley.zip",
+    "image": "BugByte/TwinKingdomValley.ssd",
+    "key": "ca50354b088492eca324aa9f5e6d73dd"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "twin-kingdom-valley-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Twin Kingdom Valley",
+      "regions": [
+        { "name": "page7a", "from": "&7A00", "to": "&7B00" },
+        { "name": "page4", "from": "&0400", "to": "&0800", "avoid": [["&07D4", "&07D6"]] },
+        { "name": "pageb", "from": "&0B00", "to": "&1400" },
+        {
+          "name": "main",
+          "from": "&1400",
+          "to": "&7000",
+          "avoid": [
+            ["&27FB", "&27FC"],
+            ["&3C06", "&3C07"]
+          ]
+        }
+      ]
+    }
+  ]
+}

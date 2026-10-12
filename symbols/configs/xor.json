@@ -1,0 +1,27 @@
+{
+  "importer": "level7",
+  "id": "xor",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/xor-disassembly.txt",
+    "sha256": "957361a53c3fcae7f101a3b897136fa065458888a361fb61882487bce3708990"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Logotron/XOR.zip",
+    "image": "Logotron/XOR.ssd",
+    "key": "7eba3fcedc3d4bd661bf8c2b48ddd2a1"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "xor-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "XOR",
+      "regions": [
+        { "name": "page11", "part": "GAME??", "from": "&1100", "to": "&24AB" },
+        { "name": "main", "part": "GAME??", "from": "&2ADB", "to": "&5800" }
+      ]
+    }
+  ]
+}

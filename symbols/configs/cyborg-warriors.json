@@ -1,0 +1,40 @@
+{
+  "importer": "level7",
+  "id": "cyborg-warriors",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/cyborg-warriors-disassembly.txt",
+    "sha256": "41460d35ac3244e6e041b33d9f4e07e4611b179f7b4f6bf8eab5cf2f56416c9c"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/CyborgWarriors.zip",
+    "image": "Superior/CyborgWarriors.ssd",
+    "key": "a2905e32efc71a43555b8a5420754bb6"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "cyborg-warriors-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Cyborg Warriors",
+      "regions": [
+        {
+          "name": "page4",
+          "from": "&0400",
+          "to": "&0800"
+        },
+        {
+          "name": "high_score_names",
+          "from": "&0880",
+          "to": "&0C00"
+        },
+        {
+          "name": "main",
+          "from": "&1200",
+          "to": "&4E00"
+        }
+      ]
+    }
+  ]
+}

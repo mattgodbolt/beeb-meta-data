@@ -1,0 +1,30 @@
+{
+  "importer": "level7",
+  "id": "eagles-wing",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/eagles-wing-disassembly.txt",
+    "sha256": "7205b836bc3b1819037d1dd03d432df145727b1c5f0c312c0be2b6ea1f1c93c1"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/SoftwareInvasion/EaglesWing.zip",
+    "image": "SoftwareInvasion/EaglesWing.ssd",
+    "key": "a5c3a14ef6a589a1ebbda9378e004887"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "eagles-wing-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Eagle's Wing",
+      "regions": [
+        { "name": "silence_sound", "from": "&7AB0", "to": "&8000", "overwritten": true },
+        { "name": "page70", "from": "&7000", "to": "&7600", "overwritten": true },
+        { "name": "page4", "from": "&0400", "to": "&0600" },
+        { "name": "main", "part": "2.EAGLE?", "from": "&0739", "to": "&3000" },
+        { "name": "page32", "from": "&3200", "to": "&32C4", "overwritten": true }
+      ]
+    }
+  ]
+}

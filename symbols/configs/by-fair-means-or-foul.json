@@ -1,0 +1,61 @@
+{
+  "importer": "level7",
+  "id": "by-fair-means-or-foul",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/by-fair-means-or-foul-standard-disassembly.txt",
+    "sha256": "3b025b1fb6b69c93d9bb9fde63a4d803a8647df7d58bcb57d39df55a7a3e5aeb"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/ByFairMeansOrFoul.zip",
+    "image": "Superior/ByFairMeansOrFoul.ssd",
+    "key": "81ec3cb1464c20f6a3ad9fa15a2c07b0"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "by-fair-means-or-foul-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "By Fair Means or Foul (Standard version)",
+      "regions": [
+        {
+          "name": "page7",
+          "from": "&0700",
+          "to": "&0D00"
+        },
+        {
+          "name": "main",
+          "from": "&1100",
+          "to": "&4B00"
+        },
+        {
+          "name": "page1",
+          "from": "&0100",
+          "to": "&01A0"
+        },
+        {
+          "name": "page4",
+          "part": "4",
+          "from": "&0400",
+          "to": "&0700"
+        },
+        {
+          "name": "paged",
+          "from": "&0D00",
+          "to": "&0D80"
+        },
+        {
+          "name": "pagef",
+          "from": "&0F00",
+          "to": "&1100"
+        },
+        {
+          "name": "page4b",
+          "from": "&4B00",
+          "to": "&5800"
+        }
+      ]
+    }
+  ]
+}

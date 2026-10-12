@@ -1,0 +1,35 @@
+{
+  "importer": "level7",
+  "id": "psycastria",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/psycastria-disassembly.txt",
+    "sha256": "2a45dbccca1ea56abac68ffd751339843cda57da9613ecbe8df847f73a890e21"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Audiogenic/Psycastria.zip",
+    "image": "Audiogenic/Psycastria.ssd",
+    "key": "f8d4949e0fae4e52aff7013e404af8ba"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "psycastria-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Psycastria",
+      "regions": [
+        {
+          "name": "main",
+          "part": "(no filename)",
+          "from": "&0300",
+          "to": "&6000",
+          "avoid": [
+            ["&0D56", "&0D57"],
+            ["&22DA", "&22E0"]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "importer": "level7",
+  "id": "boffin",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/boffin-disassembly.txt",
+    "sha256": "40b3f0a866480784ee732cb2b6cb7296364b82c0743bc5e2b3130e5fe0a5b54f"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Addictive/Boffin.zip",
+    "image": "Addictive/Boffin.ssd",
+    "key": "59530483604264dfa58e430c5cd32b91"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "boffin-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Boffin",
+      "regions": [{ "name": "main", "part": "Game disassembly", "from": "&0517", "to": "&4E00" }]
+    }
+  ]
+}

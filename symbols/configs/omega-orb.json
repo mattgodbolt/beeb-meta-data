@@ -1,0 +1,56 @@
+{
+  "importer": "level7",
+  "id": "omega-orb",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/omega-orb-disassembly.txt",
+    "sha256": "0321693ef0a1532903e5403bf2ee341773707ef5232bbc5a72ada62eba3cf147"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Audiogenic/OmegaOrb.zip",
+    "image": "Audiogenic/OmegaOrb.ssd",
+    "key": "4f513b598e54447fb4e81a91e12b1cc6"
+  },
+  "bytesPerAnchor": 512,
+  "spreadAnchors": 4,
+  "check": "omega-orb-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Omega Orb",
+      "regions": [
+        {
+          "name": "page11",
+          "part": "OMEGAORB3",
+          "from": "&1100",
+          "to": "&2100",
+          "avoid": [["&1100", "&1101"]]
+        },
+        {
+          "name": "main",
+          "from": "&2CB0",
+          "to": "&5800"
+        },
+        {
+          "name": "page9",
+          "part": "OMEGAORB1",
+          "from": "&0900",
+          "to": "&1100",
+          "avoid": [
+            ["&0F46", "&0F57"],
+            ["&0F80", "&0F97"],
+            ["&0FE0", "&0FE1"],
+            ["&0FF4", "&0FF9"]
+          ]
+        },
+        {
+          "name": "sprites",
+          "part": "OMEGAORB2",
+          "from": "&6E80",
+          "to": "&8000",
+          "avoid": [["&7100", "&7101"]]
+        }
+      ]
+    }
+  ]
+}

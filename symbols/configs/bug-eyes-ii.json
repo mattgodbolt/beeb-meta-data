@@ -1,0 +1,39 @@
+{
+  "importer": "level7",
+  "id": "bug-eyes-ii",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/bug-eyes-ii-disassembly.txt",
+    "sha256": "3ab4c52b712f1e93a519e0a1a83208d3e0003661ab946984e7e61d624305d93a"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Audiogenic/BugEyes2.zip",
+    "image": "Audiogenic/BugEyes2.ssd",
+    "key": "5ee67b36608cca6e348fd45d8eb41f81"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "bug-eyes-ii-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Bug Eyes II",
+      "regions": [
+        {
+          "name": "main",
+          "from": "&1100",
+          "to": "&5800",
+          "avoid": [
+            ["&2874", "&2875"],
+            ["&2B3B", "&2B81"],
+            ["&30DC", "&30DD"],
+            ["&38F2", "&38F8"],
+            ["&3C19", "&3C1A"],
+            ["&3C3C", "&3C3F"],
+            ["&3C86", "&3C87"]
+          ]
+        }
+      ]
+    }
+  ]
+}

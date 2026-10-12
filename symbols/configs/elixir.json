@@ -1,0 +1,72 @@
+{
+  "importer": "level7",
+  "id": "elixir",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/elixir-disassembly.txt",
+    "sha256": "d94a262f06a9ba7a7aa6827a7028c3d34399327e13843cb51a0b8df7c71fef6b"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Elixir.zip",
+    "image": "Superior/Elixir.ssd",
+    "key": "7d559b2e8ce2258fc975fccadcade8a7"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "elixir-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Elixir",
+      "regions": [
+        {
+          "name": "page4",
+          "from": "&0400",
+          "to": "&0BF0",
+          "avoid": [
+            ["&0808", "&0860"],
+            ["&0A70", "&0A78"],
+            ["&0B00", "&0B29"],
+            ["&0BE0", "&0BE7"]
+          ]
+        },
+        {
+          "name": "low",
+          "part": "INTRO",
+          "from": "&0E00",
+          "to": "&260F",
+          "avoid": [
+            ["&15F8", "&15FA"],
+            ["&1EF6", "&1EF7"],
+            ["&2408", "&240A"]
+          ]
+        },
+        {
+          "name": "intro",
+          "part": "INTRO",
+          "from": "&2610",
+          "to": "&3040",
+          "overwritten": true,
+          "avoid": [["&303F", "&3041"]]
+        },
+        {
+          "name": "main",
+          "part": "INTRO",
+          "from": "&337B",
+          "to": "&53E1",
+          "avoid": [
+            ["&337B", "&347B"],
+            ["&35E1", "&35E4"],
+            ["&455D", "&4596"]
+          ]
+        },
+        {
+          "name": "sprites",
+          "from": "&53E4",
+          "to": "&5800",
+          "avoid": [["&54C5", "&54C8"]]
+        }
+      ]
+    }
+  ]
+}

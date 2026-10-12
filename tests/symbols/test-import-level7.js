@@ -5,7 +5,15 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { checkSet } from "../../tools/symbols/build-index.js";
-import { importLevel7, level7Text, noteMoves, permissionOf, textFragment } from "../../tools/symbols/import-level7.js";
+import {
+    importLevel7,
+    level7Text,
+    noteMoves,
+    partCalled,
+    permissionOf,
+    textFragment,
+} from "../../tools/symbols/import-level7.js";
+import { readLevel7 } from "../../tools/symbols/level7-text.js";
 
 const Permission =
     "The author of this disassembly imposes no additional copyright restrictions beyond those already present on the game itself. It is provided for educational purposes only.";
@@ -231,6 +239,26 @@ describe("importLevel7", () => {
             sets: [{ ...loose.sets[0], regions: [{ name: "main", from: "&1900", to: "&1908" }] }],
         };
         expect(() => importLevel7(lone, Text, { systemGlobals: new Map() })).toThrow("give its part");
+    });
+
+    it("takes a part by its heading and name where two files have the same name", () => {
+        const twice = Text.replace("; LOAD", "; GAME");
+        const game = readLevel7(twice).parts.find((part) => part.heading === "Game disassembly");
+        expect(partCalled(readLevel7(twice).parts, game)).toBe("Game disassembly/GAME");
+        expect(() => importLevel7(config, twice, { systemGlobals: new Map() })).toThrow("2 parts");
+        const qualified = { ...config, sets: [{ ...config.sets[0], part: "Game disassembly/GAME" }] };
+        expect(importLevel7(qualified, twice, { systemGlobals: new Map() }).sets[0].regions[0].start).toBe(0x1900);
+    });
+
+    it("refuses regions that overlap", () => {
+        const regions = [
+            { name: "main", from: "entry_point", to: "&1919" },
+            { name: "table", from: "&1912", to: "&1918" },
+        ];
+        const both = { ...config, sets: [{ ...config.sets[0], regions }] };
+        expect(() => importLevel7(both, Text, { systemGlobals: new Map() })).toThrow(
+            "game/main and game/table overlap",
+        );
     });
 });
 

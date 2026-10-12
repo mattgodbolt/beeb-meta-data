@@ -1,0 +1,37 @@
+{
+  "importer": "level7",
+  "id": "future-shock",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/future-shock-disassembly.txt",
+    "sha256": "3e8eaceb504eded5ec47734a89abdd738e104e4a70f422b954d88a8693c49ce6"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Tynesoft/Futureshock.zip",
+    "image": "Tynesoft/Futureshock.ssd",
+    "key": "e18d7c26590a8341bc61ef9bf80cfa4c"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "future-shock-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Future Shock",
+      "regions": [
+        {
+          "name": "page4",
+          "part": "SHOCK3",
+          "from": "&0400",
+          "to": "&1000"
+        },
+        {
+          "name": "main",
+          "part": "FUTURE",
+          "from": "&1347",
+          "to": "&5800"
+        }
+      ]
+    }
+  ]
+}

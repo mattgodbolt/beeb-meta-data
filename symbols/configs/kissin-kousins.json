@@ -1,0 +1,28 @@
+{
+  "importer": "level7",
+  "id": "kissin-kousins",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/kissin-kousins-disassembly.txt",
+    "sha256": "d8e5eba53081bd69c144e24918ae1f475b965d6ae8b67f8f8131f19cc67ab20a"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/English/KissinCousins.zip",
+    "image": "English/KissinCousins.ssd",
+    "key": "216c410e414327bd38ad5e5b801a5c64"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "kissin-kousins-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Kissin' Kousins",
+      "regions": [
+        { "name": "page4", "from": "&0400", "to": "&08A0" },
+        { "name": "main", "part": "KK2", "from": "&0F60", "to": "&5800" },
+        { "name": "page7b", "from": "&7B00", "to": "&8000" }
+      ]
+    }
+  ]
+}
