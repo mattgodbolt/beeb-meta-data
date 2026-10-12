@@ -46,9 +46,9 @@ These were each settled by a review, some more than once.
   set is the exception.
 - A program's globals name only its own memory. OS variables, vectors and hardware registers belong to the MOS's set,
   and the importers leave a program's names for them out: a source's names for them are guesses and are often wrong
-  (Frogman's and XMOS's sources had several). The exception is zero page the program's own code stores to, which it
-  keeps its own variables in (Exile's `player_angle` at `&DE`), so it keeps those names beside the MOS's. Leave out
-  any other wrong name with `leaveOut`, and fix it upstream.
+  (Frogman's and XMOS's sources had several). The exception is zero page and page 3 (the VDU and cassette workspace) the
+  program's own code stores to, which it keeps its own variables in (Exile's `player_angle` at `&DE`), so it keeps those
+  names beside the MOS's. Leave out any other wrong name with `leaveOut`, and fix it upstream.
 - A change to a system set can change other titles' sets, since they leave its addresses to it. After one, re-run
   every importer (`npm run reimport-all`, which needs every importer's tools) and keep what changes.
 - Leave out names that aren't names: a script's placeholders (`nmi_XXX1`), and names on bytes that differ in the

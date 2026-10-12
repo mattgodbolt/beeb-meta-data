@@ -130,7 +130,7 @@ Every importer links names back to the author's own work where it can, with the 
 anchors. Where the author has no site of their own, `source` is the only link.
 
 The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
-system set, unless the address is in zero page and the title's own code stores to it (`zeroPageStores` in
+system set, unless the address is in zero page or page 3 and the title's own code stores to it (`ownedIfStored` in
 `anchor-chooser.js`). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
 `leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 

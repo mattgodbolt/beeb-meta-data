@@ -23,7 +23,7 @@ import { parseArgs } from "node:util";
 
 import { parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { AcmeOptions, AcmeUsage, instructionOf, withAcmeBuild } from "./acme-build.js";
-import { chooseAnchors, zeroPageStores } from "./anchor-chooser.js";
+import { chooseAnchors, ownedIfStored } from "./anchor-chooser.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { leaveOutChanged, rangesOf, romMatches, romName, sameCodeDifferences } from "./import-acornaeology.js";
 import { evaluate, onePlaceEach, setJson, writeTitle } from "./import-baron.js";
@@ -184,7 +184,7 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         end: parseAddress(end, `globals range ${i}'s end`, AddressLimit),
     }));
     const uses = operandUses(statements);
-    const stored = zeroPageStores(chooserStatements);
+    const stored = ownedIfStored(chooserStatements);
     const candidates = new Map();
     for (const definition of kept) {
         const { name, value, label } = definition;

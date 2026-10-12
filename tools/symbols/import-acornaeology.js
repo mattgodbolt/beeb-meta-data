@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
-import { chooseAnchors, zeroPageStores } from "./anchor-chooser.js";
+import { chooseAnchors, ownedIfStored } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
 import { SameCode } from "./corpus-check.js";
 import { matchingRegions, overlappingRegions } from "./check-memory.js";
@@ -261,7 +261,7 @@ export function importAcornaeology(set, disassembly, { rom, otherRoms, systemGlo
         if (!within(regions, address)) dropped.push([label, address, "no region holds it"]);
     for (const { address, name: label } of moved) dropped.push([label, address, "it's in code the ROM moves"]);
     const globalRanges = set.globals.map((range, i) => parseRange(range, `globals range ${i}`));
-    const globals = globalsOf(outside, globalRanges, systemGlobals, zeroPageStores(statements), dropped, errors);
+    const globals = globalsOf(outside, globalRanges, systemGlobals, ownedIfStored(statements), dropped, errors);
     for (const { address, name: label } of outside)
         if (!within(globalRanges, address)) dropped.push([label, address, "it's outside the globals' ranges"]);
 

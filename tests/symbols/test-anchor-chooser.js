@@ -5,7 +5,7 @@ import {
     candidates,
     chooseAnchors,
     storesIn,
-    zeroPageStores,
+    ownedIfStored,
 } from "../../tools/symbols/anchor-chooser.js";
 
 const Section = { name: "main" };
@@ -43,17 +43,19 @@ function region({ start, end, statements, labels = [], exec = null, ...rest }) {
 
 const range = (from, to) => Array.from({ length: to - from }, (_, i) => from + i);
 
-describe("zeroPageStores", () => {
-    it("gives the zero page addresses stores and read-modify-writes name, an indexed one's by its base", () => {
+describe("ownedIfStored", () => {
+    it("gives the zero page and page 3 addresses stores and read-modify-writes name, an indexed one's by its base", () => {
         const code = (address, data) => ({ address, data, code: true });
         const statements = [
             code(0x1900, [0x85, 0xde]),
-            code(0x1902, [0x9d, 0x00, 0x03]),
+            code(0x1902, [0x9d, 0x80, 0x03]),
+            code(0x1902, [0x8d, 0x04, 0x02]),
+            code(0x1902, [0x8d, 0x40, 0xfe]),
             code(0x1905, [0xf6, 0xd9]),
             code(0x1907, [0xa5, 0xfc]),
             { address: 0x1909, data: [0x85, 0xff], code: false },
         ];
-        expect([...zeroPageStores(statements)]).toEqual([0xde, 0xd9]);
+        expect([...ownedIfStored(statements)]).toEqual([0xde, 0x0380, 0xd9]);
     });
 });
 
