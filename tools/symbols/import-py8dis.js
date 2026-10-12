@@ -176,7 +176,7 @@ class Importer {
         const roms = givenRoms ?? (config.rom === undefined ? null : romsOf(config, this.dump.loaded));
         this.config = roms ? { ...config, madeFrom: [romKey(roms.rom)] } : config;
         this.definitions = definitions;
-        if (roms) checkRom(config.rom?.url ?? config.rom, roms.rom, this.dump.loaded);
+        if (typeof config.rom === "string") checkRom(config.rom, roms.rom, this.dump.loaded);
         this.images = binaryImages(this.dump, roms);
         this.errors = [];
         this.notes = [];
@@ -193,6 +193,7 @@ class Importer {
      */
     pieceOf(spec, regionSpec) {
         const what = `${spec.id}/${regionSpec.name}`;
+        if (regionSpec.loaded && regionSpec.piece !== undefined) throw new Error(`${what}: says both loaded and piece`);
         if (regionSpec.loaded) return this.dump.loaded;
         if (regionSpec.piece !== undefined) {
             const label = this.dump.labels.find(({ name }) => name === regionSpec.piece);

@@ -17,7 +17,6 @@ const CallOsword7F = "A%=&7F:X%=B%:Y%=B% DIV256:CALL &FFF1";
 const Rom = ["rom/low", "rom/middle", "rom/high"];
 const Tube = ["tube/page4", "tube/page5"];
 
-const command = (session, text) => session.type(text);
 const finish = (session) => runSeconds(session, CommandSecs);
 
 export const machines = {
@@ -31,23 +30,23 @@ export const scenarios = {
     async disc({ session, address, check }) {
         const nmi = address("rom", "nmi_read", "nmi_handler_ram");
         check("the prompt, before any disc access", []);
-        await command(session, "*CAT");
+        await session.type("*CAT");
         await session.runUntilAddress(nmi);
         check("*CAT, in the read NMI handler", [...Rom, "rom/nmi_read"]);
         await finish(session);
         check("after *CAT", ["rom/nmi_read"]);
-        await command(session, "*SAVE TEST 3000 3100");
+        await session.type("*SAVE TEST 3000 3100");
         await session.runUntilAddress(CopyingWriteHandler);
         await session.runUntilAddress(nmi);
         check("*SAVE, in the write NMI handler", Rom);
         await finish(session);
         check("after *SAVE", []);
-        await command(session, "*LOAD TEST");
+        await session.type("*LOAD TEST");
         await session.runUntilAddress(nmi);
         check("*LOAD, in the read NMI handler", [...Rom, "rom/nmi_read"]);
         await finish(session);
-        await command(session, Osword7FRead);
-        await command(session, `${Compatibility8271}:${CallOsword7F}`);
+        await session.type(Osword7FRead);
+        await session.type(`${Compatibility8271}:${CallOsword7F}`);
         await session.runUntilAddress(address("rom", "middle", "nmi3_handler_rom_end"));
         await session.runUntilAddress(nmi);
         check("an 8271 read in compatibility mode, in its NMI handler", [...Rom, "rom/nmi_8271"]);
@@ -58,12 +57,12 @@ export const scenarios = {
     async secondProcessor({ session, address, check }) {
         const nmi = address("rom", "nmi_read", "nmi_handler_ram");
         check("the prompt, the Tube host in place", Tube);
-        await command(session, "*SAVE TEST 3000 3100");
+        await session.type("*SAVE TEST 3000 3100");
         await session.runUntilAddress(CopyingWriteHandler);
         await session.runUntilAddress(nmi);
         check("*SAVE from the second processor, in the write NMI handler", [...Rom, ...Tube]);
         await finish(session);
-        await command(session, "*LOAD TEST");
+        await session.type("*LOAD TEST");
         await session.runUntilAddress(nmi);
         check("*LOAD to the second processor, in the read NMI handler", [...Rom, ...Tube, "rom/nmi_read"]);
         await finish(session);
@@ -72,18 +71,18 @@ export const scenarios = {
 
     async dfs12({ session, check }) {
         check("DFS 1.2's Tube host, whose page 5 is 2.26's", ["tube/page5"]);
-        await command(session, "*SAVE TEST 3000 3100");
-        await command(session, "*LOAD TEST");
+        await session.type("*SAVE TEST 3000 3100");
+        await session.type("*LOAD TEST");
         await finish(session);
         check("after DFS 1.2's *SAVE and *LOAD", ["tube/page5"]);
     },
 
     async master({ session, check }) {
         check("a Master's prompt", []);
-        await command(session, "*SAVE TEST 3000 3100");
+        await session.type("*SAVE TEST 3000 3100");
         await runSeconds(session, 0.2);
         check("a Master's *SAVE, under way", []);
-        await command(session, "*LOAD TEST");
+        await session.type("*LOAD TEST");
         await finish(session);
         check("after a Master's *LOAD", []);
     },

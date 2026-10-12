@@ -10,6 +10,7 @@ import path from "node:path";
 import { RomsDir } from "../jsbeeb.js";
 
 const KeyHexDigits = 32;
+const CopyWindow = 8;
 
 /** A ROM's image key, as `madeFrom` lists it. */
 export const romKey = (rom) => createHash("sha256").update(rom).digest("hex").slice(0, KeyHexDigits);
@@ -38,8 +39,6 @@ export function romImages(otherRoms, base, size) {
         })),
     );
 }
-
-const CopyWindow = 8;
 
 /**
  * Where each bank of the other ROMs holds its own copy of code the ROM moves out of itself to run (a

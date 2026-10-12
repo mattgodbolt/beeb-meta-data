@@ -249,6 +249,12 @@ describe("importPy8dis", () => {
             expect(other.anchors.length).toBeGreaterThan(0);
         });
 
+        it("refuses a region that says both loaded and piece", () => {
+            expect(() =>
+                importPy8dis(config({ regions: [{ name: "low", loaded: true, piece: "bump" }] }), both),
+            ).toThrow("prog/low: says both loaded and piece");
+        });
+
         it("refuses a region that names no piece where two run", () => {
             expect(() => importPy8dis(config({ regions: [{ name: "low", from: "&0900" }] }), both)).toThrow(
                 "2 pieces of the binary run at &0900; name one with piece",

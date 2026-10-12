@@ -22,8 +22,8 @@ import { parseArgs } from "node:util";
 import { Format, parseAddress, parseSet } from "jsbeeb/src/symbol-sets.js";
 import { chooseAnchors } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir } from "./build-index.js";
-import { RomsDir } from "../jsbeeb.js";
 import { otherRomsThan, romImages, romKey } from "./rom-images.js";
+import { RomsDir } from "../jsbeeb.js";
 
 const Importer = "acornaeology";
 const SchemaVersion = 4;
