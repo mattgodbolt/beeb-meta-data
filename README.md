@@ -16,7 +16,7 @@ paragraphs.
 | Path              | What                                                                                          |
 | ----------------- | --------------------------------------------------------------------------------------------- |
 | `symbols/`        | The sets, their index, and each title's import config ([README](symbols/README.md))           |
-| `tools/symbols/`  | Importers (baron, beebasm, py8dis, acornaeology, the MOS), the index build, the checks        |
+| `tools/symbols/`  | Importers (baron, beebasm, py8dis, acornaeology, ACME, the MOS), the index build, the checks  |
 | `tools/registry/` | Experiments for records: fingerprints, the corpus survey ([README](tools/registry/README.md)) |
 | `tools/dist.js`   | Lays out what's published, under `dist/meta/`                                                 |
 | `docs/`           | The reference docs, below                                                                     |

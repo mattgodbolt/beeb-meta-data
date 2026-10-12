@@ -3,7 +3,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RomsDir } from "../../tools/jsbeeb.js";
-import { fetchRom, romCopies, romImages, romKey, romOf } from "../../tools/symbols/rom-images.js";
+import { fetchRom, romBanks, romCopies, romImages, romKey, romOf } from "../../tools/symbols/rom-images.js";
 
 const Size = 0x40;
 
@@ -13,6 +13,24 @@ describe("romImages", () => {
         const images = romImages([{ name: "two.rom", bytes }], 0x8000, Size);
         expect(images.map(({ name }) => name)).toEqual(["two.rom bank 0", "two.rom bank 1"]);
         expect(images[1].memory.get(0x8000)).toBe(Size);
+    });
+});
+
+describe("romBanks", () => {
+    it("cuts each ROM into banks, naming them only when there's more than one", () => {
+        const banks = romBanks(
+            [
+                { name: "one.rom", bytes: new Uint8Array(Size) },
+                { name: "long.rom", bytes: new Uint8Array(Size * 2 + 1) },
+            ],
+            Size,
+        );
+        expect(banks.map(({ name, bytes }) => [name, bytes.length])).toEqual([
+            ["one.rom", Size],
+            ["long.rom bank 0", Size],
+            ["long.rom bank 1", Size],
+            ["long.rom bank 2", 1],
+        ]);
     });
 });
 

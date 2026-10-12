@@ -21,6 +21,7 @@ node tools/symbols/import-baron.js --config symbols/configs/pipeline.json
 node tools/symbols/import-beebasm.js --config symbols/configs/nevryon.json
 node tools/symbols/import-py8dis.js --config symbols/configs/repton2.json
 node tools/symbols/import-acornaeology.js --config symbols/configs/bbc-basic.json
+node tools/symbols/import-acme.js --config symbols/configs/<title>.json
 node tools/symbols/build-index.js
 ```
 
@@ -47,6 +48,7 @@ The tools each importer needs, and where it looks for them:
 | `import-beebasm.js`      | beebasm 1.11 or later | `--beebasm`, `$BEEBASM`, else `beebasm`       |
 | `import-py8dis.js`       | Python 3, and py8dis  | `--python`, `$PYTHON`, else `python3`         |
 | `import-acornaeology.js` | the network           | jsbeeb's ROMs come from `node_modules/jsbeeb` |
+| `import-acme.js`         | ACME 0.97 or later    | `--acme`, `$ACME`, else `acme`                |
 | `make-mos-set.js`        | Python 3              | `python3`                                     |
 | `import-level7.js`       | the network           | `--source`, a copy of the disassembly         |
 
@@ -165,7 +167,7 @@ checkout) and, at each moment a scenario picks, lists the regions whose anchors 
 in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
 regions overlap (of one set or two), since the debugger then shows neither.
 
-The corpus check doesn't take an acornaeology config. For a ROM, the importer's own comparison against every ROM jsbeeb
+The corpus check doesn't take an acornaeology or ACME config. For a ROM, the importer's own comparison against every ROM jsbeeb
 has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
 
 ## What the baron importer gets wrong
@@ -332,6 +334,37 @@ Dominic Beesley's ADFS-multi-target, converted by a script in the repository, an
 reassembly's `workspace.inc`; neither that nor Hoglet's ADFS130 has a licence, and which names acornaeology chose
 itself can't be told from the history. The 6502 Tube client runs in the second processor, whose memory jsbeeb's
 debugger doesn't show; the Econet bridge isn't a BBC Micro; and the Voltmace drivers are disc software.
+
+## ACME sources
+
+`import-acme.js` makes a set per version of a ROM from [ACME](https://sourceforge.net/projects/acme-crossass/) sources,
+one config per repository, such as TobyLobster's MOS reassemblies. Ubuntu's `acme` package is 0.97.
+
+The build assembles each version's source in a copy of the checkout with `-r` for the report, which gives each line's
+address and bytes, and `-l` for the symbol list. ACME lists only global symbols, and the names in such a source are
+mostly local (`.name`), so the copy it assembles has a global alias after each line that starts by defining a name.
+
+A config has `"importer": "acme"`, an `id`, and
+
+- `licence`, `notice` and `home`, copied into every set, and `system` for the MOS's sets;
+- `source`, the `repository` and `commit`;
+- `globals`, the ranges whose `=` names can be globals, and `bytesPerAnchor`, `spreadAnchors`, `otherRoms` and
+  `leaveOut` as for acornaeology and py8dis;
+- `check`, the in-memory check's scenarios;
+- `sets`, one per version, each with an `id`, a `title`, the source to `assemble`, its `rom` (jsbeeb's file, or a `url`
+  and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron), and optionally its own `home`
+  and `pages`.
+
+The source has to assemble to the ROM's bytes in every region. Each label assembled into a region is named there, the
+last written winning where two share an address. A `=` name is a global if an instruction uses it first in a
+non-immediate operand, its address is in a `globals` range, and the system sets don't name it (unless the set is one
+of them); where several share an address, the one the most instructions use wins. Each name links to the line that
+defines it, or, for a version with `pages` (a `directory` of the checkout and the `url` it's published at), to the
+paragraph anchor (`id="SP21"`) before the line of those HTML pages that defines it. A name defined in more than one
+place, or in none of the pages, stops the import. Anchors are chosen and every ROM is matched as for acornaeology.
+
+Only the names in the source the config names are read, not those of files it includes, and a source of a program
+loaded from disc has no config of this kind yet. A read register and a write register at one address get one name.
 
 ## NFS and ANFS
 
