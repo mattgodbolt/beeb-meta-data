@@ -120,17 +120,66 @@ export function acmeVersion(acme) {
 }
 
 /**
- * Assembles one source of the work directory, its path from the root, into plain binary.
- * @returns {{binary: Uint8Array, statements: object[], definitions: object[]}} the binary from its lowest
- *     address; the report's statements in the source, with their bytes filled in from the binary where the
- *     report cut them short and `line` the source's own; and the names the source defines, each with its value
+ * Where each line of the aliased source came from: the source's own line, or none for an alias.
+ * @param {{line: number}[]} definitions - the source's, in order, as aliasedSource was given them
+ * @returns {(number | undefined)[]} by the aliased source's line, from 1
  */
+export function sourceLines(definitions, lineCount) {
+    const aliases = new Set(definitions.map(({ line }, i) => line + i + 1));
+    const out = [];
+    for (let line = 1, skipped = 0; line <= lineCount + definitions.length; line++) {
+        if (aliases.has(line)) skipped++;
+        else out[line] = line - skipped;
+    }
+    return out;
+}
+
+/**
+ * What one source's ACME run gave, as the importer reads it.
+ * @param {object} run
+ * @param {string} run.file - the aliased source's name, as the report's headers give it
+ * @param {string} run.text - the source itself
+ * @param {string} run.symbolList - from `-l`
+ * @param {string} run.report - from `-r`
+ * @param {Uint8Array} run.binary - from `-f plain`
+ * @returns {{base: number, binary: Uint8Array, statements: object[], definitions: object[]}} the binary's
+ *     lowest address and the binary; the source's own statements, with their bytes filled in from the
+ *     binary where the report cut them short and `line` the source's own; and the names the source defines,
+ *     each with its value
+ */
+export function readBuild({ file, text, symbolList, report, binary }) {
+    const definitions = definitionsIn(text);
+    const values = aliasValues(symbolList);
+    const unvalued = definitions.filter(({ line }) => !values.has(line)).map(({ name }) => name);
+    if (unvalued.length) throw new Error(`ACME gave no value for ${unvalued.join(", ")}`);
+    const listed = parseReport(report);
+    const base = Math.min(...listed.map(({ address }) => address));
+    const lines = text.split(/\r\n|\r|\n/);
+    const sourceLine = sourceLines(definitions, lines.length);
+    const statements = [];
+    listed.forEach((statement, i) => {
+        if (statement.file !== file) return;
+        let next = i + 1;
+        while (next < listed.length && listed[next].address <= statement.address) next++;
+        const end = next < listed.length ? listed[next].address : base + binary.length;
+        const length = statement.data?.length ?? end - statement.address;
+        const line = sourceLine[statement.line];
+        statements.push({
+            address: statement.address,
+            data: Array.from(binary.subarray(statement.address - base, statement.address - base + length)),
+            text: lines[line - 1],
+            line,
+        });
+    });
+    return { base, binary, statements, definitions: definitions.map((d) => ({ ...d, value: values.get(d.line) })) };
+}
+
+/** Assembles one source of the work directory, its path from the root, into plain binary, as readBuild reads it. */
 export function assemble(workDir, source, acme) {
     const file = path.join(workDir, source);
     const text = readFileSync(file, "latin1");
-    const definitions = definitionsIn(text);
     const aliased = `${file}.jsbeeb.a`;
-    writeFileSync(aliased, aliasedSource(text, definitions), "latin1");
+    writeFileSync(aliased, aliasedSource(text, definitionsIn(text)), "latin1");
     const outputs = { binary: `${file}.bin`, report: `${file}.report`, symbols: `${file}.symbols` };
     const run = spawnSync(
         acme,
@@ -139,35 +188,17 @@ export function assemble(workDir, source, acme) {
     );
     if (run.error || run.status !== 0)
         throw new Error(`ACME failed on ${source}: ${run.stderr?.trim() || run.error?.message}`, { cause: run.error });
-    const values = aliasValues(readFileSync(outputs.symbols, "latin1"));
-    const unvalued = definitions.filter(({ line }) => !values.has(line)).map(({ name }) => name);
-    if (unvalued.length) throw new Error(`ACME gave no value for ${unvalued.join(", ")} in ${source}`);
-    const binary = new Uint8Array(readFileSync(outputs.binary));
-    const report = parseReport(readFileSync(outputs.report, "latin1"));
-    const base = Math.min(...report.map(({ address }) => address));
-    const lines = text.split(/\r\n|\r|\n/);
-    const aliasesBefore = [];
-    definitions.forEach(({ line }, i) => (aliasesBefore[line + i + 1] = true));
-    const sourceLine = [];
-    for (let line = 1, skipped = 0; line <= lines.length + definitions.length; line++) {
-        if (aliasesBefore[line]) skipped++;
-        else sourceLine[line] = line - skipped;
+    try {
+        return readBuild({
+            file: path.basename(aliased),
+            text,
+            symbolList: readFileSync(outputs.symbols, "latin1"),
+            report: readFileSync(outputs.report, "latin1"),
+            binary: new Uint8Array(readFileSync(outputs.binary)),
+        });
+    } catch (error) {
+        throw new Error(`${source}: ${error.message}`, { cause: error });
     }
-    const own = report.filter((statement) => path.basename(statement.file ?? "") === path.basename(aliased));
-    const statements = own.map((statement, i) => {
-        let next = i + 1;
-        while (next < own.length && own[next].address <= statement.address) next++;
-        const end = next < own.length ? own[next].address : base + binary.length;
-        const length = statement.data?.length ?? end - statement.address;
-        const line = sourceLine[statement.line];
-        return {
-            address: statement.address,
-            data: Array.from(binary.subarray(statement.address - base, statement.address - base + length)),
-            text: lines[line - 1],
-            line,
-        };
-    });
-    return { base, binary, statements, definitions: definitions.map((d) => ({ ...d, value: values.get(d.line) })) };
 }
 
 /**

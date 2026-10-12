@@ -37,9 +37,8 @@ node tools/symbols/check-memory.js --config symbols/configs/pipeline.json
 The importers fetch the config's commit into a temporary directory, or take `--source`, a clean checkout of it. Every
 importer takes `--verbose`, which lists each name left out and why, and each anchor added to tell another image apart;
 all but acornaeology's take `--out` for somewhere other than `symbols/sets`, where a system set needn't be in
-`mos-sets.json` yet. They write nothing if a region can't be
-anchored, if its anchors all match another image in the build, if a set fails the index's checks, or if the checkout
-isn't of the config's commit or has changes.
+`mos-sets.json` yet. They write nothing if a region can't be anchored, if its anchors all match another image in the
+build, if a set fails the index's checks, or if the checkout isn't of the config's commit or has changes.
 
 The tools each importer needs, and where it looks for them:
 
@@ -168,8 +167,8 @@ checkout) and, at each moment a scenario picks, lists the regions whose anchors 
 in the sideways bank the moment names. A moment fails unless that's exactly the regions expected, or if two matching
 regions overlap (of one set or two), since the debugger then shows neither.
 
-The corpus check doesn't take an acornaeology or ACME config. For a ROM, the importer's own comparison against every ROM jsbeeb
-has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
+The corpus check doesn't take an acornaeology or ACME config. For a ROM, the importer's own comparison against every ROM
+jsbeeb has stands in for it, and `tests/symbols/test-shipped-rom-sets.js` checks the set against those ROMs.
 
 ## What the baron importer gets wrong
 
@@ -364,8 +363,9 @@ defines it, or, for a version with `pages` (a `directory` of the checkout and th
 paragraph anchor (`id="SP21"`) before the line of those HTML pages that defines it. A name defined in more than one
 place, or in none of the pages, stops the import. Anchors are chosen and every ROM is matched as for acornaeology.
 
-Only the names in the source the config names are read, not those of files it includes, and a source of a program
-loaded from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the most instructions use.
+Only the names in the source the config names are read, not those of files it includes, and a source of a program loaded
+from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the
+most instructions use.
 
 ## NFS and ANFS
 
