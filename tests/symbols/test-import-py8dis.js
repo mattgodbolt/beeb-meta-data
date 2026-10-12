@@ -146,6 +146,13 @@ describe("importPy8dis", () => {
         ]);
     });
 
+    it("leaves out the names the config's leaveOut patterns match, so a later name at the address can win", () => {
+        const placeholder = { ...dump, labels: [{ name: "start_XXX", address: 0x2000, move: 0 }, ...dump.labels] };
+        const { sets } = importPy8dis({ ...config(), leaveOut: ["XXX"] }, placeholder);
+        expect(sets[0].json.regions.main.symbols.start).toBe("0x2000");
+        expect(sets[0].dropped).toContainEqual(["start_XXX", 0x2000, "the config leaves it out"]);
+    });
+
     it("cuts a region where the config's expressions say", () => {
         const regions = [
             { name: "setup", from: "start", to: "loop" },

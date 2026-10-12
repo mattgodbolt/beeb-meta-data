@@ -70,8 +70,9 @@ theirs differ.
   every set.
 - `source` says where the source is and what of it to assemble.
   - `assembler` is `baron` unless it says `beebasm`.
-  - `repository` and `commit` pin the source. Each set's `source` links the tree there, and for a repository on
-    GitHub each name links to the line that defines it at that commit.
+  - `repository` and `commit` pin the source. Each set's `source` links the tree there, or the file `link` names
+    where the work is one file of a bigger repository, and for a repository on GitHub each name links to the line
+    that defines it at that commit.
   - `assemble` is globs, from the repository's root, of every source to assemble, not only those that make a set,
     since the anchors are chosen against everything the title puts in memory.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
@@ -254,6 +255,7 @@ The config differs from a baron title's in these.
   and its `key`, which the in-memory check fetches and puts in sideways RAM. The binary has to be that ROM, which gives
   the sets' `madeFrom`, and the anchors tell it apart from every other ROM jsbeeb has and from their own copies of the
   code it moves (the same Tube host at `&0400`, say), found by the runs of 8 bytes they share.
+- `leaveOut` is regular expressions for names to leave out, such as a script's placeholders (`XXX` in DFS 2.26's).
 - `moves` and `tableSizes` are expressions too, since a script names few of the instructions it traces
   (`boot_relocate_0380_loop + 3`). A table is the store's operand exactly, so `STA table+1,X` is `table + 1`. A move
   can name a copy loop's first instruction; the loop is the one in the piece with an instruction there, or in any

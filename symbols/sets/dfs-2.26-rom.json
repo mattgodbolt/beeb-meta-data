@@ -2,8 +2,8 @@
   "format": 1,
   "title": "Acorn DFS 2.26",
   "licence": "MIT",
-  "source": "https://github.com/ZornsLemma/py8dis/tree/2a6046356e20e93c4a2d484bc04bd5d74d66254e",
-  "notice": "The names are py8dis's example disassembly's, from https://github.com/ZornsLemma/py8dis/tree/2a6046356e20e93c4a2d484bc04bd5d74d66254e, under this licence:\n\nMIT License\n\nCopyright (c) 2021 Steven Flintham\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "source": "https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py",
+  "notice": "The names are from py8dis's example disassembly at https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py, under this licence:\n\nMIT License\n\nCopyright (c) 2021 Steven Flintham\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
   "madeFrom": ["83d97c7170b35c26597896a2c0c202d6"],
   "nameLink": "https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/{place}",
   "regions": {
@@ -52,7 +52,6 @@
         "osbyte_read": "0x9ae5",
         "generate_error_precheck_disc_changed": "0x9c00",
         "generate_error_precheck_open": "0x9c82",
-        "zero_stacked_XXX": "0x9d8e",
         "osbyte_write_0": "0x9e4d",
         "print_inline_osasci_top_bit_clear": "0xa99c",
         "tube_host_code2": "0xacdb",
@@ -93,15 +92,7 @@
         "nmi_beq": "0x0d08",
         "nmi_lda_zp": "0x0d16",
         "nmi_cmp_imm_or_bcs": "0x0d18",
-        "nmi_XXX5": "0x0d20",
-        "nmi_lda_immXXX4": "0x0d21",
-        "nmi_XXX2": "0x0d39",
-        "nmi_sta_abs": "0x0d3c",
-        "nmi_XXX6": "0x0d3f",
-        "nmi_XXX7": "0x0d47",
-        "nmi_lda_immXXX3": "0x0d4b",
-        "nmi_XXX1": "0x0d52",
-        "nmi_XXX8": "0x0d57"
+        "nmi_sta_abs": "0x0d3c"
       }
     },
     "nmi_8271": {
@@ -112,23 +103,7 @@
         { "at": "0x0d33", "bytes": "6840c9fef004" },
         { "at": "0x0d41", "bytes": "ed87fe85b5a93b" }
       ],
-      "symbols": {
-        "nmi_bcs": "0x0d0d",
-        "nmi_XXX17": "0x0d15",
-        "nmi_XXX18": "0x0d20",
-        "nmi_XXX23": "0x0d33",
-        "nmi_XXX21": "0x0d35",
-        "nmi_XXX10": "0x0d41",
-        "nmi_XXX11": "0x0d4a",
-        "nmi_XXX12": "0x0d4e",
-        "nmi_XXX13": "0x0d58",
-        "nmi_XXX14": "0x0d5c",
-        "nmi_XXX15": "0x0d64",
-        "nmi_XXX16": "0x0d6c",
-        "nmi_XXX22": "0x0d86",
-        "nmi_XXX19": "0x0d8a",
-        "nmi_XXX20": "0x0d8e"
-      }
+      "symbols": { "nmi_bcs": "0x0d0d", "nmi_sta_abs2": "0x0d15" }
     }
   },
   "globals": {},
@@ -150,26 +125,6 @@
     "just_rts": "examples/known_good/dfs226_beebasm.asm#L8161",
     "lda_0_rts": "examples/known_good/dfs226_beebasm.asm#L8158",
     "nmi3_handler_rom_end": "examples/known_good/dfs226_beebasm.asm#L3187",
-    "nmi_XXX1": "examples/known_good/dfs226_beebasm.asm#L3136",
-    "nmi_XXX10": "examples/known_good/dfs226_beebasm.asm#L3270",
-    "nmi_XXX11": "examples/known_good/dfs226_beebasm.asm#L3276",
-    "nmi_XXX12": "examples/known_good/dfs226_beebasm.asm#L3279",
-    "nmi_XXX13": "examples/known_good/dfs226_beebasm.asm#L3286",
-    "nmi_XXX14": "examples/known_good/dfs226_beebasm.asm#L3290",
-    "nmi_XXX15": "examples/known_good/dfs226_beebasm.asm#L3298",
-    "nmi_XXX16": "examples/known_good/dfs226_beebasm.asm#L3304",
-    "nmi_XXX17": "examples/known_good/dfs226_beebasm.asm#L3238",
-    "nmi_XXX18": "examples/known_good/dfs226_beebasm.asm#L3244",
-    "nmi_XXX19": "examples/known_good/dfs226_beebasm.asm#L3328",
-    "nmi_XXX2": "examples/known_good/dfs226_beebasm.asm#L3108",
-    "nmi_XXX20": "examples/known_good/dfs226_beebasm.asm#L3332",
-    "nmi_XXX21": "examples/known_good/dfs226_beebasm.asm#L3262",
-    "nmi_XXX22": "examples/known_good/dfs226_beebasm.asm#L3324",
-    "nmi_XXX23": "examples/known_good/dfs226_beebasm.asm#L3257",
-    "nmi_XXX5": "examples/known_good/dfs226_beebasm.asm#L3082",
-    "nmi_XXX6": "examples/known_good/dfs226_beebasm.asm#L3117",
-    "nmi_XXX7": "examples/known_good/dfs226_beebasm.asm#L3123",
-    "nmi_XXX8": "examples/known_good/dfs226_beebasm.asm#L3141",
     "nmi_and_imm": "examples/known_good/dfs226_beebasm.asm#L3050",
     "nmi_and_table": "examples/known_good/dfs226_beebasm.asm#L3387",
     "nmi_bcs": "examples/known_good/dfs226_beebasm.asm#L3227",
@@ -180,10 +135,9 @@
     "nmi_handler_ram": "examples/known_good/dfs226_beebasm.asm#L3046",
     "nmi_handler_rom_end": "examples/known_good/dfs226_beebasm.asm#L3160",
     "nmi_handler_rom_start": "examples/known_good/dfs226_beebasm.asm#L3041",
-    "nmi_lda_immXXX3": "examples/known_good/dfs226_beebasm.asm#L3127",
-    "nmi_lda_immXXX4": "examples/known_good/dfs226_beebasm.asm#L3089",
     "nmi_lda_zp": "examples/known_good/dfs226_beebasm.asm#L3070",
     "nmi_sta_abs": "examples/known_good/dfs226_beebasm.asm#L3111",
+    "nmi_sta_abs2": "examples/known_good/dfs226_beebasm.asm#L3239",
     "opt4_table": "examples/known_good/dfs226_beebasm.asm#L1391",
     "osbyte_read": "examples/known_good/dfs226_beebasm.asm#L5001",
     "osbyte_write_0": "examples/known_good/dfs226_beebasm.asm#L5544",
@@ -197,7 +151,6 @@
     "tube_banner_loop": "examples/known_good/dfs226_beebasm.asm#L8114",
     "tube_host_code1": "examples/known_good/dfs226_beebasm.asm#L8241",
     "tube_host_code2": "examples/known_good/dfs226_beebasm.asm#L7756",
-    "tube_host_code3": "examples/known_good/dfs226_beebasm.asm#L8165",
-    "zero_stacked_XXX": "examples/known_good/dfs226_beebasm.asm#L5405"
+    "tube_host_code3": "examples/known_good/dfs226_beebasm.asm#L8165"
   }
 }

@@ -278,7 +278,12 @@ class Importer {
         const regions = spec.regions.map((regionSpec) => this.region(spec, regionSpec));
         const globals = new Map();
         const dropped = [];
+        const leftOut = (this.config.leaveOut ?? []).map((pattern) => new RegExp(pattern));
         for (const { name, address, move } of this.dump.labels) {
+            if (leftOut.some((pattern) => pattern.test(name))) {
+                dropped.push([name, address, "the config leaves it out"]);
+                continue;
+            }
             const inPiece = [...this.dump.pieces, this.dump.loaded].some(
                 (piece) => piece.move === move && holds(piece, address),
             );
