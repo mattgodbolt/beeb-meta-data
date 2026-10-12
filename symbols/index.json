@@ -561,6 +561,23 @@
       }
     },
     {
+      "url": "sets/by-fair-means-or-foul-enhanced-shadow.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "code": {
+          "start": "0x3000",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x326a", "bytes": "fffefdf3f7f6" },
+            { "at": "0x4300", "bytes": "bd5a438570bd5d43" },
+            { "at": "0x440c", "bytes": "c90dd0034cc344" },
+            { "at": "0x4e21", "bytes": "984820be4f68" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/by-fair-means-or-foul-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
