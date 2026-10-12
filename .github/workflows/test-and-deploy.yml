@@ -1,0 +1,54 @@
+name: Test and deploy
+
+# push covers same-repo branches; pull_request exists for forks, so the jobs skip same-repo PR events
+# to avoid running everything twice.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Lint, formatting and an up-to-date symbol index
+        run: npm run ci-checks
+      - name: Unit tests
+        run: npm test
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run dist
+      - name: Say why nothing deploys
+        if: env.AWS_ACCESS_KEY_ID == ''
+        run: echo "::notice::No AWS credentials are configured, so dist/ was built but not deployed."
+      - name: Deploy to S3
+        if: env.AWS_ACCESS_KEY_ID != ''
+        # Only meta/ is ours on bbc.xania.org; jsbeeb deploys the rest. No --delete: a page that fetched an
+        # older index can still fetch the sets it lists.
+        run: |
+          aws s3 sync dist/meta s3://bbc.xania.org/meta \
+            --no-progress \
+            --cache-control max-age=300 --metadata-directive REPLACE
