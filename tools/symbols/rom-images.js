@@ -40,6 +40,15 @@ export function romImages(otherRoms, base, size) {
     );
 }
 
+/** Each ROM cut into banks of `size`, the last perhaps short, as romMatches takes them. */
+export const romBanks = (roms, size) =>
+    roms.flatMap(({ name, bytes }) =>
+        Array.from({ length: Math.ceil(bytes.length / size) }, (_, bank) => ({
+            name: bytes.length > size ? `${name} bank ${bank}` : name,
+            bytes: bytes.subarray(bank * size, (bank + 1) * size),
+        })),
+    );
+
 /**
  * Where each bank of the other ROMs holds its own copy of code the ROM moves out of itself to run (a
  * Tube host or an NMI handler, say), placed where that code runs: the bank's bytes from the offset

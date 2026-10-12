@@ -26,7 +26,7 @@ import { chooseAnchors } from "./anchor-chooser.js";
 import { checkSet, formatJson, readMosSets, SymbolsDir, systemGlobals } from "./build-index.js";
 import { SameCode } from "./corpus-check.js";
 import { matchingRegions, overlappingRegions } from "./check-memory.js";
-import { fetchRom, otherRomsThan, romImages, romKey, romOf } from "./rom-images.js";
+import { fetchRom, otherRomsThan, romBanks, romImages, romKey, romOf } from "./rom-images.js";
 
 const Importer = "acornaeology";
 const SchemaVersion = 4;
@@ -396,14 +396,10 @@ async function main() {
     const everyRom = [
         ...versions.map((set, i) => ({ name: romName(set.rom), bytes: roms[i] })),
         ...otherCopies,
-        ...otherRomsThan(null, 1)
-            .filter(({ name }) => !versions.some((set) => set.rom === name))
-            .flatMap(({ name, bytes }) =>
-                Array.from({ length: Math.ceil(bytes.length / SidewaysSize) }, (_, bank) => ({
-                    name: bytes.length > SidewaysSize ? `${name} bank ${bank}` : name,
-                    bytes: bytes.subarray(bank * SidewaysSize, (bank + 1) * SidewaysSize),
-                })),
-            ),
+        ...romBanks(
+            otherRomsThan(null, 1).filter(({ name }) => !versions.some((set) => set.rom === name)),
+            SidewaysSize,
+        ),
     ];
     const matches = romMatches(sets, everyRom, base);
     for (const { name, found, overlaps } of matches) {
