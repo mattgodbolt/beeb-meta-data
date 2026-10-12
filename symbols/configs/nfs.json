@@ -1,0 +1,424 @@
+{
+  "id": "nfs",
+  "importer": "acornaeology",
+  "licence": "MIT",
+  "source": {
+    "repository": "https://github.com/acornaeology/acorn-nfs",
+    "commit": "32a089515b2e44738f9bcec4ff858e4270d92346",
+    "licenceFile": "LICENSE"
+  },
+  "globals": [
+    {
+      "start": "0x0000",
+      "end": "0x1100"
+    }
+  ],
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "nfs-check.js",
+  "otherRoms": [
+    {
+      "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS335E",
+      "key": "520997179d189b898edfd07d62f63e85"
+    },
+    {
+      "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS421bbc",
+      "key": "54fc77feb88abee170b703c9fa8a5706"
+    },
+    {
+      "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS426RTC",
+      "key": "4b1f9e3beb7182fa26c4b2adeab7854c"
+    }
+  ],
+  "sets": [
+    {
+      "id": "3.34",
+      "title": "Acorn NFS 3.34",
+      "disassembly": "versions/nfs-3.34/output/nfs-3.34.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.34.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS334",
+        "key": "08a0a94cfef9403e4b7757a20a2514cc"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "3.34B",
+      "title": "Acorn NFS 3.34B",
+      "disassembly": "versions/nfs-3.34B/output/nfs-3.34B.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.34B.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS334B",
+        "key": "fbe654d93728fe9261069d05ee729bee"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "3.35D",
+      "title": "Acorn NFS 3.35D",
+      "disassembly": "versions/nfs-3.35D/output/nfs-3.35D.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.35D.html",
+      "rom": {
+        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/32a089515b2e44738f9bcec4ff858e4270d92346/versions/nfs-3.35D/rom/nfs-3.35D.rom",
+        "key": "b092bd49107cabd05a4d4e3fce641f24"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "3.35K",
+      "title": "Acorn NFS 3.35K",
+      "disassembly": "versions/nfs-3.35K/output/nfs-3.35K.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.35K.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS335K",
+        "key": "616804cac917a27a6b4728834176bc08"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "3.40",
+      "title": "Acorn NFS 3.40",
+      "disassembly": "versions/nfs-3.40/output/nfs-3.40.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.40.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS340",
+        "key": "189cb2a5da64e6e1a104d5583e9f4c0b"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000",
+          "sameCodeIn": ["us/USDNFS.rom bank 0"]
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0x9fe0",
+          "sameCodeIn": ["us/USDNFS.rom bank 0"]
+        },
+        {
+          "name": "tail",
+          "start": "0x9fe0",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "3.60",
+      "title": "Acorn NFS 3.60",
+      "disassembly": "versions/nfs-3.60/output/nfs-3.60.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.60.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS360",
+        "key": "7a1ed6d2b2fa35e2bae82165fc9625a9"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000",
+          "sameCodeIn": ["b/DFS-1.2.rom bank 0"]
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0x9f9d",
+          "sameCodeIn": ["b/DFS-1.2.rom bank 0"]
+        },
+        {
+          "name": "tail",
+          "start": "0x9f9d",
+          "end": "0x9fb5"
+        }
+      ]
+    },
+    {
+      "id": "3.62",
+      "title": "Acorn NFS 3.62",
+      "disassembly": "versions/nfs-3.62/output/nfs-3.62.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.62.html",
+      "rom": {
+        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/32a089515b2e44738f9bcec4ff858e4270d92346/versions/nfs-3.62/rom/nfs-3.62.rom",
+        "key": "1a2ab7609f0dd43d77cc2e9af2c26db8"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "patch",
+          "start": "0x9fb5",
+          "end": "0x9fc1"
+        }
+      ]
+    },
+    {
+      "id": "3.65",
+      "title": "Acorn NFS 3.65",
+      "disassembly": "versions/nfs-3.65/output/nfs-3.65.json",
+      "home": "https://acornaeology.uk/acorn-nfs/3.65.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/NFS365",
+        "key": "683e24f3cb30931892f5381dbd116afe"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "high",
+          "start": "0x9000",
+          "end": "0xa000"
+        }
+      ]
+    },
+    {
+      "id": "4.08.53",
+      "title": "Acorn ANFS 4.08.53",
+      "disassembly": "versions/anfs-4.08.53/output/anfs-4.08.53.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.08.53.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS408",
+        "key": "df02bdce87495bed9cd36e16fe32c592"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xc000"
+        }
+      ]
+    },
+    {
+      "id": "4.18",
+      "title": "Acorn ANFS 4.18",
+      "disassembly": "versions/anfs-4.18/output/anfs-4.18.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.18.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS418",
+        "key": "963c9bdd114c3987e03031c67a13d118"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xc000"
+        }
+      ]
+    },
+    {
+      "id": "4.21",
+      "title": "Acorn ANFS 4.21 (variant 1)",
+      "disassembly": "versions/anfs-4.21_variant_1/output/anfs-4.21_variant_1.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.21_variant_1.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS421mst",
+        "key": "a51c9b2ce63d16519880a33b0561048c"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xc000"
+        }
+      ],
+      "globals": [
+        {
+          "start": "0x0000",
+          "end": "0x1100"
+        },
+        {
+          "start": "0xc000",
+          "end": "0xc300"
+        }
+      ]
+    },
+    {
+      "id": "4.24",
+      "title": "Acorn ANFS 4.24",
+      "disassembly": "versions/anfs-4.24/output/anfs-4.24.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.24.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS424",
+        "key": "5a91a05b47c3bf96c1b7f2cf9c88ca98"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xc000"
+        }
+      ],
+      "globals": [
+        {
+          "start": "0x0000",
+          "end": "0x1100"
+        },
+        {
+          "start": "0xc000",
+          "end": "0xc300"
+        }
+      ]
+    },
+    {
+      "id": "4.25",
+      "title": "Acorn ANFS 4.25",
+      "disassembly": "versions/anfs-4.25/output/anfs-4.25.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.25.html",
+      "rom": "master/anfs-4.25.rom",
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "high",
+          "start": "0xb000",
+          "end": "0xbff7"
+        }
+      ],
+      "globals": [
+        {
+          "start": "0x0000",
+          "end": "0x1100"
+        },
+        {
+          "start": "0xc000",
+          "end": "0xc300"
+        }
+      ]
+    },
+    {
+      "id": "4.26",
+      "title": "Acorn ANFS 4.26",
+      "disassembly": "versions/anfs-4.26/output/anfs-4.26.json",
+      "home": "https://acornaeology.uk/acorn-nfs/4.26.html",
+      "rom": {
+        "url": "https://mdfs.net/System/ROMs/Filing/Network/Acorn/ANFS426",
+        "key": "1e34e4396a89c61ab1d8474401f5a860"
+      },
+      "regions": [
+        {
+          "name": "low",
+          "start": "0x8000",
+          "end": "0x9000"
+        },
+        {
+          "name": "middle",
+          "start": "0x9000",
+          "end": "0xb000"
+        },
+        {
+          "name": "patch",
+          "start": "0xbff7",
+          "end": "0xc000"
+        }
+      ],
+      "globals": [
+        {
+          "start": "0x0000",
+          "end": "0x1100"
+        },
+        {
+          "start": "0xc000",
+          "end": "0xc300"
+        }
+      ]
+    }
+  ]
+}

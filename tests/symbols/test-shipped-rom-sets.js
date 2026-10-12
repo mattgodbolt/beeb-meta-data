@@ -57,9 +57,25 @@ describe("the shipped ROM sets", () => {
         "leaves BASIC II's names out while %s is paged in",
         async (rom) => {
             const names = await namesFor(withRoms(rom));
-            expect(names.sets.map(({ title }) => title)).toEqual(["BBC Micro MOS 1.20"]);
+            expect(names.sets.map(({ title }) => title)).not.toContain("BBC BASIC II");
         },
     );
+
+    it.each([
+        ["b/DFS-1.2.rom", "Acorn NFS 3.60", 0x9015, "copy_fs_addr"],
+        ["us/USDNFS.rom", "Acorn NFS 3.40", 0x900b, "copy_fs_addr"],
+        ["master/anfs-4.25.rom", "Acorn ANFS 4.25", 0xb003, "send_disconnect_status"],
+    ])("names %s's network filing system as %s", async (rom, title, address, name) => {
+        const names = await namesFor(withRoms(rom));
+        expect(names.sets.map((set) => set.title).sort()).toEqual([title, "BBC Micro MOS 1.20"]);
+        expect(names.address(address)?.name).toBe(name);
+    });
+
+    it("leaves DNFS 1.20's DFS to no network set", async () => {
+        const names = await namesFor(withRoms("b/DFS-1.2.rom"));
+        expect(names.address(0x9f9d)).toBeUndefined();
+        expect(names.address(0xa000)).toBeUndefined();
+    });
 
     it.each(["b1770/dfs1770.rom", "bp/dfs.rom"])("names DFS 2.26's code while %s is paged in", async (rom) => {
         const names = await namesFor(withRoms(rom));
