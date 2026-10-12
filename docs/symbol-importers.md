@@ -117,10 +117,10 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
 - `=` names count as addresses when an instruction uses them as a memory operand: the operand's first name, not after
   `#`, not a FUNCTION's result, and not one `leftToSystemSets` covers. Such a name goes to the region it points into
   if only that region's code uses it, and is a global otherwise.
-- A region or the globals give an address one name. In a region, a scope's own name wins over the labels inside it (`pl` over
-  `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In the globals it's the `=`
-  name or virtual section label the most instructions use as a memory operand; a label of a `globalsSections`
-  section, or a virtual one only data mentions, counts as used by none.
+- A region or the globals give an address one name. In a region, a baron scope's own name wins over the labels
+  inside it (`pl` over `pl.start`), then the label written last, nearest the bytes (`tune` over `sound_data`). In
+  the globals it's the `=` name or virtual section label the most instructions use as a memory operand; a label of a
+  `globalsSections` section, or a virtual one only data mentions, counts as used by none.
 - Where the globals name an address outside every region more than one way, the name most instructions use stays
   the global. Each other name whose uses are all in the set's regions goes in the region's scopes instead, one for
   each routine that uses it, a caller setting a routine's parameters included. That's baron's `ZA_AUTO`, which gives

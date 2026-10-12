@@ -66,8 +66,7 @@
         "pl_cheat.load_game": "0x061a",
         "pl_cheat.unlock_keys": "0x0621",
         "pl_cheat.action_names": "0x0625"
-      },
-      "scopes": [{ "start": "0x043b", "end": "0x05d8", "symbols": { "entry_index": "0x0070" } }]
+      }
     }
   },
   "globals": {

@@ -688,7 +688,22 @@ class Importer {
         const globals = new Map();
         choose(globalsNamed, globals, dropSaying("the globals call it"));
 
-        const scopedOnce = new Map(regions.flatMap((region) => region.scopes.flatMap((scope) => [...scope.symbols])));
+        for (const region of regions) {
+            for (const scope of region.scopes)
+                for (const [name, address] of scope.symbols)
+                    if (globals.get(name) === address) scope.symbols.delete(name);
+            region.scopes = region.scopes.filter((scope) => scope.symbols.size);
+        }
+        const scopedAt = new Map();
+        for (const region of regions)
+            for (const scope of region.scopes)
+                for (const [name, address] of scope.symbols) {
+                    if (!scopedAt.has(name)) scopedAt.set(name, new Set());
+                    scopedAt.get(name).add(address);
+                }
+        for (const [name, addresses] of scopedAt)
+            if (addresses.size > 1 || (globals.has(name) && !addresses.has(globals.get(name)))) repeated.add(name);
+        const scopedOnce = new Map([...scopedAt].map(([name, addresses]) => [name, [...addresses][0]]));
         for (const [name, [address, kept]] of lostInScopes)
             if (!scopedOnce.has(name) && !globals.has(name))
                 dropped.push([name, address, `every routine that uses it calls it ${kept}`]);

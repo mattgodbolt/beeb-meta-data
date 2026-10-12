@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkSet, readMosSets, SymbolsDir } from "../../tools/symbols/build-index.js";
 import { BuildLayout } from "../../tools/symbols/baron-build.js";
@@ -444,8 +444,10 @@ const namingConfig = {
     ],
 };
 
+const namingBuild = () => baronBuild(new Map([["names", namingListing]]), namingSymbols, []);
+
 describe("importBaron's names", () => {
-    const [set] = importBaron(namingConfig, baronBuild(new Map([["names", namingListing]]), namingSymbols, [])).sets;
+    const [set] = importBaron(namingConfig, namingBuild()).sets;
 
     it("gives an address a scope's own name over the labels inside it, then the label written last", () => {
         expect(set.json.regions.a.symbols).toEqual({ sub: "0x1900", local: "0x1905", second: "0x1910" });
@@ -641,12 +643,9 @@ describe("importBaron's scopes", () => {
         expect(scopeAt("0x1912")).toEqual({ start: "0x1912", end: "0x1914", symbols: { "blast.py": "0x0070" } });
     });
 
-    it("gives a routine the global's name too where it uses it, keeping the one it uses most", () => {
-        expect(scopeAt("0x1909")).toEqual({
-            start: "0x1909",
-            end: "0x1912",
-            symbols: { shared: "0x0070", "blast.temp": "0x0072" },
-        });
+    it("leaves the global's name to the globals in a routine that uses it most", () => {
+        expect(scopeAt("0x1909")).toEqual({ start: "0x1909", end: "0x1912", symbols: { "blast.temp": "0x0072" } });
+        expect(set.dropped).not.toContainEqual(expect.arrayContaining(["blast.py"]));
     });
 
     it("leaves out a name only when every routine using it calls the address something else", () => {
@@ -671,6 +670,60 @@ describe("importBaron's scopes", () => {
         const stripped = { ...zaConfig(), sets: [{ ...zaConfig().sets[0], stripScope: "blast" }] };
         const build = baronBuild(new Map([["za", listing]]), { "src/za.6502": { ...rest, py: 0x1912 } }, []);
         expect(() => importBaron(stripped, build)).toThrow("names given twice: py");
+    });
+});
+
+describe("importBaron's scopes across sources", () => {
+    const second = [
+        "hot = 116 [&74]",
+        "vslot = 116 [&74]",
+        'SECTION zb, filename="ZB", org=&3000, load=&3000, exec=&3000',
+        statement(0x3000, [0xc6, 0x74], "DEC hot"),
+        statement(0x3002, [0xc6, 0x74], "DEC hot"),
+        statement(0x3004, [0xc6, 0x74], "DEC vslot"),
+        statement(0x3006, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const za = [
+        "count = 115 [&73]",
+        "SECTION work, org=&0073, virtual=TRUE",
+        label(0x0073, "vslot"),
+        statement(0x0073, [], "SKIP 1"),
+        "ENDSECTION",
+        'SECTION za, filename="ZA", org=&1900, load=&1900, exec=&1900',
+        statement(0x1900, [0xc6, 0x73], "DEC count"),
+        statement(0x1902, [0xc6, 0x73], "DEC count"),
+        statement(0x1904, [0xc6, 0x73], "DEC vslot"),
+        statement(0x1906, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const build = () =>
+        baronBuild(
+            new Map([
+                ["za", za],
+                ["zb", second],
+            ]),
+            { "src/za.6502": { count: 0x73, vslot: 0x73 }, "src/zb.6502": { hot: 0x74, vslot: 0x74 } },
+            [],
+        );
+    const twoSources = {
+        ...config(),
+        leftToSystemSets: [],
+        sets: [
+            {
+                id: "z",
+                title: "Z",
+                sources: ["za", "zb"],
+                regions: [
+                    { name: "a", section: "za" },
+                    { name: "b", source: "zb", section: "zb" },
+                ],
+            },
+        ],
+    };
+
+    it("refuses a name scoped at two addresses", () => {
+        expect(() => importBaron(twoSources, build())).toThrow("names given twice: vslot");
     });
 });
 
@@ -850,6 +903,16 @@ describe("writeTitle", () => {
     let out;
     beforeEach(() => (out = mkdtempSync(path.join(tmpdir(), "symbols-out-"))));
     afterEach(() => rmSync(out, { recursive: true, force: true }));
+
+    it("counts each region's scoped names in its summary", async () => {
+        const log = vi.spyOn(console, "log").mockImplementation(() => {});
+        try {
+            await writeTitle(namingConfig, importBaron(namingConfig, namingBuild()), { out, verbose: false });
+            expect(log).toHaveBeenCalledWith(expect.stringContaining("a 1/3 +1 scoped, b 1/1;"));
+        } finally {
+            log.mockRestore();
+        }
+    });
 
     it("writes a system set mos-sets.json doesn't list yet, outside symbols/sets", async () => {
         const system = { ...config(), system: true };

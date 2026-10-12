@@ -570,7 +570,7 @@
         {
           "start": "0x0e6b",
           "end": "0x0e9d",
-          "symbols": { "scr": "0x0016", "span_x1": "0x0018", "hspan.fill": "0x0019", "hspan.row": "0x001d" }
+          "symbols": { "span_x1": "0x0018", "hspan.fill": "0x0019", "hspan.row": "0x001d" }
         },
         { "start": "0x0ea1", "end": "0x0ea3", "symbols": { "bg_y0": "0x001f" } },
         { "start": "0x0ea3", "end": "0x0ea5", "symbols": { "bg_y1": "0x0026" } },

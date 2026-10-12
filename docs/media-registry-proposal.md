@@ -172,9 +172,9 @@ made by the importers in [the importers' doc](symbol-importers.md).
   `{place}`, which comes from `places`, an object from a name to a relative path and optional fragment.
   A name `places` doesn't give has no link from a template with `{place}`.
 
-Every name is an address, so constants stay out. A name means one address throughout a set: it's in one
-region or the globals, though it can also be in several scopes and be a global too. No address has two
-names in one region, the globals or one scope, and two scopes that overlap don't name the same address.
+Every name is an address, so constants stay out. A name means one address throughout a set. It's in one
+region or the globals or neither, and if not in a region it can also be in several scopes. No address has
+two names in one region, the globals or one scope, and two scopes that overlap don't name the same address.
 A scope names only addresses outside its region, and a system set's scopes are ignored. `home` and
 `nameLink` are https, the template starts with its site (which no placeholder can change), and a place has
 no `.` or `..` segments.
