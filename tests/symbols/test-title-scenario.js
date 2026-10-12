@@ -12,7 +12,7 @@ describe("keyStep", () => {
 
     it("refuses a key the keymap hasn't, or a hold that's neither seconds nor an &address", () => {
         expect(() => keyStep("SPACEBAR")).toThrow("no key SPACEBAR");
-        for (const text of ["SPACE:soon", "SPACE:0", "SPACE:0x10", "SPACE:2:&1F00"])
+        for (const text of ["SPACE:soon", "SPACE:0", "SPACE:0.001", "SPACE:0x10", "SPACE:2:&1F00"])
             expect(() => keyStep(text)).toThrow(`${text} isn't KEY, KEY:SECS or KEY:&ADDRESS`);
         for (const text of ["SPACE:&zz", "SPACE:&", "SPACE:&12345"])
             expect(() => keyStep(text)).toThrow("An address is hex");
@@ -22,19 +22,25 @@ describe("keyStep", () => {
 // A machine that records the keys pressed, each with the frames it was held, and reaches every address.
 function recordingSession({ reaches = true } = {}) {
     const keys = [];
+    const events = [];
+    const untils = [];
     let down = null;
     return {
         keys,
+        events,
+        untils,
         keyDownRaw: (key) => {
             down = { key, frames: 0 };
             keys.push(down);
+            events.push(down);
         },
         keyUpRaw: () => (down = null),
         runFrames: async (frames) => {
             if (down) down.frames += frames;
         },
-        runFor: async () => {},
-        runUntilAddress: async () => {
+        runFor: async (cycles) => events.push({ cycles }),
+        runUntilAddress: async (address) => {
+            untils.push(address);
             if (!reaches) throw new Error("did not hit appropriate breakpoint");
         },
         addBreakpoint: () => 1,
@@ -44,6 +50,8 @@ function recordingSession({ reaches = true } = {}) {
     };
 }
 const InGame = 0x1234;
+const KeysSecs = 10;
+const CyclesPerSecond = 2000000;
 const context = (session) => ({ session, address: () => InGame, check: () => {} });
 
 describe("pressStep", () => {
@@ -57,7 +65,9 @@ describe("pressStep", () => {
                 throw new Error("did not hit appropriate breakpoint");
             },
         };
-        await expect(pressStep(session, keyStep("SPACE:&1F00"))).rejects.toThrow("breakpoint");
+        await expect(pressStep(session, keyStep("SPACE:&1F00"))).rejects.toThrow(
+            "Holding a key, the PC never reached &1F00",
+        );
         expect(calls).toEqual([
             ["down", BBC.SPACE],
             ["until", 0x1f00],
@@ -67,11 +77,12 @@ describe("pressStep", () => {
 });
 
 describe("pressUntil", () => {
-    it("says the PC never got there when a step's hold never reaches its address either", async () => {
+    it("stops at once, naming the hold's address, when a step's hold never reaches it", async () => {
         const session = recordingSession({ reaches: false });
         await expect(pressUntil(session, [keyStep("SPACE:&1F00")], InGame)).rejects.toThrow(
-            "The PC never reached &1234",
+            "Holding a key, the PC never reached &1F00",
         );
+        expect(session.untils).toEqual([0x1f00]);
     });
 });
 
@@ -98,7 +109,7 @@ describe("the scenarios' key steps", () => {
             playing: [],
             loadSecs: 1,
             keys: ["SPACE"],
-            keysSecs: 10,
+            keysSecs: KeysSecs,
             afterKeys: ["RETURN:1"],
             commands: [],
             inGame: ["game", "main", "parse"],
@@ -108,5 +119,10 @@ describe("the scenarios' key steps", () => {
             { key: BBC.SPACE, frames: 3 },
             { key: BBC.RETURN, frames: 50 },
         ]);
+        const between = session.events.slice(
+            session.events.indexOf(session.keys[0]) + 1,
+            session.events.indexOf(session.keys[1]),
+        );
+        expect(between).toContainEqual({ cycles: KeysSecs * CyclesPerSecond });
     });
 });

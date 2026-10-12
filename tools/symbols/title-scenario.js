@@ -41,13 +41,20 @@ export function keyStep(text, frames) {
     const shapes = `${text} isn't KEY, KEY:SECS or KEY:&ADDRESS`;
     if (rest.length) throw new Error(shapes);
     if (hold.startsWith("&")) return { key: BBC[name], until: hexAddress(hold) };
-    if (!/^\d+(\.\d+)?$/.test(hold) || !(Number(hold) > 0)) throw new Error(shapes);
-    return { key: BBC[name], frames: Math.round(Number(hold) * FramesPerSecond) };
+    const held = /^\d+(\.\d+)?$/.test(hold) ? Math.round(Number(hold) * FramesPerSecond) : 0;
+    if (!held) throw new Error(`${shapes}, held for a frame or more`);
+    return { key: BBC[name], frames: held };
 }
 
+/** Takes a step; a hold until an address that the PC never reaches says which address. */
 export async function pressStep(session, { key, frames, until }) {
-    if (until === undefined) await pressKey(session, key, frames);
-    else await holdUntil(session, key, until);
+    if (until === undefined) return pressKey(session, key, frames);
+    try {
+        await holdUntil(session, key, until);
+    } catch (error) {
+        if (!NotReached.test(error.message)) throw error;
+        throw new Error(`Holding a key, the PC never reached &${until.toString(16).toUpperCase()}`, { cause: error });
+    }
 }
 
 /**
@@ -57,8 +64,8 @@ export async function pressStep(session, { key, frames, until }) {
 export async function pressUntil(session, steps, address) {
     for (let tries = 0; tries < StartTries; tries++)
         for (const step of steps) {
+            await pressStep(session, step);
             try {
-                await pressStep(session, step);
                 await session.runUntilAddress(address, StartWaitSecs);
                 return;
             } catch (error) {

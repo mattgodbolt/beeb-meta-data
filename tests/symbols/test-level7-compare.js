@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +15,8 @@ import {
     main,
     proposeRegions,
 } from "../../tools/symbols/level7-compare.js";
-import { BasicPage, basicLine, basicTape } from "../registry/tape-images.js";
+import { MasterBasicPage, basicLine, basicTape } from "../registry/tape-images.js";
+import { hex } from "../../tools/symbols/import-level7.js";
 import { readLevel7 } from "../../tools/symbols/level7-text.js";
 
 const Text = `Game disassembly
@@ -214,7 +215,7 @@ describe("main", () => {
     const listing = `Game disassembly
 ================
 ; program
-&${BasicPage.toString(16)} ${basicLine(Program)
+&${MasterBasicPage.toString(16).padStart(4, "0")} ${basicLine(Program)
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join(" ")}
 `;
@@ -253,15 +254,23 @@ describe("main", () => {
         { timeout: 60000 },
         async () => {
             const log = vi.spyOn(console, "log").mockImplementation(() => {});
-            const args = [...configWithTape(), "--model", "B-DFS1.2", "--seconds", "20", "--script", "wait 1; report"];
+            const args = [...configWithTape(), "--model", "Master", "--seconds", "20", "--script", "wait 1; report"];
             expect(await main(args)).toBe(0);
             const printed = log.mock.calls.map(([line]) => line);
             expect(printed.filter((line) => /^After/.test(line))).toHaveLength(2);
             expect(printed).toContain(
-                `    &${BasicPage.toString(16).toUpperCase()}-&${(BasicPage + basicLine(Program).length - 1).toString(16).toUpperCase()} (line 4): 100%`,
+                `    ${hex(MasterBasicPage)}-${hex(MasterBasicPage + basicLine(Program).length - 1)} (line 4): 100%`,
             );
         },
     );
+
+    it("refuses a config with nothing to boot, and --boot-tape without a config", async () => {
+        const [, config, ...rest] = configWithTape();
+        const { tape: _, ...bare } = JSON.parse(readFileSync(config, "utf8"));
+        writeFileSync(config, JSON.stringify(bare));
+        await expect(main(["--config", config, ...rest])).rejects.toThrow("names no disc or tape to boot");
+        await expect(main(["--boot-tape", "--disassembly", "x", "--tape", "y"])).rejects.toThrow("--boot-tape picks");
+    });
 
     it("refuses to draft from a script", async () => {
         await expect(main([...configWithTape(), "--script", "report", "--draft", "test"])).rejects.toThrow(
