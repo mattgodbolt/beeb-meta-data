@@ -220,12 +220,14 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         }
     const every = [...regions.flatMap((region) => [...region.symbols.keys()]), ...globals.keys()];
     const places = onePlaceEach(spec.id, every, definedAt, errors);
-    const json = setJson(setConfig(config, spec, rom), spec, regions, globals, places);
-    if (pages) json.nameLink = `${spec.pages.url}{place}`;
+    const json = setJson(setConfig(config, spec, rom), spec, regions, globals, places, {
+        nameLink: pages ? `${spec.pages.url}{place}` : undefined,
+        system: config.system === true,
+    });
     return {
         id: spec.id,
         file: `${config.id}-${spec.id}.json`,
-        json: { ...json, ...(config.system && { system: true }) },
+        json,
         regions,
         dropped,
         errors,
@@ -297,7 +299,7 @@ async function main() {
                 .map((spec) => [spec.id, pageDefinitions(readPages(path.join(sourceDir, spec.pages.directory)))]),
         );
         const imported = importAcme(config, builds, roms, [...jsbeebRoms, ...copies], {
-            system: config.system ? new Map() : systemGlobals(),
+            system: systemGlobals(SymbolsDir, { writing: config.sets.map(({ id }) => `sets/${config.id}-${id}.json`) }),
             pages,
         });
         const bases = new Set(config.sets.map((spec) => builds.get(spec.assemble).base));

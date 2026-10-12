@@ -1,9 +1,17 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { parseIndex } from "jsbeeb/src/symbol-sets.js";
-import { checkSet, indexOf, readMosSets, readSets, SymbolsDir } from "../../tools/symbols/build-index.js";
+import {
+    checkSet,
+    indexOf,
+    readMosSets,
+    readSets,
+    SymbolsDir,
+    systemGlobals,
+} from "../../tools/symbols/build-index.js";
 
 const MosFile = "sets/mos.json";
 const GameFile = "sets/game.json";
@@ -174,5 +182,20 @@ describe("the symbol set build", () => {
                 ).toEqual([expect.stringContaining(message)]);
             });
         });
+    });
+});
+
+describe("systemGlobals", () => {
+    it("reads every set mos-sets.json lists, but those an importer says it's about to write", () => {
+        const dir = mkdtempSync(path.join(tmpdir(), "symbols-system-"));
+        try {
+            mkdirSync(path.join(dir, "sets"));
+            writeFileSync(path.join(dir, "mos-sets.json"), JSON.stringify([MosFile, "sets/new-mos.json"]));
+            writeFileSync(path.join(dir, MosFile), JSON.stringify({ ...good(), system: true }));
+            expect(() => systemGlobals(dir)).toThrow("new-mos.json");
+            expect([...systemGlobals(dir, { writing: ["sets/new-mos.json"] })]).toEqual([[0x70, "lives"]]);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });

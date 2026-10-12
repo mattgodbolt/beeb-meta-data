@@ -327,10 +327,12 @@ export function osBlockTargets(source) {
  * @param {{name: string, start: number, end: number, anchors: {at: number, data: number[]}[],
  *     symbols: Map<string, number>}[]} regions
  * @param {Map<string, number>} globals
- * @param {Map<string, string> | null} places - each name's place in the source on GitHub, for its
- *     `nameLink`; null for a set with no links
+ * @param {Map<string, string> | null} places - each name's place, for its `nameLink`; null for a set with
+ *     no links
+ * @param {{nameLink?: string, system?: boolean}} [options] - the template places fill, if not the
+ *     source's lines on GitHub, and whether it's a system set
  */
-export function setJson(config, spec, regions, globals, places = null) {
+export function setJson(config, spec, regions, globals, places = null, { nameLink, system = false } = {}) {
     const { repository, commit, link } = config.source;
     return {
         format: Format,
@@ -340,7 +342,8 @@ export function setJson(config, spec, regions, globals, places = null) {
         ...(config.notice !== undefined && { notice: config.notice }),
         ...(config.madeFrom !== undefined && { madeFrom: config.madeFrom }),
         ...(config.home !== undefined && { home: config.home }),
-        ...(places && { nameLink: `${repository}/blob/${commit}/{place}` }),
+        ...(places && { nameLink: nameLink ?? `${repository}/blob/${commit}/{place}` }),
+        ...(system && { system: true }),
         regions: Object.fromEntries(
             regions.map((region) => [
                 region.name,
@@ -685,7 +688,10 @@ export async function writeTitle(config, imported, values) {
     }
     if (values.verbose) for (const reason of imported.reasons) console.log(`    ${reason}`);
     for (const note of imported.notes) console.log(`note: ${note}`);
-    const errors = await writeSets(imported, { out: values.out, titleId: config.id, mosSets: readMosSets() });
+    // A trial outside symbols/sets needn't list its own system sets; build-index checks them when they land.
+    const trial = config.system && path.resolve(values.out) !== path.resolve(SetsDir);
+    const mosSets = [...readMosSets(), ...(trial ? imported.sets.map(({ file }) => `sets/${file}`) : [])];
+    const errors = await writeSets(imported, { out: values.out, titleId: config.id, mosSets });
     if (errors.length) {
         for (const error of errors) console.error(`error: ${error}`);
         console.error("Nothing written");

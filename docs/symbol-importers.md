@@ -36,7 +36,8 @@ node tools/symbols/check-memory.js --config symbols/configs/pipeline.json
 
 The importers fetch the config's commit into a temporary directory, or take `--source`, a clean checkout of it. Every
 importer takes `--verbose`, which lists each name left out and why, and each anchor added to tell another image apart;
-all but acornaeology's take `--out` for somewhere other than `symbols/sets`. They write nothing if a region can't be
+all but acornaeology's take `--out` for somewhere other than `symbols/sets`, where a system set needn't be in
+`mos-sets.json` yet. They write nothing if a region can't be
 anchored, if its anchors all match another image in the build, if a set fails the index's checks, or if the checkout
 isn't of the config's commit or has changes.
 
@@ -364,7 +365,7 @@ paragraph anchor (`id="SP21"`) before the line of those HTML pages that defines 
 place, or in none of the pages, stops the import. Anchors are chosen and every ROM is matched as for acornaeology.
 
 Only the names in the source the config names are read, not those of files it includes, and a source of a program
-loaded from disc has no config of this kind yet. A read register and a write register at one address get one name.
+loaded from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the most instructions use.
 
 ## NFS and ANFS
 

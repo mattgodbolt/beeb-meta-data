@@ -13,8 +13,10 @@ import {
     osBlockTargets,
     placesBySource,
     readBaronBuild,
+    setJson,
     symbolsBySource,
     writeSets,
+    writeTitle,
 } from "../../tools/symbols/import-baron.js";
 
 const ConfigsDir = new URL("../../symbols/configs/", import.meta.url);
@@ -664,6 +666,37 @@ describe("writeSets", () => {
         );
         expect(refused).toEqual(["demo/main: nothing to anchor on"]);
         expect(readdirSync(out).sort()).toEqual(["demo-stale.json", "other-kept.json"]);
+    });
+});
+
+describe("setJson", () => {
+    const places = new Map([["loop", "src/prog.6502#L13"]]);
+
+    it("links names to the source's lines on GitHub unless given another template, and marks a system set", () => {
+        const regions = [];
+        const plain = setJson(config(), { title: "Demo" }, regions, new Map(), places);
+        expect(plain.nameLink).toBe(`${config().source.repository}/blob/${config().source.commit}/{place}`);
+        expect(plain.system).toBeUndefined();
+        const linked = setJson(config(), { title: "Demo" }, regions, new Map(), places, {
+            nameLink: "https://example.com/pages/{place}",
+            system: true,
+        });
+        expect(linked.nameLink).toBe("https://example.com/pages/{place}");
+        expect(linked.system).toBe(true);
+    });
+});
+
+describe("writeTitle", () => {
+    let out;
+    beforeEach(() => (out = mkdtempSync(path.join(tmpdir(), "symbols-out-"))));
+    afterEach(() => rmSync(out, { recursive: true, force: true }));
+
+    it("writes a system set mos-sets.json doesn't list yet, outside symbols/sets", async () => {
+        const system = { ...config(), system: true };
+        const imported = importBaron(system, build());
+        imported.sets[0].json.system = true;
+        expect(await writeTitle(system, imported, { out, verbose: false })).toBe(0);
+        expect(JSON.parse(readFileSync(path.join(out, "demo-prog.json"), "utf8")).system).toBe(true);
     });
 });
 
