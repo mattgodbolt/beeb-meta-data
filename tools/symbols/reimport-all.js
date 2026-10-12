@@ -7,7 +7,9 @@
  * Usage: node tools/symbols/reimport-all.js [--check] [CONFIG...]
  *
  * The importers find their tools as they always do (BARON, BEEBASM, ACME, PYTHON), and fetch their sources.
- * Exits 1 if an importer fails, or, with `--check`, if any set file changed.
+ * System sets' configs run first, since the others leave the system sets' addresses to them. With `--check`,
+ * it compares the set files with what they were when it started, and exits 1 if any changed; it exits 1 too if
+ * an importer fails or a config's importer isn't known.
  */
 
 import { spawnSync } from "node:child_process";
@@ -45,6 +47,12 @@ const readSetFiles = () =>
             .map((name) => [name, readFileSync(path.join(SetsDir, name), "utf8")]),
     );
 
+/** The configs with system sets' first, each group in its order. */
+export const systemFirst = (configs) => [
+    ...configs.filter(({ config }) => config.system),
+    ...configs.filter(({ config }) => !config.system),
+];
+
 /** The set files added, removed or changed between two readings. */
 export function changedSets(before, after) {
     return [...new Set([...before.keys(), ...after.keys()])]
@@ -65,8 +73,16 @@ function main() {
               .map((name) => path.join(ConfigsDir, name));
     const before = readSetFiles();
     const failed = [];
-    for (const file of configs) {
-        const script = importerScript(JSON.parse(readFileSync(file, "utf8")));
+    const read = configs.map((file) => ({ file, config: JSON.parse(readFileSync(file, "utf8")) }));
+    for (const { file, config } of systemFirst(read)) {
+        let script;
+        try {
+            script = importerScript(config);
+        } catch (error) {
+            console.error(error.message);
+            failed.push(path.basename(file));
+            continue;
+        }
         console.log(`-- ${path.basename(file)} (${script})`);
         const run = spawnSync(process.execPath, [path.join(ToolsDir, script), "--config", file], { stdio: "inherit" });
         if (run.status !== 0) failed.push(path.basename(file));

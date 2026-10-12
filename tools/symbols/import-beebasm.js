@@ -350,7 +350,11 @@ class Importer {
         }
 
         const code = files.flatMap((file) => file.statements.filter((s) => s.code && s.target !== null));
-        const stored = ownedIfStored(files.flatMap((file) => file.statements));
+        const stored = ownedIfStored(
+            files.flatMap((file) =>
+                file.statements.filter((s) => regions.some((r) => r.file === file && holds(r, s.address))),
+            ),
+        );
         const sources = new Set(
             regions
                 .flatMap((region) => [...named.get(region).values()].flat())

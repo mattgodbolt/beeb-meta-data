@@ -25,8 +25,8 @@ node tools/symbols/import-acme.js --config symbols/configs/<title>.json
 node tools/symbols/build-index.js
 ```
 
-`npm run reimport-all` runs every config's importer and `build-index.js`, and lists the sets that changed; with
-`--check` it exits 1 if any did. It needs every importer's tools and the network.
+`npm run reimport-all` runs every config's importer, the system sets' first, and `build-index.js`, and lists the sets
+that changed; with `--check` it exits 1 if any did. It needs every importer's tools and the network.
 
 Then the two checks, for any title but a ROM:
 
@@ -131,9 +131,10 @@ Every importer links names back to the author's own work where it can, with the 
 anchors. Where the author has no site of their own (py8dis's `acorn.py` for the MOS), `source` is the only link.
 
 The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
-system set, unless the address is in zero page or page 3 and the title's own code stores to it (`ownedIfStored` in
-`anchor-chooser.js`). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
-`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
+system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
+in `anchor-chooser.js`). `&F4` and `&FC-&FF` don't count, since games write them in the MOS's sense (the paged ROM copy,
+the IRQ's saved A, the error pointer and the escape flag). The baron and py8dis importers have no such rule: baron
+leaves names from INCLUDEd OS files by `leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
 
 ## Anchors
 
