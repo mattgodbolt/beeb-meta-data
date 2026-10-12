@@ -230,11 +230,14 @@ async function fetchRetrying(url) {
 export async function sourceAndMedia(values) {
     if (values.config) {
         const config = JSON.parse(readFileSync(values.config, "utf8"));
+        if (config.disc === undefined && config.tape === undefined)
+            throw new Error(`${values.config} names no disc or tape to boot`);
         const text = await level7Text(config, values.source);
         if (bootsTape(config.disc !== undefined, config.tape !== undefined, values["boot-tape"]))
             return { config, text, tape: { name: config.tape.image, data: await fetchTape(config.tape) } };
         return { config, text, disc: await fetchDisc(config.disc) };
     }
+    if (values["boot-tape"]) throw new Error("--boot-tape picks a config's tape; give --tape to start a title");
     const kind = values.tape ? "tape" : "disc";
     if (!values.disassembly || !values[kind] || (values.tape && values.disc))
         throw new Error("Give --config, or --disassembly and one of --disc and --tape to start a title");

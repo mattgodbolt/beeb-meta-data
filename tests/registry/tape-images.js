@@ -39,11 +39,14 @@ export const data = (bytes) => [0x0100, bytes];
 // One block per data chunk, each after a carrier, as most UEF writers lay a tape out.
 export const plainUef = (blocks) => uef(blocks.flatMap((b) => [carrier(600), data(b)]));
 
-// Where CHAIN"" puts a program on a B with DFS 1.2.
+// Where CHAIN"" puts a program on a B with DFS 1.2, and on a Master.
 export const BasicPage = 0x1900;
-export const TapeLoadCycles = 20 * 2000000;
+export const MasterBasicPage = 0x0e00;
+const CyclesPerSecond = 2000000;
+const TapeLoadSecs = 20;
+export const TapeLoadCycles = TapeLoadSecs * CyclesPerSecond;
 
-/** A BBC BASIC program of one line, numbered 10, tokenised as `text` needs none, as it sits in memory. */
+/** Line 10 of a BBC BASIC program, `text`, as it sits in memory; `text` must hold no keywords, which aren't tokenised. */
 export function basicLine(text) {
     const bytes = [...Buffer.from(text, "latin1")];
     return [0x0d, 0x00, 0x0a, bytes.length + 4, ...bytes, 0x0d, 0xff];
@@ -51,4 +54,4 @@ export function basicLine(text) {
 
 /** A tape holding that program, as SAVE writes it. */
 export const basicTape = (text) =>
-    plainUef(fileBlocks("PROG", basicLine(text), { load: 0xffff1900, exec: 0xffff8023 }));
+    plainUef(fileBlocks("PROG", basicLine(text), { load: 0xffff0000 + BasicPage, exec: 0xffff8023 }));
