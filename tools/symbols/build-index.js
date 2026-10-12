@@ -55,7 +55,7 @@ function checkLinks(json, set, problems) {
         ...set.globals.values(),
         ...set.regions.flatMap((region) => [
             ...region.symbols.values(),
-            ...(region.scopes ?? []).flatMap((scope) => [...scope.symbols.values()]),
+            ...region.scopes.flatMap((scope) => [...scope.symbols.values()]),
         ]),
     ]);
     for (const [name, place] of Object.entries(json.places)) {
@@ -189,7 +189,7 @@ export function checkSet(json, { file, mosSets }) {
         for (const [address, name] of region.symbols)
             if (address < region.start || address >= region.end)
                 problems.push(`${where} names ${hex(address)} (${name}), which is outside it`);
-        const scopes = region.scopes ?? [];
+        const { scopes } = region;
         for (const scope of scopes)
             for (const [address, name] of scope.symbols)
                 if (address >= region.start && address < region.end)
@@ -216,7 +216,7 @@ export function checkSet(json, { file, mosSets }) {
     const globalAt = new Map([...set.globals].map(([address, name]) => [name, address]));
     const scopedAt = new Map();
     for (const region of set.regions)
-        for (const scope of region.scopes ?? [])
+        for (const scope of region.scopes)
             for (const [address, name] of scope.symbols) {
                 if (globalAt.has(name) ? globalAt.get(name) !== address : seen.has(name))
                     problems.push(`${name} is named in ${seen.get(name)} and in a scope`);

@@ -125,8 +125,8 @@ the dump is what baron resolved, and the listing is where the scopes, sections a
   the global. Each other name whose uses are all in the set's regions goes in the region's scopes instead, one for
   each routine that uses it, a caller setting a routine's parameters included. That's baron's `ZA_AUTO`, which gives
   routines that never run together the same zero page. A routine is the outermost baron scope under `stripScope`, if
-  it has a name, or else the one instruction. The global's name joins a routine's scope if the routine uses it too,
-  and a routine using two names for one address keeps the one it uses most.
+  it has a name, or else the one instruction. A routine using two names for one address keeps the
+  one it uses most, and where that's the global's, leaves the address to the globals.
 - Each name's place is the file and line the symbol dump says defines it (`src/game.6502#L120`), which goes in the
   set's `places` for a GitHub repository. There, a name the dump gives no place stops the import. A `defines` entry
   (Scorched Earth's `BUILD`) has no line, so it's never a name in a set.

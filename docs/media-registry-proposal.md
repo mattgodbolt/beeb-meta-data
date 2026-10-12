@@ -162,7 +162,7 @@ made by the importers in [the importers' doc](symbol-importers.md).
 - `regions`, each a range of memory from `start` up to but not including `end` (which can be `0x10000`),
   with its `anchors`, `minAnchors` (1 if absent) and `symbols`, the names for addresses in that range.
 - Optionally a region's `scopes`, each a `start` and `end` inside the region and its own `symbols`: names
-  for addresses outside it that only the code in that range uses, such as zero page that routines which
+  for addresses outside it that apply to the code in that range, such as zero page that routines which
   never run together share.
 - `globals`, names not tied to one region's code, such as zero page, buffers, data the program loads, or
   a table that replaces code once it has run.

@@ -645,11 +645,14 @@ describe("importBaron's scopes", () => {
 
     it("leaves the global's name to the globals in a routine that uses it most", () => {
         expect(scopeAt("0x1909")).toEqual({ start: "0x1909", end: "0x1912", symbols: { "blast.temp": "0x0072" } });
-        expect(set.dropped).not.toContainEqual(expect.arrayContaining(["blast.py"]));
     });
 
     it("leaves out a name only when every routine using it calls the address something else", () => {
-        expect(set.dropped).toContainEqual(["aim.dup", 0x0070, "every routine that uses it calls it aim.px"]);
+        expect(set.dropped).toContainEqual([
+            "aim.dup",
+            0x0070,
+            "every routine that uses it calls it something else, such as aim.px",
+        ]);
         expect(set.dropped.map(([name]) => name)).not.toContain("blast.py");
     });
 
@@ -740,6 +743,7 @@ describe("scopedNames", () => {
     it("leaves a name with no uses to the globals", () => {
         const globalsNamed = new Map([[0x70, [candidate("a", 2, [range, range]), candidate("b", 0, [])]]]);
         expect(scopedNames(globalsNamed, () => false).size).toBe(0);
+        expect(globalsNamed.get(0x70)).toHaveLength(2);
     });
 });
 

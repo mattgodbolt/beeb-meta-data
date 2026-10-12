@@ -375,7 +375,7 @@ export function setJson(config, spec, regions, globals, places = null, { nameLin
  * Each region's scopes, sorted by where they start, for the addresses outside every region that
  * `globalsNamed` (address to candidate names) names more than one way, on the terms docs/symbol-importers.md
  * gives. A candidate's `useRanges` are the pieces of code its uses are in, null for a use outside every region.
- * A scope's names are by address.
+ * A scope's names are by address. The candidates it scopes are taken out of `globalsNamed`.
  * @param {(address: number) => boolean} inRegion
  * @returns {Map<object, {start: number, end: number, names: Map<number, object[]>}[]>}
  */
@@ -701,12 +701,11 @@ class Importer {
                     if (!scopedAt.has(name)) scopedAt.set(name, new Set());
                     scopedAt.get(name).add(address);
                 }
-        for (const [name, addresses] of scopedAt)
-            if (addresses.size > 1 || (globals.has(name) && !addresses.has(globals.get(name)))) repeated.add(name);
+        for (const [name, addresses] of scopedAt) if (addresses.size > 1) repeated.add(name);
         const scopedOnce = new Map([...scopedAt].map(([name, addresses]) => [name, [...addresses][0]]));
         for (const [name, [address, kept]] of lostInScopes)
             if (!scopedOnce.has(name) && !globals.has(name))
-                dropped.push([name, address, `every routine that uses it calls it ${kept}`]);
+                dropped.push([name, address, `every routine that uses it calls it something else, such as ${kept}`]);
         const every = [
             ...regions.flatMap((region) => [...region.symbols.keys()]),
             ...globals.keys(),
@@ -813,7 +812,7 @@ const configIds = () =>
 export async function writeTitle(config, imported, values) {
     for (const { id, json, regions, dropped } of imported.sets) {
         const summary = regions.map((region) => {
-            const scoped = new Set((region.scopes ?? []).flatMap((scope) => [...scope.symbols.keys()]));
+            const scoped = new Set(region.scopes.flatMap((scope) => [...scope.symbols.keys()]));
             return `${region.name} ${region.anchors.length}/${region.symbols.size}${scoped.size ? ` +${scoped.size} scoped` : ""}`;
         });
         console.log(
