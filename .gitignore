@@ -1,0 +1,8 @@
+/node_modules
+.eslintcache
+coverage
+/dist
+/.registry-corpus
+
+**/.claude/settings.local.json
+**/.claude/worktrees/

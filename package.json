@@ -1,0 +1,41 @@
+{
+  "name": "beeb-meta-data",
+  "private": true,
+  "description": "Metadata about BBC Micro software for emulators: symbol sets now, title records later",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattgodbolt/beeb-meta-data.git"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "pre-commit": "lint-staged",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "build-index": "node tools/symbols/build-index.js",
+    "check-index": "node tools/symbols/build-index.js && git diff --exit-code -- symbols/index.json",
+    "dist": "node tools/dist.js",
+    "ci-checks": "npm run lint && npm run format:check && npm run check-index"
+  },
+  "dependencies": {
+    "jsbeeb": "github:mattgodbolt/jsbeeb#1807a630"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.0",
+    "prettier": "^3.9.6",
+    "vitest": "^5.0.0"
+  }
+}
