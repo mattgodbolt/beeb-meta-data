@@ -688,6 +688,57 @@
       }
     },
     {
+      "url": "sets/exile-enhanced-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0206",
+          "end": "0x3e75",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0ca5", "bytes": "a93f8d780b204d0d" },
+            { "at": "0x1369", "bytes": "8830060a2623" },
+            { "at": "0x2043", "bytes": "3d7b1e518f918f" },
+            { "at": "0x2f6e", "bytes": "868fa438d001" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/exile-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x0206",
+          "end": "0x6000",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0ca5", "bytes": "a93f8d780b204d0d" },
+            { "at": "0x19a3", "bytes": "a0001860010c" },
+            { "at": "0x3108", "bytes": "8533186532a03f" },
+            { "at": "0x488b", "bytes": "24171031a940" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/exile-supervisor-menu.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1500",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1e3f", "bytes": "a2030655b069" },
+            { "at": "0x25d2", "bytes": "c904d00ca525" },
+            { "at": "0x36eb", "bytes": "c9001002a97f" },
+            { "at": "0x54ee", "bytes": "40809891a8a0" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/frak-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

@@ -595,13 +595,17 @@ game's turn times out stops the typing early.
 Monsters, Cyborg Warriors, Kix, Frak, Zalaga, Dare Devil Denis, Bug Eyes II, Omega Orb, Myorem, Project Thesius, The
 Last Ninja, The Sentinel, Contraption, Skirmish, Elixir, Future Shock, Kissin' Kousins, Eagle's Wing, Nightshade, Sabre
 Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR,
-Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission and Bruce Lee were added that way, with Hopper,
-Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
-check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
-Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
+Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee and Exile were added that way, with
+Hopper, Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the
+corpus check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy).
+Last Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
 `avoid`s that half and sits in the weapon tables, which Last Ninja 2 doesn't share. Zalaga has no region for its
 run-once loader, which a cheat disc patches by a tenth while keeping its anchors.
 
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
 `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists
 unrelocated in the middle of it.
+
+level7 has Exile in three files, so it has three configs: the supervisor (the menu), and the standard and enhanced
+games, which F0 and then N or Y start. All three are decrypted as they load, so the corpus check meets none of them.
+Both games' `main` starts at `&0206`, leaving page 1 to the stack and `&0204` to the MOS's `IRQ1V`.
