@@ -349,14 +349,14 @@ runs of `NOP`s when those were allowed as anchors, now keeps its labels.
 
 So on Repton 2, at least, anchors are cheap and chosen almost entirely by a tool. What stayed manual was
 naming the regions and leaving out the part of the listing that's the disassembler's own loader. To rerun
-it from this repository's root:
+it from this repository's root, with the disassembly cloned outside it:
 
 ```sh
-git clone https://github.com/gfoot/repton2disassembly r2dis    # repton2.s, at c5fed37
-node tools/registry/anchors.js r2dis/repton2.s --name repton2-disc --exclude-section 0x70a0 \
-    --region 0x0d00=main --region 0x0380=music --region 0x0880=page8 --out r2set.json
-node tools/registry/anchors-run.js r2set.json .registry-corpus/hfe/64D80D49.hfe \
-    --listing r2dis/repton2.s --exclude-section 0x70a0 --seconds 300
+git clone https://github.com/gfoot/repton2disassembly ../r2dis    # repton2.s, at c5fed37
+node tools/registry/anchors.js ../r2dis/repton2.s --name repton2-disc --exclude-section 0x70a0 \
+    --region 0x0d00=main --region 0x0380=music --region 0x0880=page8 --out ../r2set.json
+node tools/registry/anchors-run.js ../r2set.json .registry-corpus/hfe/64D80D49.hfe \
+    --listing ../r2dis/repton2.s --exclude-section 0x70a0 --seconds 300
 ```
 
 ## Anchors across titles

@@ -25,23 +25,28 @@ jobs:
         run: npm run ci-checks
       - name: Unit tests
         run: npm test
+      - name: Build what's published
+        run: npm run dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
 
+  # This job runs no dependency code: it takes dist/ as built by the test job, so nothing an install
+  # script left running on a runner can see the credentials.
   deploy:
     needs: test
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    # A later deploy waits rather than racing, so an older commit can't finish last.
     concurrency:
       group: deploy
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/download-artifact@v8
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run dist
+          name: dist
+          path: dist/
       - name: Check for credentials
         id: credentials
         env:

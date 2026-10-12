@@ -49,7 +49,7 @@ npm run dist         # what the deploy would publish, in dist/
 
 Adding or remaking a title's sets is in [the importers' doc](docs/symbol-importers.md).
 
-Every push runs the tests in CI; a push to `main` also builds `dist/` and syncs it to `s3://bbc.xania.org/meta/`,
+Every push runs the tests in CI; a push to `main`, or a manual run there, also syncs the `dist/` it built to `s3://bbc.xania.org/meta/`,
 once the repository has AWS credentials.
 
 ## Reference

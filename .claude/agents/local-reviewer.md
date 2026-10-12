@@ -38,11 +38,12 @@ skipped question is not.
    or encoded, and is that done at every entry, not only in the constructor? Is a URL or path
    built from it encoded per segment and restricted to safe schemes?
 4. **Published data.** For each set, config or index change: is `symbols/index.json` regenerated
-   to match (CI's `check-index` fails otherwise; don't run it, since it rewrites the file)? Does jsbeeb's parser, at the version `package.json` pins, accept it? Is a
-   set reproducible from the commit its config pins, and do its `licence` and `notice` match the
-   source's own LICENSE at that commit? Were its anchors checked against the title in memory
-   (`check-memory.js`) and against other titles (`build-index.js`, `corpus-check.js`)? Does each
-   per-name link point at the line or anchor that defines the name?
+   to match (CI's `check-index` fails otherwise; don't run it, since it rewrites the file)? Does
+   jsbeeb's parser, at the version `package.json` pins, accept it? Is a set reproducible from the
+   commit its config pins, and do its `licence` and `notice` match the source's own LICENSE at
+   that commit? Were its anchors checked against the title in memory (`check-memory.js`) and
+   against other titles (`build-index.js`, `corpus-check.js`)? Does each per-name link point at
+   the line or anchor that defines the name?
 5. **Sources and boundaries.** Is each value derived from the thing it claims to be (the address
    the code runs at, not the one it loads at; the commit the config pins, not a branch head)? Does
    one value do two jobs? Walk the ends: zero, `&FFFF` and a region ending at `0x10000`, an empty
@@ -52,8 +53,8 @@ skipped question is not.
    never arrives?
 7. **Tests pin the claims.** For every claim in the PR body about what the code does or what the
    user sees, name the test. Does it assert the value or a range? Does a fake hide an API the real
-   thing rejects (an assembler's flag, a page's anchor format)? Is the negative case there (nothing happens
-   when nothing should)? Would it fail without the fix? A claim about history, process or a
+   thing rejects (an assembler's flag, a page's anchor format)? Is the negative case there
+   (nothing happens when nothing should)? Would it fail without the fix? A claim about history, process or a
    measurement is pinned by its evidence instead (the source it cites, the capture, the numbers),
    and a claim with neither is a finding.
 8. **Numbers.** For each numeric constant: its unit (bytes, an address, seconds,
