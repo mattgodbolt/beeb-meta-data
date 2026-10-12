@@ -161,6 +161,9 @@ made by the importers in [the importers' doc](symbol-importers.md).
   as a record of where it came from, and is never used to find the set.
 - `regions`, each a range of memory from `start` up to but not including `end` (which can be `0x10000`),
   with its `anchors`, `minAnchors` (1 if absent) and `symbols`, the names for addresses in that range.
+- Optionally a region's `scopes`, each a `start` and `end` inside the region and its own `symbols`: names
+  for addresses outside it that only the code in that range uses, such as zero page that routines which
+  never run together share.
 - `globals`, names not tied to one region's code, such as zero page, buffers, data the program loads, or
   a table that replaces code once it has run.
 - `system`, true only on a MOS's set listed in `symbols/mos-sets.json`.
@@ -170,7 +173,9 @@ made by the importers in [the importers' doc](symbol-importers.md).
   A name `places` doesn't give has no link from a template with `{place}`.
 
 Every name is an address, so constants stay out. Names are unique within a set, and no address has two
-names in one region or in the globals. `home` and `nameLink` are https, the template starts with its site
+names in one region or in the globals. A scoped name can be in several scopes, and be a global too, but
+always for one address; two scopes that overlap don't name the same address. A system set has no scopes
+that count. `home` and `nameLink` are https, the template starts with its site
 (which no placeholder can change), and a place has no `.` or `..` segments.
 
 ### Matching
@@ -185,14 +190,14 @@ A set's globals name only its own code's operands, except a system set's. A syst
 globals) name its own code's operands as any set's do, and also every other code's, last, while any of its
 regions matches, but never an address inside a matching region of a non-system set.
 
-For an operand of an instruction in one of a set's matching regions, the name comes from that set's
-matching regions, then its globals, then other sets' matching regions, then system globals if its set
+For an operand of an instruction in one of a set's matching regions, the name comes from the scope the
+instruction is in, then that set's matching regions, then its globals, then other sets' matching regions, then system globals if its set
 isn't the system set. For an instruction outside every matching region, it comes from matching regions,
 then system globals.
 
 An address shown on its own, such as in the disassembly's address column, takes only its region's names if
-it lies in a matching region. Otherwise it takes the global of the non-system set whose matching region
-holds the PC, if that set names it. Failing that, it takes the global that one non-system set with a
+it lies in a matching region. Otherwise it takes the name the scope holding the PC gives it, then the
+global of the non-system set whose matching region holds the PC, if that set names it. Failing that, it takes the global that one non-system set with a
 matching region names, no name if two or more such sets name it differently, or a system global if none
 does.
 

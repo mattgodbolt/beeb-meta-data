@@ -461,9 +461,13 @@ describe("importBaron's names", () => {
                 ["zp_end", 0x0002, "past its section's end"],
                 ["sub.entry", 0x1900, "a calls it sub"],
                 ["first", 0x1910, "a calls it second"],
-                ["alias", 0x0072, "the globals call it lives"],
             ]),
         );
+    });
+
+    it("names an address another way in a scope over the code that uses that name", () => {
+        expect(set.json.regions.a.scopes).toEqual([{ start: "0x1908", end: "0x190a", symbols: { alias: "0x0072" } }]);
+        expect(set.json.places).toBeUndefined();
     });
 
     it("names the `=` addresses the code of a region from another source uses", () => {
@@ -543,6 +547,71 @@ describe("importBaron's names", () => {
         expect(() => importBaron(stripped, baronBuild(new Map([["s", twice]]), twiceSymbols, []))).toThrow(
             "names given twice: x",
         );
+    });
+});
+
+describe("importBaron's scopes", () => {
+    const zaListing = [
+        "shared = 112 [&70]",
+        'SECTION za, filename="ZA", org=&1900, load=&1900, exec=&1900',
+        label(0x1900, "aim"),
+        "{",
+        "px = 112 [&70]",
+        "dup = 112 [&70]",
+        statement(0x1900, [0x85, 0x70], "STA px"),
+        statement(0x1902, [0xe6, 0x70], "INC px"),
+        statement(0x1904, [0xa5, 0x70], "LDA dup"),
+        statement(0x1906, [0x60], "RTS"),
+        "}",
+        label(0x1907, "blast"),
+        "{",
+        "py = 112 [&70]",
+        statement(0x1907, [0xa5, 0x70], "LDA py"),
+        statement(0x1909, [0x60], "RTS"),
+        "}",
+        label(0x190a, "main"),
+        statement(0x190a, [0x85, 0x70], "STA blast.py"),
+        statement(0x190c, [0x20, 0x07, 0x19], "JSR blast"),
+        statement(0x190f, [0xa5, 0x70], "LDA shared"),
+        statement(0x1911, [0xc5, 0x70], "CMP shared"),
+        statement(0x1913, [0x85, 0x70], "STA shared"),
+        statement(0x1915, [0xc6, 0x70], "DEC shared"),
+        statement(0x1917, [0x60], "RTS"),
+        "ENDSECTION",
+    ].join("\n");
+    const zaSymbols = {
+        "src/za.6502": {
+            shared: 0x70,
+            aim: 0x1900,
+            "aim.px": 0x70,
+            "aim.dup": 0x70,
+            blast: 0x1907,
+            "blast.py": 0x70,
+            main: 0x190a,
+        },
+    };
+    const zaConfig = {
+        ...config(),
+        leftToSystemSets: [],
+        sets: [{ id: "za", title: "ZA", sources: ["za"], regions: [{ name: "code", section: "za" }] }],
+    };
+    const [set] = importBaron(zaConfig, baronBuild(new Map([["za", zaListing]]), zaSymbols, [])).sets;
+
+    it("keeps the name most instructions use as the global, and gives the others each routine that uses them", () => {
+        expect(set.json.globals).toEqual({ shared: "0x0070" });
+        expect(set.json.regions.code.scopes).toEqual([
+            { start: "0x1900", end: "0x1907", symbols: { "aim.px": "0x0070" } },
+            { start: "0x1907", end: "0x190a", symbols: { "blast.py": "0x0070" } },
+            { start: "0x190a", end: "0x190c", symbols: { "blast.py": "0x0070" } },
+        ]);
+    });
+
+    it("leaves out a second name for one address in one routine, saying which it keeps", () => {
+        expect(set.dropped).toContainEqual(["aim.dup", 0x0070, "the scope at &1900 calls it aim.px"]);
+    });
+
+    it("makes a set the index accepts", () => {
+        expect(checkSet(set.json, { file: "sets/za.json", mosSets: readMosSets() })).toEqual([]);
     });
 });
 

@@ -356,12 +356,63 @@ export function setJson(config, spec, regions, globals, places = null, { nameLin
                         bytes: Buffer.from(data).toString("hex"),
                     })),
                     symbols: byAddress(region.symbols),
+                    ...(region.scopes?.length && {
+                        scopes: region.scopes.map((scope) => ({
+                            start: hexAddress(scope.start),
+                            end: hexAddress(scope.end),
+                            symbols: byAddress(scope.symbols),
+                        })),
+                    }),
                 },
             ]),
         ),
         globals: byAddress(globals),
         ...(places && { places: Object.fromEntries([...places].sort(([a], [b]) => (a < b ? -1 : 1))) }),
     };
+}
+
+/**
+ * Each region's scopes, sorted by where they start, for the addresses `globalsNamed` (address to candidate
+ * names) names more than one way. The global stays the first by rank; each other name whose uses are all in
+ * regions moves out of `globalsNamed` into a scope for each piece of code (`useRanges`) that uses it, and the
+ * global's name joins it in the pieces it's used in too. A scope's names are by address.
+ * @returns {Map<object, {start: number, end: number, names: Map<number, object[]>}[]>}
+ */
+export function scopedNames(globalsNamed) {
+    const byRegion = new Map();
+    const scopeOf = (range) => {
+        if (!byRegion.has(range.region)) byRegion.set(range.region, new Map());
+        const scopes = byRegion.get(range.region);
+        const key = `${range.start}-${range.end}`;
+        if (!scopes.has(key)) scopes.set(key, { start: range.start, end: range.end, names: new Map() });
+        return scopes.get(key);
+    };
+    const place = (candidate, range, address) => {
+        const { names } = scopeOf(range);
+        const uses = candidate.useRanges.filter((used) => used === range).length;
+        if (!names.has(address)) names.set(address, []);
+        names.get(address).push({ ...candidate, rank: [uses, candidate.rank[1]] });
+    };
+    for (const [address, entries] of globalsNamed) {
+        if (entries.length < 2) continue;
+        const [global, ...others] = [...entries].sort(byRankDescending);
+        const moved = others.filter((candidate) => candidate.useRanges?.every(Boolean));
+        if (!moved.length) continue;
+        globalsNamed.set(
+            address,
+            entries.filter((candidate) => !moved.includes(candidate)),
+        );
+        const ranges = new Set(moved.flatMap((candidate) => candidate.useRanges));
+        for (const candidate of moved)
+            for (const range of new Set(candidate.useRanges)) place(candidate, range, address);
+        for (const range of new Set(global.useRanges ?? [])) if (ranges.has(range)) place(global, range, address);
+    }
+    return new Map(
+        [...byRegion].map(([region, scopes]) => [
+            region,
+            [...scopes.values()].sort((a, b) => a.start - b.start || a.end - b.end),
+        ]),
+    );
 }
 
 class Importer {
@@ -489,6 +540,34 @@ class Importer {
         const holds = (region, address) => address >= region.start && address < region.end;
         const runs = (region, statement) => statement.section === region.section && holds(region, statement.address);
 
+        // The code a use of a name sits in, for the scope that names it there: the routine, the outermost
+        // named scope under the set's `stripScope`, or the instruction alone outside any.
+        const routines = new Map();
+        const useRange = (source, statement) => {
+            const region = regions.find((r) => r.source === source && runs(r, statement));
+            if (!region) return null;
+            const depth = strip && statement.scope[0] === strip ? 1 : 0;
+            const routine = statement.scope[depth];
+            if (!routine) return { region, start: statement.address, end: statement.address + statement.data.length };
+            const key = `${source.name}:${region.name}:${statement.scope.slice(0, depth + 1).join(".")}`;
+            if (!routines.has(key)) {
+                const prefix = statement.scope.slice(0, depth + 1);
+                const code = source.listing.statements.filter(
+                    (st) =>
+                        st.code &&
+                        runs(region, st) &&
+                        st.scope.length > depth &&
+                        prefix.every((name, i) => st.scope[i] === name),
+                );
+                routines.set(key, {
+                    region,
+                    start: Math.min(...code.map((st) => st.address)),
+                    end: Math.max(...code.map((st) => st.address + st.data.length)),
+                });
+            }
+            return routines.get(key);
+        };
+
         // Every name instructions use as a memory operand, with the instructions that use it.
         const operandUses = new Map(
             sources.map((source) => {
@@ -568,7 +647,11 @@ class Importer {
                         address,
                         entry(source, name, [-assigns.get(name).length - 1, order.get(name)]),
                     );
-                else add(globalsNamed, address, entry(source, name, [statements.length, order.get(name)]));
+                else
+                    add(globalsNamed, address, {
+                        ...entry(source, name, [statements.length, order.get(name)]),
+                        useRanges: statements.map((statement) => useRange(source, statement)),
+                    });
             }
         }
 
@@ -586,10 +669,24 @@ class Importer {
             }
         };
         for (const region of regions) choose(named.get(region), region.symbols, `${region.name} calls it`);
+        const scoped = scopedNames(globalsNamed);
+        for (const region of regions) {
+            region.scopes = [];
+            for (const scope of scoped.get(region) ?? []) {
+                const symbols = new Map();
+                choose(scope.names, symbols, `the scope at ${hex(scope.start)} calls it`);
+                region.scopes.push({ start: scope.start, end: scope.end, symbols });
+            }
+        }
         const globals = new Map();
         choose(globalsNamed, globals, "the globals call it");
 
-        const every = [...regions.flatMap((region) => [...region.symbols.keys()]), ...globals.keys()];
+        const scopedOnce = new Map(regions.flatMap((region) => region.scopes.flatMap((scope) => [...scope.symbols])));
+        const every = [
+            ...regions.flatMap((region) => [...region.symbols.keys()]),
+            ...globals.keys(),
+            ...[...scopedOnce.keys()].filter((name) => globals.get(name) !== scopedOnce.get(name)),
+        ];
         const twice = [...new Set([...repeated, ...every.filter((name, i) => every.indexOf(name) !== i)])].sort();
         if (twice.length) throw new Error(`${spec.id}: names given twice: ${twice.join(", ")}`);
         const unplaced = this.onGitHub ? every.filter((name) => !places.has(name)).sort() : [];

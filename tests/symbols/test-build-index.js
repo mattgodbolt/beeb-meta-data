@@ -62,6 +62,12 @@ describe("the symbol set build", () => {
         it("are listed without their names", () => {
             expect(JSON.stringify(indexOf(readSets()))).not.toContain("oswrch");
         });
+
+        it("are listed without their scopes", () => {
+            const scoped = { file: GameFile, json: good() };
+            scoped.json.regions.main.scopes = [{ start: "0x1900", end: "0x1a00", symbols: { aim_x: "0x70" } }];
+            expect(indexOf([scoped]).sets[0].regions.main).not.toHaveProperty("scopes");
+        });
     });
 
     describe("a set's checks", () => {
@@ -141,6 +147,48 @@ describe("the symbol set build", () => {
                 expect.stringContaining("&1900 has two names in region main"),
             ]);
             expect(problemsWith((json) => (json.globals.table = "0x1900"))).toEqual([]);
+        });
+
+        describe("on scopes", () => {
+            const scope = (start, end, symbols) => ({ start, end, symbols });
+            const withScopes =
+                (...scopes) =>
+                (json) =>
+                    (json.regions.main.scopes = scopes);
+
+            it("pass a name in several scopes, and one that's also the global for the same address", () => {
+                expect(
+                    problemsWith(
+                        withScopes(
+                            scope("0x1900", "0x1a00", { aim_x: "0x70" }),
+                            scope("0x1b00", "0x1c00", { aim_x: "0x70" }),
+                            scope("0x1c00", "0x1d00", { lives: "0x70" }),
+                        ),
+                    ),
+                ).toEqual([]);
+            });
+
+            it.each([
+                [
+                    "a scoped name for two addresses",
+                    [scope("0x1900", "0x1a00", { aim_x: "0x70" }), scope("0x1b00", "0x1c00", { aim_x: "0x71" })],
+                    "aim_x names &0070 in one scope and &0071 in another",
+                ],
+                [
+                    "a scoped name that's another kind of name for another address",
+                    [scope("0x1900", "0x1a00", { main_loop: "0x70" })],
+                    "main_loop is named in region main and in a scope, for another address",
+                ],
+                [
+                    "two overlapping scopes naming one address",
+                    [scope("0x1900", "0x1a00", { aim_x: "0x70" }), scope("0x19f0", "0x1b00", { blast_x: "0x70" })],
+                    "scopes at &1900 and &19F0 overlap and both name &0070 (blast_x)",
+                ],
+                ["scopes that aren't a list", { start: "0x1900" }, "scopes isn't a list"],
+            ])("reject %s", (_, scopes, message) => {
+                const problems = problemsWith((json) => (json.regions.main.scopes = scopes));
+                expect(problems).toEqual([expect.stringContaining(message)]);
+            });
         });
 
         describe("on links to the author's site", () => {

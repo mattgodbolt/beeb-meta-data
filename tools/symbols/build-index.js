@@ -2,7 +2,7 @@
 /**
  * Checks every symbol set under symbols/sets/ as the registry's build will, and writes
  * symbols/index.json from them: each set's location, licence and regions, without the
- * regions' symbols. The format is "Symbol sets" in docs/media-registry-proposal.md.
+ * regions' symbols and scopes. The format is "Symbol sets" in docs/media-registry-proposal.md.
  *
  * Usage: node tools/symbols/build-index.js
  */
@@ -51,7 +51,13 @@ function checkLinks(json, set, problems) {
         return;
     }
     if (!wantsPlaces) problems.push("it has places, but no nameLink with {place}");
-    const names = new Set([...set.globals.values(), ...set.regions.flatMap((region) => [...region.symbols.values()])]);
+    const names = new Set([
+        ...set.globals.values(),
+        ...set.regions.flatMap((region) => [
+            ...region.symbols.values(),
+            ...(region.scopes ?? []).flatMap((scope) => [...scope.symbols.values()]),
+        ]),
+    ]);
     for (const [name, place] of Object.entries(json.places)) {
         if (!names.has(name)) problems.push(`places has ${name}, which the set doesn't name`);
         if (!isPlace(place)) problems.push(`${name}'s place, "${place}", isn't a path and fragment`);
@@ -119,6 +125,16 @@ function checkShape(json) {
             problems.push(`region ${name}'s symbols isn't an object of names`);
         if (region.anchors !== undefined && !(Array.isArray(region.anchors) && region.anchors.every(isObject)))
             problems.push(`region ${name}'s anchors isn't a list of anchors`);
+        if (
+            region.scopes !== undefined &&
+            !(
+                Array.isArray(region.scopes) &&
+                region.scopes.every(
+                    (scope) => isObject(scope) && (scope.symbols === undefined || isObject(scope.symbols)),
+                )
+            )
+        )
+            problems.push(`region ${name}'s scopes isn't a list of scopes with objects of names`);
     }
     return problems;
 }
@@ -173,12 +189,38 @@ export function checkSet(json, { file, mosSets }) {
         for (const [address, name] of region.symbols)
             if (address < region.start || address >= region.end)
                 problems.push(`${where} names ${hex(address)} (${name}), which is outside it`);
+        const scopes = region.scopes ?? [];
+        for (const [i, scope] of scopes.entries())
+            for (const earlier of scopes.slice(0, i))
+                if (earlier.start < scope.end && scope.start < earlier.end)
+                    for (const [address, name] of scope.symbols)
+                        if (earlier.symbols.has(address))
+                            problems.push(
+                                `${where}'s scopes at ${hex(earlier.start)} and ${hex(scope.start)} overlap and both name ${hex(address)} (${name})`,
+                            );
     }
 
     const seen = new Map();
     checkNames(json.globals, "the globals", seen, problems);
-    for (const [name, region] of Object.entries(json.regions ?? {}))
+    for (const [name, region] of Object.entries(json.regions ?? {})) {
         checkNames(region.symbols, `region ${name}`, seen, problems);
+        for (const [i, scope] of (region.scopes ?? []).entries())
+            checkNames(scope.symbols, `region ${name}'s scope ${i}`, new Map(), problems);
+    }
+    // A scoped name can recur, in every routine that uses it, and be the global, but always for one address.
+    const globalAt = new Map([...set.globals].map(([address, name]) => [name, address]));
+    const scopedAt = new Map();
+    for (const region of set.regions)
+        for (const scope of region.scopes)
+            for (const [address, name] of scope.symbols) {
+                if (globalAt.has(name) ? globalAt.get(name) !== address : seen.has(name))
+                    problems.push(`${name} is named in ${seen.get(name)} and in a scope, for another address`);
+                else if (scopedAt.has(name) && scopedAt.get(name) !== address)
+                    problems.push(
+                        `${name} names ${hex(scopedAt.get(name))} in one scope and ${hex(address)} in another`,
+                    );
+                scopedAt.set(name, address);
+            }
     return problems;
 }
 
@@ -190,7 +232,10 @@ export function indexOf(sets) {
             url: file,
             licence: json.licence,
             regions: Object.fromEntries(
-                Object.entries(json.regions).map(([name, { symbols: _symbols, ...region }]) => [name, region]),
+                Object.entries(json.regions).map(([name, { symbols: _symbols, scopes: _scopes, ...region }]) => [
+                    name,
+                    region,
+                ]),
             ),
         })),
     };
