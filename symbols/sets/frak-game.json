@@ -559,6 +559,9 @@
     "bounding_boxes_max_x": "0x0101",
     "bounding_boxes_min_y": "0x0102",
     "bounding_boxes_max_y": "0x0103",
+    "os_screen_start_address_low": "0x0350",
+    "os_screen_start_address_high": "0x0351",
+    "objects_x": "0x0368",
     "status_buffer": "0x0900"
   },
   "places": {
@@ -758,7 +761,10 @@
     "object_sprite": "frak-disassembly.txt#:~:text=object_sprite",
     "object_x": "frak-disassembly.txt#:~:text=object_x",
     "object_y": "frak-disassembly.txt#:~:text=object_y",
+    "objects_x": "frak-disassembly.txt#:~:text=objects_x",
     "offset": "frak-disassembly.txt#:~:text=offset,-%3B",
+    "os_screen_start_address_high": "frak-disassembly.txt#:~:text=os_screen_start_address_high",
+    "os_screen_start_address_low": "frak-disassembly.txt#:~:text=os_screen_start_address_low",
     "overlapping_class": "frak-disassembly.txt#:~:text=overlapping_class",
     "overlapping_object": "frak-disassembly.txt#:~:text=overlapping_object",
     "pixel_value": "frak-disassembly.txt#:~:text=pixel_value",

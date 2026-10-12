@@ -744,7 +744,8 @@
     "smart_bomb_timer": "0x00c5",
     "players_maximum_weapon": "0x00c6",
     "irq_accumulator": "0x00fc",
-    "irq1_vector_high": "0x0205"
+    "irq1_vector_high": "0x0205",
+    "name": "0x03b2"
   },
   "places": {
     "activate_smart_bomb": "cyborg-warriors-disassembly.txt#:~:text=activate_smart_bomb,-%261d27",
@@ -1024,6 +1025,7 @@
     "move_player_two_left": "cyborg-warriors-disassembly.txt#:~:text=move_player_two_left,-%261445",
     "move_players_right_loop": "cyborg-warriors-disassembly.txt#:~:text=move_players_right_loop",
     "movement_patterns": "cyborg-warriors-disassembly.txt#:~:text=movement_patterns",
+    "name": "cyborg-warriors-disassembly.txt#:~:text=name,-%260771",
     "next_enemy_cooldown": "cyborg-warriors-disassembly.txt#:~:text=next_enemy_cooldown",
     "next_enemy_cooldowns": "cyborg-warriors-disassembly.txt#:~:text=next_enemy_cooldowns",
     "next_enemy_to_add": "cyborg-warriors-disassembly.txt#:~:text=next_enemy_to_add",

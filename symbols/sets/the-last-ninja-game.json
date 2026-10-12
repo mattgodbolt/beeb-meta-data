@@ -934,6 +934,7 @@
     "attack_type": "0x010e",
     "height": "0x0190",
     "irq1_vector_high": "0x0205",
+    "enemy_energy_bar_sprite_addresses_low": "0x0380",
     "death_timer": "0x03bf",
     "nibble": "0x03cf",
     "projectile_back_buffer": "0x0888"
@@ -1117,6 +1118,7 @@
     "enemy_energy_bar_sprite_0": "the-last-ninja-disassembly.txt#:~:text=enemy_energy_bar_sprite_0,-%23",
     "enemy_energy_bar_sprite_1": "the-last-ninja-disassembly.txt#:~:text=enemy_energy_bar_sprite_1,-%23",
     "enemy_energy_bar_sprite_2": "the-last-ninja-disassembly.txt#:~:text=enemy_energy_bar_sprite_2,-%23%20Empty",
+    "enemy_energy_bar_sprite_addresses_low": "the-last-ninja-disassembly.txt#:~:text=enemy_energy_bar_sprite_addresses_low",
     "enemy_hits_player": "the-last-ninja-disassembly.txt#:~:text=enemy_hits_player,-%261ea4",
     "enemy_ignores_pain_probabilities": "the-last-ninja-disassembly.txt#:~:text=%262257",
     "enemy_is_above_player": "the-last-ninja-disassembly.txt#:~:text=enemy_is_above_player,-%261b35",

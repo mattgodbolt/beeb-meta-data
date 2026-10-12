@@ -611,7 +611,8 @@
     "scenery_sprites_addresses_high_address": "0x00cc",
     "text_mask": "0x00cd",
     "screen_address_low": "0x00ce",
-    "sprite_address_high": "0x00cf"
+    "sprite_address_high": "0x00cf",
+    "column_buffer": "0x0300"
   },
   "places": {
     "a_not_pressed": "wizadore-disassembly.txt#:~:text=a_not_pressed,-%262102",
@@ -668,6 +669,7 @@
     "check_spell_for_collision_with_enemy": "wizadore-disassembly.txt#:~:text=check_spell_for_collision_with_enemy,-%262e21",
     "check_vertical_projectiles_for_collision_with_player": "wizadore-disassembly.txt#:~:text=check_vertical_projectiles_for_collision_with_player,-%262e00",
     "check_vertical_projectiles_for_collision_with_player_loop": "wizadore-disassembly.txt#:~:text=check_vertical_projectiles_for_collision_with_player_loop",
+    "column_buffer": "wizadore-disassembly.txt#:~:text=column_buffer,-%261eec",
     "column_is_on_screen": "wizadore-disassembly.txt#:~:text=column_is_on_screen,-%2623f3",
     "column_screen_address_high": "wizadore-disassembly.txt#:~:text=column_screen_address_high,-%26233d",
     "column_screen_address_low": "wizadore-disassembly.txt#:~:text=column_screen_address_low,-%26233f",
