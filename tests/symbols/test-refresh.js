@@ -215,6 +215,18 @@ describe("attempt", () => {
         expect(read(setFile("game-game.json"))).toBe("old");
     });
 
+    it("puts a system set's move back when another title fails its check against it", () => {
+        const mos = configFile("mos", { system: true, source: { commit: "old" } });
+        const other = configFile("other", { uses: "mos ", source: { commit: "old" } });
+        const before = read(mos);
+        const checks = (file) => [["in-memory check", () => (file === other ? failing("no match") : ok)]];
+        const result = attempt([moveOf(mos)], { files: [mos, other], setsDir, importer, checks });
+        expect(result.failure).toEqual({ file: other, what: "in-memory check", output: "no match" });
+        expect(read(mos)).toBe(before);
+        expect(read(setFile("other-game.json"))).toBe("old");
+        expect(existsSync(setFile("mos-game.json"))).toBe(false);
+    });
+
     it("gives what an importer throws as the failure", () => {
         const game = configFile("game", { source: { commit: "old" } });
         const importer = () => {
@@ -241,36 +253,34 @@ describe("attempt", () => {
 describe("refreshMoves", () => {
     const title = (file, config = {}) => ({ file, config, pins: [] });
     const mos = title("mos.json", { system: true });
-    const files = ["mos.json", "game.json", "hopper.json", "tom.json", "frak.json"];
+    const files = ["mos.json", "game.json", "hopper.json", "frak.json", "tom.json"];
 
-    it("tries each title on its own, then the system sets over every config but a level7 one behind its page", () => {
+    it("tries each title on its own, then the system sets over every config but a level7 one whose move failed", () => {
         const tried = [];
+        const failing = ["hopper.json", "frak.json"];
         const tryMoves = (group, groupFiles) => {
             tried.push([group.map(({ file }) => file), groupFiles]);
-            return group[0].file === "hopper.json" ? { failure: { file: "hopper.json" } } : { changed: new Map() };
+            return failing.includes(group[0].file) ? { failure: { file: group[0].file } } : { changed: new Map() };
         };
-        const moves = [mos, title("game.json"), title("hopper.json", { importer: "level7" })];
-        const refused = [
-            { file: "tom.json", config: {} },
-            { file: "frak.json", config: { importer: "level7" } },
-        ];
-        const { kept, failed } = refreshMoves(moves, refused, files, tryMoves);
+        const moves = [mos, title("game.json"), title("hopper.json", { importer: "level7" }), title("frak.json")];
+        const { kept, failed } = refreshMoves(moves, files, tryMoves);
         expect(tried).toEqual([
             [["game.json"], ["game.json"]],
             [["hopper.json"], ["hopper.json"]],
-            [["mos.json"], ["mos.json", "game.json", "tom.json"]],
+            [["frak.json"], ["frak.json"]],
+            [["mos.json"], ["mos.json", "game.json", "frak.json", "tom.json"]],
         ]);
         expect(kept.map(({ moves, leftOut }) => [moves[0].file, leftOut])).toEqual([
             ["game.json", []],
-            ["mos.json", ["hopper.json", "frak.json"]],
+            ["mos.json", ["hopper.json"]],
         ]);
-        expect(failed.map(({ moves }) => moves[0].file)).toEqual(["hopper.json"]);
+        expect(failed.map(({ moves }) => moves[0].file)).toEqual(["hopper.json", "frak.json"]);
     });
 
     it("keeps the titles that moved when the system sets' move fails", () => {
         const tryMoves = (group) =>
             group[0].config.system ? { failure: { file: "game.json" } } : { changed: new Map() };
-        const { kept, failed } = refreshMoves([title("game.json"), mos], [], files, tryMoves);
+        const { kept, failed } = refreshMoves([title("game.json"), mos], files, tryMoves);
         expect(kept.map(({ moves }) => moves[0].file)).toEqual(["game.json"]);
         expect(failed.map(({ moves }) => moves[0].file)).toEqual(["mos.json"]);
     });

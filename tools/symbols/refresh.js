@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Moves every config's pinned sources to their latest, remakes and checks the sets that changes, and writes what it did
+ * Moves every config's pinned sources to their latest, remakes and checks the sets each move changes, and writes what it did
  * as Markdown, for the pull request the weekly refresh opens; "Running it" in docs/symbol-importers.md has the rules.
  *
  * Usage: node tools/symbols/refresh.js [--report FILE] [CONFIG...]
@@ -60,7 +60,7 @@ export function licenceChanges(repository, from, to, licenceFile) {
     const dir = mkdtempSync(path.join(tmpdir(), "refresh-"));
     try {
         git(["clone", "--quiet", "--filter=blob:none", "--no-checkout", repository, dir]);
-        return git(["-C", dir, "diff", "--name-only", from, to])
+        return git(["-C", dir, "diff", "--name-only", "--no-renames", from, to])
             .split("\n")
             .filter((name) => name === licenceFile || (!name.includes("/") && IsLicenceFile.test(name)));
     } finally {
@@ -238,7 +238,7 @@ function reportLines({ kept, failed, refused, indexBuilt = true }, outputs) {
                 lines.push(
                     "",
                     `${leftOut.map(base).join(", ")} weren't remade against the new system sets, since their pages ` +
-                        "no longer have the hashes they pin; their next move remakes them.",
+                        "changed and their moves failed; their next move remakes them.",
                 );
         }
         lines.push("");
@@ -267,10 +267,10 @@ export function report(outcome) {
 
 /**
  * Tries each title's moves on its own, then the system sets' together over every config in `files` but a level7 one
- * this run couldn't move, which can't be remade at a pin its page no longer hashes to. `tryMoves(group, files)` gives
- * attempt's result.
+ * whose page changed and whose move failed, which can't be remade at a hash its page no longer has.
+ * `tryMoves(group, files)` gives attempt's result.
  */
-export function refreshMoves(moves, refused, files, tryMoves) {
+export function refreshMoves(moves, files, tryMoves) {
     const kept = [];
     const failed = [];
     const run = (group, groupFiles, leftOut = []) => {
@@ -282,7 +282,8 @@ export function refreshMoves(moves, refused, files, tryMoves) {
     const system = moves.filter(({ config }) => config.system);
     if (system.length) {
         const stuck = new Set(
-            [...refused, ...failed.flatMap((failure) => failure.moves)]
+            failed
+                .flatMap((failure) => failure.moves)
                 .filter(({ config }) => config.importer === Level7)
                 .map(({ file }) => file),
         );
@@ -325,9 +326,8 @@ async function main() {
         importer: (file, config) => runImporter(file, config, Captured),
         checks: (file, config) => checksOf(file, config, corpus),
     };
-    const all = positionals.length ? files : configFiles();
     const tryMoves = (group, groupFiles) => attempt(group, { ...tools, files: groupFiles });
-    const { kept, failed } = refreshMoves(moves, refused, all, tryMoves);
+    const { kept, failed } = refreshMoves(moves, configFiles(), tryMoves);
     const index = spawnSync(process.execPath, [path.join(ToolsDir, "build-index.js")], { stdio: "inherit" });
     const outcome = { kept, failed, refused, indexBuilt: index.status === 0 };
     const text = report(outcome);
