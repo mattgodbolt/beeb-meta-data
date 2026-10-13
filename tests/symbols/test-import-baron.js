@@ -918,6 +918,17 @@ describe("writeTitle", () => {
         }
     });
 
+    it("writes another importer's sets, whose regions have no scopes", async () => {
+        const imported = importBaron(config(), build());
+        for (const { regions } of imported.sets) for (const region of regions) delete region.scopes;
+        const log = vi.spyOn(console, "log").mockImplementation(() => {});
+        try {
+            expect(await writeTitle(config(), imported, { out, verbose: false })).toBe(0);
+        } finally {
+            log.mockRestore();
+        }
+    });
+
     it("writes a system set mos-sets.json doesn't list yet, outside symbols/sets", async () => {
         const system = { ...config(), system: true };
         const imported = importBaron(system, build());
