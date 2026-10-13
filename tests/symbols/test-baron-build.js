@@ -5,7 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fingerprint } from "../../tools/registry/fingerprint.js";
+import { fingerprint, SectorSize } from "../../tools/registry/fingerprint.js";
 import {
     baronArguments,
     baronVersion,
@@ -50,7 +50,6 @@ printf X > "$files/$(basename "$1" .6502)"
 
 const DiscBytes = 2560;
 const DiscFill = 0xe5;
-const SectorBytes = 0x100;
 const FirstFileSector = 2;
 
 /** A one-sided DFS disc holding `files`, each `{ name, text }`, in `$`. */
@@ -61,13 +60,13 @@ function dfsDisc(files) {
         const entry = 8 * (i + 1);
         image.write(name.padEnd(7), entry, "latin1");
         image.write("$", entry + 7, "latin1");
-        image.writeUInt16LE(text.length, SectorBytes + entry + 4);
-        image[SectorBytes + entry + 7] = sector;
-        image.write(text, sector * SectorBytes, "latin1");
-        sector += Math.ceil(text.length / SectorBytes);
+        image.writeUInt16LE(text.length, SectorSize + entry + 4);
+        image[SectorSize + entry + 7] = sector;
+        image.write(text, sector * SectorSize, "latin1");
+        sector += Math.ceil(text.length / SectorSize);
     });
-    image[SectorBytes + 5] = 8 * files.length;
-    image[SectorBytes + 7] = DiscBytes / SectorBytes;
+    image[SectorSize + 5] = 8 * files.length;
+    image[SectorSize + 7] = DiscBytes / SectorSize;
     return image;
 }
 
@@ -81,7 +80,11 @@ describe("a title's source", () => {
     const disc = Buffer.alloc(DiscBytes, DiscFill);
     disc.write("DEMO", 0);
     const discKey = fingerprint("demo.ssd", disc).discKey;
-    const bootDisc = dfsDisc([{ name: "!BOOT", text: "*| DEMO 2026-10-04.2035\r*RUN GAME\r" }]);
+    const bootDisc = dfsDisc([
+        { name: "GAME", text: "X".repeat(SectorSize + 1) },
+        { name: "!BOOT", text: `${"\r".repeat(SectorSize)}*| DEMO 2026-10-04.2035\r*RUN GAME\r` },
+        { name: "QUOTED", text: '*| DEMO "2026"\r' },
+    ]);
     const bootKey = fingerprint("boot.ssd", bootDisc).discKey;
 
     beforeEach(() => {
@@ -197,10 +200,20 @@ describe("a title's source", () => {
             expect(() => fromDisc({ source: { ...pinned("").source, defines: stamp } }, dir)).toThrow(
                 "names no source.disc",
             );
-            expect(() => fromDisc(booted({ BUILD: { file: "$.GAME", after: "*| " } }), dir)).toThrow("has no $.GAME");
+            expect(() => fromDisc(booted({ BUILD: { file: "$.NONE", after: "*| " } }), dir)).toThrow("has no $.NONE");
             expect(() => fromDisc(booted({ BUILD: { file: "$.!BOOT", after: "*| GAME " } }), dir)).toThrow(
                 'has no "*| GAME "',
             );
+            expect(() => fromDisc(booted({ BUILD: { file: "$.QUOTED", after: "*| DEMO " } }), dir)).toThrow(
+                'has a quote after "*| DEMO "',
+            );
+        });
+
+        it("refuses a define that's neither an expression nor a file and text", () => {
+            for (const value of [1, { file: "$.!BOOT" }, { file: "$.!BOOT", after: "" }])
+                expect(() => fromDisc(booted({ BUILD: value }), dir)).toThrow(
+                    "define BUILD is neither a baron expression nor { file, after }",
+                );
         });
     });
 

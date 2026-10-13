@@ -1,7 +1,12 @@
+import { execFileSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import { fingerprint } from "../../tools/registry/fingerprint.js";
+import { environmentWithoutGit } from "../../tools/symbols/baron-build.js";
 
 import {
     assemble,
@@ -57,6 +62,38 @@ describe("a beebasm build", () => {
         expect(beebasmVersion(stub("newer", stubVersion("beebasm 2.0")))).toBe("beebasm 2.0");
         expect(() => beebasmVersion(stub("old", stubVersion("beebasm 1.10")))).toThrow("1.11 or later");
         expect(() => beebasmVersion(path.join(dir, "nowhere"))).toThrow("Can't run beebasm");
+    });
+
+    it("hands `use` the config with the disc's key as its madeFrom", async () => {
+        const repo = path.join(dir, "repo");
+        mkdirSync(repo);
+        const git = (...args) =>
+            execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@example.com", ...args], {
+                encoding: "utf8",
+                env: environmentWithoutGit(),
+            }).trim();
+        git("init", "-q");
+        const disc = Buffer.alloc(2560, 0xe5);
+        writeFileSync(path.join(repo, "main.asm"), "RTS\n");
+        writeFileSync(path.join(repo, "demo.ssd"), disc);
+        git("add", ".");
+        git("-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "source");
+        const beebasm = stub(
+            "beebasm",
+            '#!/bin/sh\nif [ "$1" = "--help" ]; then echo "beebasm 1.11"; exit 0; fi\necho "[{}]" > "$6"\n',
+        );
+        const config = {
+            id: "demo",
+            source: {
+                assembler: "beebasm",
+                repository: pathToFileURL(repo).href,
+                commit: git("rev-parse", "HEAD"),
+                assemble: "main.asm",
+                disc: "demo.ssd",
+            },
+        };
+        const made = await withBeebasmBuild(config, { beebasm }, (built) => built.config);
+        expect(made.madeFrom).toEqual([fingerprint("demo.ssd", disc).discKey]);
     });
 
     it("refuses a baron title before running anything", async () => {

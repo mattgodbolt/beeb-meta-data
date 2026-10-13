@@ -113,7 +113,8 @@ theirs differ.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
     title's own build passes (a build stamp the code prints, say), without which the source wouldn't rebuild the disc.
     A value can instead be `{ "file": "$.!BOOT", "after": "*| GAME " }`, the text in that file of `disc` after
-    `after` to the end of its line, as a string: a stamp the disc's `!BOOT` prints, which changes with every disc.
+    `after` to the end of its line, as a string (refused if it holds a quote): a stamp the disc's `!BOOT` prints,
+    which changes with every disc.
   - `disc` is the original disc in the repository, the one the source rebuilds, and the disc the in-memory check
     boots. Where the config lists `madeFrom`, its image key has to be one of them; where it doesn't, its key is the
     sets' `madeFrom`, which suits a disc the repository rebuilds as it changes.

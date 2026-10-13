@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { dfsCatalogue } from "../registry/dfs.js";
-import { fingerprint, sectorImageSides } from "../registry/fingerprint.js";
+import { fingerprint, sectorImageSides, SectorSize } from "../registry/fingerprint.js";
 
 /** The command-line options every tool that builds a title takes, as parseArgs reads them. */
 export const BuildOptions = { source: { type: "string" }, baron: { type: "string" } };
@@ -77,7 +77,6 @@ export function cloneCommit({ repository, commit }, dir) {
 
 export const cloneSource = (config, dir) => cloneCommit(config.source, dir);
 
-const SectorBytes = 0x100;
 const LineEnd = /[\r\n]/;
 
 /**
@@ -88,7 +87,7 @@ export function discText(disc, bytes, { file, after }) {
     const side = sectorImageSides(disc, bytes)[0];
     const entry = dfsCatalogue(side)?.files.find(({ name }) => name === file);
     if (!entry) throw new Error(`${disc} has no ${file}`);
-    const start = entry.start * SectorBytes;
+    const start = entry.start * SectorSize;
     const text = Buffer.from(side.subarray(start, start + entry.length)).toString("latin1");
     const at = text.indexOf(after);
     if (at < 0) throw new Error(`${disc}'s ${file} has no "${after}"`);
@@ -97,13 +96,19 @@ export function discText(disc, bytes, { file, after }) {
     return `"${value}"`;
 }
 
+const isDiscText = (value) =>
+    typeof value?.file === "string" && typeof value.after === "string" && value.after.length > 0;
+
 /**
  * The config with what its `source.disc`, the original the source rebuilds, says filled in: `madeFrom` the
  * disc's key, unless the config lists the images, when the disc has to be one of them; and each `defines` entry
- * given as `{ file, after }` (a build stamp the disc's !BOOT prints, say) the text discText finds.
+ * given as `{ file, after }` the text discText finds.
  */
 export function fromDisc(config, sourceDir) {
     const { disc, defines } = config.source;
+    for (const [name, value] of Object.entries(defines ?? {}))
+        if (typeof value !== "string" && !isDiscText(value))
+            throw new Error(`The config's define ${name} is neither a baron expression nor { file, after }`);
     const fromFile = Object.values(defines ?? {}).some((value) => typeof value !== "string");
     if (disc === undefined) {
         if (fromFile) throw new Error("The config's defines read the disc, and it names no source.disc");
