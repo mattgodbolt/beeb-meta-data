@@ -5,7 +5,7 @@
  * `=` names its instructions use as memory operands in the config's `globals` ranges. docs/symbol-importers.md
  * says how the names are chosen.
  *
- * Usage: node tools/symbols/import-acme.js --config symbols/configs/bbc-mos.json [--source <checkout>]
+ * Usage: node tools/symbols/import-acme.js --config symbols/configs/bbc-b-mos.json [--source <checkout>]
  *            [--acme <path>] [--out symbols/sets] [--verbose] && node tools/symbols/build-index.js
  *
  * Fetches the config's commit of its repository, or takes `--source`, a clean checkout of it, and assembles
