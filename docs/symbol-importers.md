@@ -34,12 +34,11 @@ config doesn't name one, and a level7 config's `sha256` to what its page hashes 
 changes and runs the checks below on every title whose sets changed (the in-memory check where the config has one,
 and the corpus check for all but acornaeology and ACME configs), and keeps a move only if all of that passes. The
 system sets move last and remake every config but a level7 one whose page changed and whose move failed (every one,
-even when the run names only some). A source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's `licenceFile`, changed
-isn't moved, since its `notice` has to be read again. The refresh opens a pull request with what it kept, saying what
-moved and what didn't and why, and a refused or failed move fails the run, so it shows in the Actions list. It does
-nothing while an earlier refresh's pull request is open. It runs locally too, with the tools above, and leaves what
-it kept in the working tree:
-`node tools/symbols/refresh.js [CONFIG...]`.
+even when the run names only some). A source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's
+`licenceFile`, changed isn't moved, since its `notice` has to be read again. The refresh opens a pull request with
+what it kept, saying what moved and what didn't and why, and a refused or failed move fails the run, so it shows in
+the Actions list. It does nothing while an earlier refresh's pull request is open. It runs locally too, with the tools
+above, and leaves what it kept in the working tree: `node tools/symbols/refresh.js [CONFIG...]`.
 
 Then the two checks, for any title but a ROM:
 
