@@ -41,6 +41,13 @@
           "name": "loader",
           "section": "Loader",
           "from": "loader",
+          "to": "screen",
+          "overwritten": true
+        },
+        {
+          "name": "startup",
+          "section": "Loader",
+          "from": "screen",
           "overwritten": true
         },
         {
@@ -53,7 +60,12 @@
             ["tiles + 8 * (&3E - &20)", "things"],
             ["thing_types", "death_notes_end"],
             ["objgfx", "toy_blocks_lo"],
-            ["music", "code_end"]
+            ["music", "code_end"],
+            ["object_names", "object_names + 88"],
+            ["power_restart", "fixed_thing"],
+            ["lift_room", "setup_lift"],
+            ["egg_harry", "game_loop"],
+            ["hopper_rooms", "bit_masks"]
           ]
         },
         {

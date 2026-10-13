@@ -7,8 +7,6 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 export const TitlesFile = "titles.md";
-const RomStart = 0x8000;
-const RomEnd = 0xc000;
 
 const Kinds = [
     ["program", "Programs"],
@@ -27,12 +25,13 @@ export const readConfigs = (dir) =>
 export const setFilesOf = (config) =>
     config.sets.map((spec) => `sets/${config.id === undefined ? spec.id : `${config.id}-${spec.id}`}.json`);
 
-/** What a title's sets name: a MOS, a sideways ROM (some region in &8000-&BFFF), or a program. */
-export function kindOf(sets) {
+/**
+ * What a title's sets name: a MOS, a sideways ROM (its config names the ROM, or it's acornaeology's), or a program,
+ * which can still have a region in a sideways bank it loads its data into.
+ */
+export function kindOf(sets, config) {
     if (sets.some((json) => json.system)) return "system";
-    const regions = sets.flatMap((json) => Object.values(json.regions));
-    const inRom = ({ start, end }) => parseInt(start, 16) >= RomStart && parseInt(end, 16) <= RomEnd;
-    return regions.some(inRom) ? "rom" : "program";
+    return config.rom !== undefined || config.importer === "acornaeology" ? "rom" : "program";
 }
 
 const escape = (text) => text.replace(/[\\[\]*_`<~]/g, "\\$&").replace(/&/g, "&amp;");
@@ -61,7 +60,7 @@ export function titleRows(configs, setsByFile) {
         if (licences.size > 1) throw new Error(`${name}'s sets have different licences: ${[...licences].join(", ")}`);
         const links = sets.map((json) => ({ title: json.title, from: json.home ?? json.source }));
         return {
-            kind: kindOf(sets),
+            kind: kindOf(sets, config),
             title: config.name ?? sets[0].title,
             licence: sets[0].licence,
             ...(sets.length > 1 ? { covers: links } : { from: links[0].from }),

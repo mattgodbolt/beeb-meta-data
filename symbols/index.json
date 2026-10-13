@@ -662,9 +662,15 @@
       "regions": {
         "loader": {
           "start": "0x4f77",
-          "end": "0x51ff",
+          "end": "0x5000",
           "minAnchors": 1,
           "anchors": [{ "at": "0x4f77", "bytes": "a9e5a201a000" }]
+        },
+        "startup": {
+          "start": "0x5000",
+          "end": "0x51ff",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x5001", "bytes": "a9d88d20fea21a" }]
         },
         "code": {
           "start": "0x0e00",
@@ -674,7 +680,7 @@
             { "at": "0x0f18", "bytes": "20510fa5100904" },
             { "at": "0x1b6e", "bytes": "852ca901e52f" },
             { "at": "0x28e0", "bytes": "b10018650099ed40" },
-            { "at": "0x388a", "bytes": "5f21336e0102" }
+            { "at": "0x40e5", "bytes": "a531bd513e3f" }
           ]
         },
         "data": {
