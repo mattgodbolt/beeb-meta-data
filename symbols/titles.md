@@ -124,6 +124,9 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
   - Acorn ANFS 4.26, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.26.html)
 - **Acornsoft LISP 4.06**, names from [TobyLobster/lisp](https://github.com/TobyLobster/lisp) (MIT)
 - **BBC BASIC II**, names from [acornaeology.uk](https://acornaeology.uk/bbc-basic/2.html) (MIT)
+- **Chuckie Egg 2** (MIT)
+  - Chuckie Egg 2: MENU, names from [mattgodbolt/chuckie-egg-2-beeb](https://github.com/mattgodbolt/chuckie-egg-2-beeb/tree/b085c546bcb110d30975cf84d94caded617d97e4)
+  - Chuckie Egg 2: the game, names from [mattgodbolt/chuckie-egg-2-beeb](https://github.com/mattgodbolt/chuckie-egg-2-beeb/tree/b085c546bcb110d30975cf84d94caded617d97e4)
 - **XMOS**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
 - **XMOS (1992)**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
 

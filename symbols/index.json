@@ -657,6 +657,50 @@
       }
     },
     {
+      "url": "sets/chuckie-egg-2-game.json",
+      "licence": "MIT",
+      "regions": {
+        "loader": {
+          "start": "0x4f77",
+          "end": "0x51ff",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x4f77", "bytes": "a9e5a201a000" }]
+        },
+        "code": {
+          "start": "0x0e00",
+          "end": "0x43ae",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0f18", "bytes": "20510fa5100904" },
+            { "at": "0x1b6e", "bytes": "852ca901e52f" },
+            { "at": "0x28e0", "bytes": "b10018650099ed40" },
+            { "at": "0x388a", "bytes": "5f21336e0102" }
+          ]
+        },
+        "data": {
+          "start": "0x8000",
+          "end": "0xbf9c",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x8010", "bytes": "332031383a35" }]
+        }
+      }
+    },
+    {
+      "url": "sets/chuckie-egg-2-menu.json",
+      "licence": "MIT",
+      "regions": {
+        "menu": {
+          "start": "0x1900",
+          "end": "0x2d70",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x1943", "bytes": "ada125a2008ea125" },
+            { "at": "0x1fd0", "bytes": "bdfa1f9d8e25" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/chuckie-egg-game.json",
       "licence": "MIT",
       "regions": {

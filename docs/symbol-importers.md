@@ -509,6 +509,24 @@ no names and no set; the in-memory check makes sure nothing matches while it run
 - The workspace sections are `globalsSections`, and `defs.6502`'s OS and hardware names are left to the MOS set.
 - `avoid` keeps anchors off the talk lines, which are Wendell Hicken's, not the MIT licence's.
 
+## Chuckie Egg 2
+
+`symbols/configs/chuckie-egg-2.json` makes two sets, MENU and the game, from
+[chuckie-egg-2-beeb](https://github.com/mattgodbolt/chuckie-egg-2-beeb). Its disc holds two editions of the game:
+CE2, which keeps the rooms in sideways RAM, and CE2S, which streams them from the disc for a Model B without any.
+These sets are CE2's; CE2S is the same source assembled with `-D STREAM=1`, and has no set yet.
+
+- `defines` gives the shipped disc's build stamp, which `!BOOT`, MENU and CE2DATA all carry.
+- MENU loads CE2DATA at `&3000` and copies it into the highest free sideways bank, where it's the game's `data`
+  region at `&8000`: the state the game and MENU pass between them, then the rooms.
+- CE2 loads at `&1900` and copies the game down to `&0E00` (`copy_down`, the one `moves`). Nothing overwrites the
+  loader after that, so its region matches for the rest of the session, back in MENU too.
+- The stack page's tables have no region: they're the things' starting places and some text, with nothing to anchor
+  on that the stack doesn't reach.
+- The workspace sections are `globalsSections`, and `defs.6502`'s OS and hardware names are left to the MOS set.
+- `avoid` keeps anchors off A&F's game, which the port's licence leaves out: everything that comes from `src/data/`
+  (the rooms, graphics, text, records and music) and the life-lost tune.
+
 ## Repton 2
 
 `symbols/configs/repton2.json` makes one set from George Foot's
