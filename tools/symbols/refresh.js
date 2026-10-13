@@ -107,8 +107,7 @@ export async function movesOf(config, { latest, licence }) {
 }
 
 /**
- * The config's text with each move made. A full commit or hash is unique, so every use of it moves together: the pin,
- * and the notice's link to the tree it was read from.
+ * The config's text with each move made. A full commit or hash is unique, so every use of it moves together.
  */
 export function moved(text, moves) {
     const to = new Map(moves.map((move) => [move.pinned, move.to]));

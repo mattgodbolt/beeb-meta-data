@@ -128,10 +128,10 @@ describe("movesOf", () => {
 });
 
 describe("moved", () => {
-    it("moves every use of the commit, the notice's link included", () => {
-        const text = JSON.stringify({ notice: `from ${repository}/tree/${commits.first}`, commit: commits.first });
+    it("moves every use of the commit", () => {
+        const text = JSON.stringify({ commit: commits.first, py8dis: { commit: commits.first } });
         expect(moved(text, [{ pinned: commits.first, to: commits.code }])).toBe(
-            JSON.stringify({ notice: `from ${repository}/tree/${commits.code}`, commit: commits.code }),
+            JSON.stringify({ commit: commits.code, py8dis: { commit: commits.code } }),
         );
     });
 
