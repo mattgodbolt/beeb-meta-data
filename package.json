@@ -20,7 +20,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "build-index": "node tools/symbols/build-index.js",
-    "check-index": "node tools/symbols/build-index.js && git diff --exit-code -- symbols/index.json",
+    "check-index": "node tools/symbols/build-index.js && git diff --exit-code -- symbols/index.json symbols/titles.md",
     "reimport-all": "node tools/symbols/reimport-all.js",
     "dist": "node tools/dist.js",
     "ci-checks": "npm run lint && npm run format:check && npm run check-index"

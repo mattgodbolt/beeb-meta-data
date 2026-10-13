@@ -5,9 +5,9 @@ Guidance for Claude Code in this repository. The README says what's here; this s
 ## Commands
 
 - `npm test`: unit tests (`npx vitest run tests/symbols/test-build-index.js` for one file)
-- `npm run ci-checks`: ESLint, Prettier, and that `symbols/index.json` matches the sets
+- `npm run ci-checks`: ESLint, Prettier, and that `symbols/index.json` and `symbols/titles.md` match the configs and sets
 - `npm run lint-fix`, `npm run format`: fix what they can
-- `npm run build-index`: remake `symbols/index.json`; never edit it by hand
+- `npm run build-index`: remake `symbols/index.json` and `symbols/titles.md`; never edit either by hand
 - `npm run dist`: lay out what the deploy publishes, under `dist/meta/`
 - `node tools/symbols/check-memory.js --config symbols/configs/<title>.json`: boot the title headless and check its
   sets match where they should. Slow; run it under `nice -n 19`, after changing a title's sets or its importer

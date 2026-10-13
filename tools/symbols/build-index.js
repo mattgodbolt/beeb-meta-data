@@ -3,6 +3,7 @@
  * Checks every symbol set under symbols/sets/ as the registry's build will, and writes
  * symbols/index.json from them: each set's location, licence and regions, without the
  * regions' symbols and scopes. The format is "Symbol sets" in docs/media-registry-proposal.md.
+ * Also writes symbols/titles.md, the list of titles (titles.js).
  *
  * Usage: node tools/symbols/build-index.js
  */
@@ -12,6 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { format as prettier, resolveConfig } from "prettier";
 
+import { readConfigs, titleRows, titlesMarkdown, TitlesFile } from "./titles.js";
 import { Format, isHttps, nameLinkProblems, parseAddress, parseSet, RelativeJsonPath } from "jsbeeb/src/symbol-sets.js";
 
 export const SymbolsDir = fileURLToPath(new URL("../../symbols/", import.meta.url));
@@ -246,11 +248,14 @@ export function indexOf(sets) {
     };
 }
 
-/** JSON as `npm run format` would leave it at `file`. */
-export async function formatJson(value, file) {
+/** Text as `npm run format` would leave it at `file`. */
+export async function formatText(text, file) {
     const options = await resolveConfig(file, { editorconfig: true });
-    return prettier(JSON.stringify(value), { ...options, filepath: file });
+    return prettier(text, { ...options, filepath: file });
 }
+
+/** JSON as `npm run format` would leave it at `file`. */
+export const formatJson = (value, file) => formatText(JSON.stringify(value), file);
 
 async function main() {
     const sets = readSets();
@@ -264,7 +269,10 @@ async function main() {
     }
     const indexPath = path.join(SymbolsDir, IndexFile);
     writeFileSync(indexPath, await formatJson(indexOf(sets), indexPath));
-    console.log(`Wrote ${IndexFile} with ${sets.length} sets`);
+    const titlesPath = path.join(SymbolsDir, TitlesFile);
+    const rows = titleRows(readConfigs(SymbolsDir), new Map(sets.map(({ file, json }) => [file, json])));
+    writeFileSync(titlesPath, await formatText(titlesMarkdown(rows), titlesPath));
+    console.log(`Wrote ${IndexFile} with ${sets.length} sets, and ${TitlesFile} with ${rows.length} titles`);
     return 0;
 }
 

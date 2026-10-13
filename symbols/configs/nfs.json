@@ -1,4 +1,5 @@
 {
+  "name": "Acorn NFS and ANFS",
   "importer": "acornaeology",
   "licence": "MIT",
   "source": {
