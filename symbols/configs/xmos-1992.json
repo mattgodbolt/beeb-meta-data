@@ -6,6 +6,7 @@
   "source": {
     "repository": "https://github.com/mattgodbolt/xmos",
     "commit": "ac713efa9d4071029e7058c7f4bee549fe5111f0",
+    "branch": "original-licensed",
     "assembler": "beebasm",
     "assemble": "xmos.asm"
   },

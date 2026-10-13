@@ -21,7 +21,7 @@ import { parseArgs } from "node:util";
 import { SymbolsDir } from "./build-index.js";
 
 const ConfigsDir = path.join(SymbolsDir, "configs");
-const SetsDir = path.join(SymbolsDir, "sets");
+export const SetsDir = path.join(SymbolsDir, "sets");
 const ToolsDir = fileURLToPath(new URL(".", import.meta.url));
 const ByImporter = {
     acornaeology: "import-acornaeology.js",
@@ -40,11 +40,12 @@ export function importerScript(config) {
     return config.source?.assembler === "beebasm" ? "import-beebasm.js" : "import-baron.js";
 }
 
-const readSetFiles = () =>
+/** Every set file's text in `dir`, by its name. */
+export const readSetFiles = (dir = SetsDir) =>
     new Map(
-        readdirSync(SetsDir)
+        readdirSync(dir)
             .filter((name) => name.endsWith(".json"))
-            .map((name) => [name, readFileSync(path.join(SetsDir, name), "utf8")]),
+            .map((name) => [name, readFileSync(path.join(dir, name), "utf8")]),
     );
 
 /** The configs with system sets' first, each group in its order. */
@@ -60,31 +61,38 @@ export function changedSets(before, after) {
         .sort();
 }
 
+/** Every config file's path, in order. */
+export const configFiles = () =>
+    readdirSync(ConfigsDir)
+        .filter((name) => name.endsWith(".json"))
+        .sort()
+        .map((name) => path.join(ConfigsDir, name));
+
+/** Runs the importer for the config in `file`, giving spawnSync's result; throws for an importer it doesn't know. */
+export function runImporter(file, config, spawnOptions = { stdio: "inherit" }) {
+    const script = importerScript(config);
+    console.log(`-- ${path.basename(file)} (${script})`);
+    return spawnSync(process.execPath, [path.join(ToolsDir, script), "--config", file], spawnOptions);
+}
+
 function main() {
     const { values, positionals } = parseArgs({
         options: { check: { type: "boolean", default: false } },
         allowPositionals: true,
     });
-    const configs = positionals.length
-        ? positionals
-        : readdirSync(ConfigsDir)
-              .filter((name) => name.endsWith(".json"))
-              .sort()
-              .map((name) => path.join(ConfigsDir, name));
+    const configs = positionals.length ? positionals : configFiles();
     const before = readSetFiles();
     const failed = [];
     const read = configs.map((file) => ({ file, config: JSON.parse(readFileSync(file, "utf8")) }));
     for (const { file, config } of systemFirst(read)) {
-        let script;
+        let run;
         try {
-            script = importerScript(config);
+            run = runImporter(file, config);
         } catch (error) {
             console.error(error.message);
             failed.push(path.basename(file));
             continue;
         }
-        console.log(`-- ${path.basename(file)} (${script})`);
-        const run = spawnSync(process.execPath, [path.join(ToolsDir, script), "--config", file], { stdio: "inherit" });
         if (run.status !== 0) failed.push(path.basename(file));
     }
     const index = spawnSync(process.execPath, [path.join(ToolsDir, "build-index.js")], { stdio: "inherit" });

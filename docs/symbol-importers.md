@@ -28,6 +28,18 @@ node tools/symbols/build-index.js
 `npm run reimport-all` runs every config's importer, the system sets' first, and `build-index.js`, and lists the sets
 that changed; with `--check` it exits 1 if any did. It needs every importer's tools and the network.
 
+Every Monday, [the weekly refresh](../.github/workflows/refresh.yml) runs `tools/symbols/refresh.js`, which moves each
+config's pins to their latest: a `commit` to the head of its `branch`, or of the repository's default branch if the
+config doesn't name one, and a level7 config's `sha256` to what its page hashes to now. It remakes the sets each move
+changes and runs the checks below on every title whose sets changed (the in-memory check where the config has one,
+and the corpus check for all but acornaeology and ACME configs), and keeps a move only if all of that passes. The
+system sets move last and remake every config but a level7 one whose page changed and whose move failed (every one,
+even when the run names only some). A source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's
+`licenceFile`, changed isn't moved, since its `notice` has to be read again. The refresh opens a pull request with
+what it kept, saying what moved and what didn't and why, and a refused or failed move fails the run, so it shows in
+the Actions list. It does nothing while an earlier refresh's pull request is open. It runs locally too, with the tools
+above, and leaves what it kept in the working tree: `node tools/symbols/refresh.js [CONFIG...]`.
+
 Then the two checks, for any title but a ROM:
 
 ```sh
@@ -93,7 +105,8 @@ theirs differ.
   - `assembler` is `baron` unless it says `beebasm`.
   - `repository` and `commit` pin the source. Each set's `source` links the tree there, or the file `link` names
     where the work is one file of a bigger repository, and for a repository on GitHub each name links to the line
-    that defines it at that commit.
+    that defines it at that commit. `branch` names the branch the weekly refresh moves `commit` along, if it isn't
+    the repository's default.
   - `assemble` is globs, from the repository's root, of every source to assemble, not only those that make a set,
     since the anchors are chosen against everything the title puts in memory.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
@@ -287,7 +300,7 @@ The config differs from a baron title's in these.
 - `source.assembly` is the assembly the repository holds (`repton2.s`), if any. On GitHub, each name links to the line
   that starts with it, as a label (`name:` or `.name`) or a constant (`name =`), and a name that no line, or more than
   one, starts stops the import.
-- `py8dis` gives the `repository` and `commit` of the py8dis to run it under.
+- `py8dis` gives the `repository` and `commit` of the py8dis to run it under, and a `branch` as `source` can.
 - `disc` is the disc the in-memory check boots, when the repository has none: the `url` of a zip, the `image`'s path
   in it, and its `key`.
 - A region is `from` an address `to` another (the end of `from`'s piece if not given), expressions in the script's
