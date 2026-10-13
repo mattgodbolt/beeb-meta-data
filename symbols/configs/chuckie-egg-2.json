@@ -41,8 +41,7 @@
           "name": "loader",
           "section": "Loader",
           "from": "loader",
-          "to": "screen",
-          "overwritten": true
+          "to": "screen"
         },
         {
           "name": "startup",

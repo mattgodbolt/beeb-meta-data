@@ -26,12 +26,12 @@ export const setFilesOf = (config) =>
     config.sets.map((spec) => `sets/${config.id === undefined ? spec.id : `${config.id}-${spec.id}`}.json`);
 
 /**
- * What a title's sets name: a MOS, a sideways ROM (its config names the ROM, or it's acornaeology's), or a program,
+ * What a title's sets name: a MOS, a sideways ROM (its config names the ROM, for the title or a set), or a program,
  * which can still have a region in a sideways bank it loads its data into.
  */
 export function kindOf(sets, config) {
     if (sets.some((json) => json.system)) return "system";
-    return config.rom !== undefined || config.importer === "acornaeology" ? "rom" : "program";
+    return [config, ...config.sets].some((spec) => spec.rom !== undefined) ? "rom" : "program";
 }
 
 const escape = (text) => text.replace(/[\\[\]*_`<~]/g, "\\$&").replace(/&/g, "&amp;");

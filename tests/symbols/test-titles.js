@@ -16,32 +16,27 @@ const set = (title, regions, extra = {}) => ({
 describe("the titles list", () => {
     describe("kindOf", () => {
         it("calls a title with a system set an operating system", () => {
-            expect(kindOf([set("MOS", [["0xc000", "0x10000"]], { system: true })], { importer: "acme" })).toBe(
-                "system",
-            );
+            const config = { sets: [{ rom: "os120" }] };
+            expect(kindOf([set("MOS", [["0xc000", "0x10000"]], { system: true })], config)).toBe("system");
         });
 
         it("calls a title whose config names its ROM a sideways ROM, even with code in RAM", () => {
             const sets = [set("DFS", [["0x8000", "0xc000"]]), set("Tube host", [["0x0400", "0x0800"]])];
-            expect(kindOf(sets, { rom: "b1770/dfs1770.rom" })).toBe("rom");
+            expect(kindOf(sets, { rom: "b1770/dfs1770.rom", sets: [{}, {}] })).toBe("rom");
         });
 
-        it("calls acornaeology's titles sideways ROMs", () => {
-            expect(kindOf([set("BASIC", [["0x8000", "0xc000"]])], { importer: "acornaeology" })).toBe("rom");
+        it("calls a title one of whose sets names its ROM a sideways ROM", () => {
+            expect(kindOf([set("BASIC", [["0x8000", "0xc000"]])], { sets: [{ rom: "basic2" }] })).toBe("rom");
         });
 
         it("calls anything else a program, even one with its data in a sideways bank", () => {
-            expect(
-                kindOf(
-                    [
-                        set("Game", [
-                            ["0x0e00", "0x4400"],
-                            ["0x8000", "0xbf9c"],
-                        ]),
-                    ],
-                    {},
-                ),
-            ).toBe("program");
+            const sets = [
+                set("Game", [
+                    ["0x0e00", "0x4400"],
+                    ["0x8000", "0xbf9c"],
+                ]),
+            ];
+            expect(kindOf(sets, { sets: [{}] })).toBe("program");
         });
     });
 
