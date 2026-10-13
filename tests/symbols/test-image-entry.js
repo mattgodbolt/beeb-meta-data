@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { fingerprint } from "../../tools/registry/fingerprint.js";
-import { imageEntries, publishedUrl, showAddress } from "../../tools/symbols/image-entry.js";
+import { corpusRef, imageEntries, publishedUrl, showAddress } from "../../tools/symbols/image-entry.js";
 
 const SectorSize = 256;
 const SectorsPerTrack = 10;
@@ -41,8 +41,16 @@ describe("image-entry", () => {
         expect(publishedUrl("chuckie-egg-2.ssd")).toBeNull();
     });
 
+    it("finds the corpus path in a path written out in full", () => {
+        expect(corpusRef("/home/me/repo/.registry-corpus/sth-disc/AnF/ChuckieEgg.zip")).toBe(
+            "sth-disc/AnF/ChuckieEgg.zip",
+        );
+        expect(corpusRef("build/chuckie-egg-2.ssd")).toBeNull();
+    });
+
     it("shows a host address as &FFFF and an ordinary one as it is", () => {
         expect(showAddress(0x31900)).toBe("&FFFF1900");
+        expect(showAddress(0xffff0e00)).toBe("&FFFF0E00");
         expect(showAddress(0x1100)).toBe("&1100");
     });
 

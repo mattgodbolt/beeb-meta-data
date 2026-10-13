@@ -11,7 +11,7 @@
  * as it is, and gets no URL (a disc in a title's own repository, say, which its config names by path).
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -34,6 +34,13 @@ export const showAddress = (value) =>
     (value & HostAddressBits) === HostAddressBits
         ? `&FFFF${(value & 0xffff).toString(16).toUpperCase().padStart(4, "0")}`
         : `&${value.toString(16).toUpperCase().padStart(4, "0")}`;
+
+/** A path's part from its mirror's directory on (`sth-disc/<path>`), however it's written, or null if it has none. */
+export function corpusRef(file) {
+    const parts = file.split(path.sep).join("/").split("/");
+    const at = parts.findIndex((part) => part in Mirrors);
+    return at >= 0 && at < parts.length - 1 ? parts.slice(at).join("/") : null;
+}
 
 /** The URL of the published copy of the corpus file at `ref` (`sth-disc/<path>` or `sth-tape/<path>`), or null. */
 export function publishedUrl(ref) {
@@ -64,17 +71,24 @@ async function main() {
         options: { corpus: { type: "string", default: ".registry-corpus" } },
     });
     if (positionals.length !== 1) throw new Error("Usage: image-entry.js <corpus path or file> [--corpus <dir>]");
-    const [ref] = positionals;
+    const [given] = positionals;
+    const ref = existsSync(given) ? (corpusRef(given) ?? given) : given;
     const url = publishedUrl(ref);
-    const file = url ? path.join(values.corpus, ref) : ref;
+    const file = existsSync(given) ? given : path.join(values.corpus, ref);
     if (!existsSync(file))
         throw new Error(`There's no ${file}${url ? "; is the corpus fetched, or elsewhere (--corpus)?" : ""}`);
+    if (statSync(file).isDirectory()) throw new Error(`${file} is a directory; name a zip or an image in it`);
     const bytes = readFileSync(file);
     const members = ZipFile.test(file) ? await unzip(bytes) : { [path.basename(file)]: bytes };
     const entries = imageEntries(url, members);
     if (!entries.length) throw new Error(`${ref} holds no disc or tape image`);
     for (const { kind, entry, sides } of entries) {
-        console.log(JSON.stringify({ [kind]: url ? entry : { image: entry.image, key: entry.key } }, null, 2));
+        if (url) console.log(JSON.stringify({ [kind]: entry }, null, 2));
+        else
+            console.log(
+                `${entry.image}: key ${entry.key}. It isn't in the corpus, so it has no URL: for a title's own image, ` +
+                    "its path goes in source.disc and this key in madeFrom.",
+            );
         sides.forEach((files, side) => {
             if (sides.length > 1) console.log(`  side ${side}${files ? "" : ": not a DFS catalogue"}`);
             else if (!files) console.log("  not a DFS catalogue");
