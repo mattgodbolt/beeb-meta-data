@@ -3020,15 +3020,15 @@
           "anchors": [
             { "at": "0x9014", "bytes": "fadaa981a0ff" },
             { "at": "0x980a", "bytes": "a5ae8d7d9ca5af" },
-            { "at": "0xa169", "bytes": "42524b054f52" },
-            { "at": "0xae68", "bytes": "414e44800041" }
+            { "at": "0xa16b", "bytes": "42524b054f52" },
+            { "at": "0xae6a", "bytes": "414e44800041" }
           ]
         },
         "high": {
           "start": "0xb000",
           "end": "0xc000",
           "minAnchors": 1,
-          "anchors": [{ "at": "0xb002", "bytes": "4483004d4f56" }]
+          "anchors": [{ "at": "0xb000", "bytes": "eb024d4f4483" }]
         }
       }
     },
