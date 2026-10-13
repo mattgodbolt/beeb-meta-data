@@ -4,7 +4,17 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { attempt, headOf, licenceChanges, moved, movesOf, pinsOf, report } from "../../tools/symbols/refresh.js";
+import {
+    attempt,
+    exitCode,
+    headOf,
+    licenceChanges,
+    moved,
+    movesOf,
+    pinsOf,
+    refreshMoves,
+    report,
+} from "../../tools/symbols/refresh.js";
 
 let repository;
 const commits = {};
@@ -228,11 +238,66 @@ describe("attempt", () => {
     });
 });
 
+describe("refreshMoves", () => {
+    const title = (file, config = {}) => ({ file, config, pins: [] });
+    const mos = title("mos.json", { system: true });
+    const files = ["mos.json", "game.json", "hopper.json", "tom.json", "frak.json"];
+
+    it("tries each title on its own, then the system sets over every config but a level7 one behind its page", () => {
+        const tried = [];
+        const tryMoves = (group, groupFiles) => {
+            tried.push([group.map(({ file }) => file), groupFiles]);
+            return group[0].file === "hopper.json" ? { failure: { file: "hopper.json" } } : { changed: new Map() };
+        };
+        const moves = [mos, title("game.json"), title("hopper.json", { importer: "level7" })];
+        const refused = [
+            { file: "tom.json", config: {} },
+            { file: "frak.json", config: { importer: "level7" } },
+        ];
+        const { kept, failed } = refreshMoves(moves, refused, files, tryMoves);
+        expect(tried).toEqual([
+            [["game.json"], ["game.json"]],
+            [["hopper.json"], ["hopper.json"]],
+            [["mos.json"], ["mos.json", "game.json", "tom.json"]],
+        ]);
+        expect(kept.map(({ moves, leftOut }) => [moves[0].file, leftOut])).toEqual([
+            ["game.json", []],
+            ["mos.json", ["hopper.json", "frak.json"]],
+        ]);
+        expect(failed.map(({ moves }) => moves[0].file)).toEqual(["hopper.json"]);
+    });
+
+    it("keeps the titles that moved when the system sets' move fails", () => {
+        const tryMoves = (group) =>
+            group[0].config.system ? { failure: { file: "game.json" } } : { changed: new Map() };
+        const { kept, failed } = refreshMoves([title("game.json"), mos], [], files, tryMoves);
+        expect(kept.map(({ moves }) => moves[0].file)).toEqual(["game.json"]);
+        expect(failed.map(({ moves }) => moves[0].file)).toEqual(["mos.json"]);
+    });
+});
+
+describe("exitCode", () => {
+    it.each([
+        [{ failed: [], refused: [], indexBuilt: true }, 0],
+        [{ failed: [{}], refused: [], indexBuilt: true }, 1],
+        [{ failed: [], refused: [{}], indexBuilt: true }, 1],
+        [{ failed: [], refused: [], indexBuilt: false }, 1],
+    ])("for %j is %i", (outcome, code) => {
+        expect(exitCode(outcome)).toBe(code);
+    });
+});
+
 describe("report", () => {
     const xmos = "/x/symbols/configs/xmos.json";
     const from = "469fe35d08012c986fc1a367247b8ee040151f13";
     const to = "73cf1883b3444b8a2043351805c203acaf2b8b30";
     const github = { repository: "https://github.com/mattgodbolt/xmos", pinned: from, to };
+
+    it("says when the index wasn't built", () => {
+        expect(report({ kept: [], failed: [], refused: [], indexBuilt: false })).toBe(
+            "Building the index failed; the run's log says why.\n",
+        );
+    });
 
     it("says when nothing moved", () => {
         expect(report({ kept: [], failed: [], refused: [] })).toBe("Every pin is at its latest.\n");

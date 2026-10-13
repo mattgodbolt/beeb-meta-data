@@ -117,11 +117,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # A rerun of a failed refresh doesn't rerun the waiting job, so this asks again.
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --author app/github-actions --limit 100 \
+            --json headRefName --jq '[.[] | select(.headRefName | startswith("refresh/"))] | length')
+          if [ "$open" != 0 ]; then
+            echo "::notice::A refresh pull request is open now, so this run opens none."
+            exit 0
+          fi
           branch="refresh/$(date -u +%F)-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           title="feat: move the symbol sets' sources to their latest"
           {
             echo "The weekly refresh (\`.github/workflows/refresh.yml\`) moved these sources and remade their sets."
-            echo "Every move here passed its title's checks; the sets' diffs are what to review."
+            echo "Every move here passed its title's checks. Review the configs' diffs as well as the sets'."
             echo
             cat "$RUNNER_TEMP/refresh/report.md"
           } > "$RUNNER_TEMP/body.md"

@@ -1,18 +1,9 @@
 #!/usr/bin/env node
 /**
- * Moves every config's pinned sources to their latest, remakes the sets that changes, checks them, and writes what it
- * did as Markdown, for the pull request the weekly refresh workflow opens.
+ * Moves every config's pinned sources to their latest, remakes and checks the sets that changes, and writes what it did
+ * as Markdown, for the pull request the weekly refresh opens; "Running it" in docs/symbol-importers.md has the rules.
  *
  * Usage: node tools/symbols/refresh.js [--report FILE] [CONFIG...]
- *
- * A git pin (`source.commit`, or `py8dis.commit`) moves to the head of its `branch`, else of the repository's default
- * branch; a level7 config's `source.sha256` moves to what its page hashes to now. A source whose licence file changed
- * stays where it is, since its `notice` has to be read again by a person. A move is kept only if its importer succeeds
- * and every title whose sets change passes its in-memory check, if it has one, and its corpus check, which every
- * config but an acornaeology or ACME one takes, against Stairway to Hell's discs (fetched into `.registry-corpus/`
- * first); otherwise its config and sets go back as they were. The system sets move last, together, and remake every
- * config but those left behind their sources, since the others leave the system sets' addresses to them. Exits 1 if
- * any move was refused or failed.
  */
 
 import { spawnSync } from "node:child_process";
@@ -35,6 +26,7 @@ const ShortSha = 7;
 const MaxOutputBytes = 256 * 1024 * 1024;
 // GitHub refuses a pull request body over 65,536 characters.
 const MaxReportLength = 60000;
+const FetchTimeoutMs = 60000;
 
 /** A config's pins: each git commit, with where it moves to and whether it's the names' source, or a level7 page. */
 export function pinsOf(config) {
@@ -47,7 +39,8 @@ export function pinsOf(config) {
 }
 
 const git = (args, options = {}) => {
-    const run = spawnSync("git", args, { encoding: "utf8", ...options });
+    const env = { ...process.env, GIT_TERMINAL_PROMPT: "0" };
+    const run = spawnSync("git", args, { encoding: "utf8", env, ...options });
     if (run.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${run.stderr.trim()}`);
     return run.stdout;
 };
@@ -78,7 +71,7 @@ export function licenceChanges(repository, from, to, licenceFile) {
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 async function pageHash(url) {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(FetchTimeoutMs) });
     if (!response.ok) throw new Error(`Fetching ${url} failed with ${response.status}`);
     return sha256(Buffer.from(await response.arrayBuffer()));
 }
@@ -228,7 +221,7 @@ function fenced(text) {
     return ["", `  ${fence}`, ...text.split("\n").map((line) => `  ${line}`), `  ${fence}`];
 }
 
-function reportLines({ kept, failed, refused }, outputs) {
+function reportLines({ kept, failed, refused, indexBuilt = true }, outputs) {
     const lines = [];
     if (kept.length) {
         lines.push("Moved, remade and checked:", "");
@@ -244,8 +237,8 @@ function reportLines({ kept, failed, refused }, outputs) {
             if (leftOut.length)
                 lines.push(
                     "",
-                    `${leftOut.map(base).join(", ")} weren't remade against the new system sets, since they're ` +
-                        "behind their sources; their next move remakes them.",
+                    `${leftOut.map(base).join(", ")} weren't remade against the new system sets, since their pages ` +
+                        "no longer have the hashes they pin; their next move remakes them.",
                 );
         }
         lines.push("");
@@ -261,6 +254,7 @@ function reportLines({ kept, failed, refused }, outputs) {
         if (!outputs && failed.length) lines.push("", "The run's log has each failure's output.");
         lines.push("");
     }
+    if (!indexBuilt) lines.push("Building the index failed; the run's log says why.", "");
     if (!lines.length) lines.push("Every pin is at its latest.", "");
     return lines.join("\n");
 }
@@ -270,6 +264,39 @@ export function report(outcome) {
     const text = reportLines(outcome, true);
     return text.length <= MaxReportLength ? text : reportLines(outcome, false);
 }
+
+/**
+ * Tries each title's moves on its own, then the system sets' together over every config in `files` but a level7 one
+ * this run couldn't move, which can't be remade at a pin its page no longer hashes to. `tryMoves(group, files)` gives
+ * attempt's result.
+ */
+export function refreshMoves(moves, refused, files, tryMoves) {
+    const kept = [];
+    const failed = [];
+    const run = (group, groupFiles, leftOut = []) => {
+        const result = tryMoves(group, groupFiles);
+        if (result.failure) failed.push({ moves: group, failure: result.failure });
+        else kept.push({ moves: group, changed: result.changed, leftOut });
+    };
+    for (const move of moves.filter(({ config }) => !config.system)) run([move], [move.file]);
+    const system = moves.filter(({ config }) => config.system);
+    if (system.length) {
+        const stuck = new Set(
+            [...refused, ...failed.flatMap((failure) => failure.moves)]
+                .filter(({ config }) => config.importer === Level7)
+                .map(({ file }) => file),
+        );
+        run(
+            system,
+            files.filter((file) => !stuck.has(file)),
+            files.filter((file) => stuck.has(file)),
+        );
+    }
+    return { kept, failed };
+}
+
+/** 1 if a move was refused or failed or the index wasn't built, which fails the workflow's run. */
+export const exitCode = ({ failed, refused, indexBuilt }) => (failed.length || refused.length || !indexBuilt ? 1 : 0);
 
 async function main() {
     const { values, positionals } = parseArgs({
@@ -289,7 +316,7 @@ async function main() {
             const pins = await movesOf(config, lookups);
             if (pins) moves.push({ file, config, pins });
         } catch (error) {
-            refused.push({ file, reason: error.message });
+            refused.push({ file, config, reason: error.message });
         }
     }
     const corpus = corpusFetcher();
@@ -298,29 +325,15 @@ async function main() {
         importer: (file, config) => runImporter(file, config, Captured),
         checks: (file, config) => checksOf(file, config, corpus),
     };
-    const kept = [];
-    const failed = [];
-    const tryMoves = (group, files, leftOut = []) => {
-        const result = attempt(group, { ...tools, files });
-        if (result.failure) failed.push({ moves: group, failure: result.failure });
-        else kept.push({ moves: group, changed: result.changed, leftOut });
-    };
-    for (const move of moves.filter(({ config }) => !config.system)) tryMoves([move], [move.file]);
-    const system = moves.filter(({ config }) => config.system);
-    if (system.length) {
-        const behind = new Set([...refused, ...failed.flatMap((failure) => failure.moves)].map(({ file }) => file));
-        const all = positionals.length ? files : configFiles();
-        tryMoves(
-            system,
-            all.filter((file) => !behind.has(file)),
-            all.filter((file) => behind.has(file)),
-        );
-    }
+    const all = positionals.length ? files : configFiles();
+    const tryMoves = (group, groupFiles) => attempt(group, { ...tools, files: groupFiles });
+    const { kept, failed } = refreshMoves(moves, refused, all, tryMoves);
     const index = spawnSync(process.execPath, [path.join(ToolsDir, "build-index.js")], { stdio: "inherit" });
-    const text = report({ kept, failed, refused });
+    const outcome = { kept, failed, refused, indexBuilt: index.status === 0 };
+    const text = report(outcome);
     if (values.report) writeFileSync(values.report, text);
     else process.stdout.write(text);
-    return failed.length || refused.length || index.status !== 0 ? 1 : 0;
+    return exitCode(outcome);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
