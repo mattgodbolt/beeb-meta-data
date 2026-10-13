@@ -8,8 +8,9 @@
  *
  * Usage: node tools/symbols/level7-compare.js --config symbols/configs/hopper.json [--source <file>] [--boot-tape]
  *            [--seconds 25] [--keys SPACE,RETURN] [--wait 3] [--model Master] [--script <commands>] [--shots DIR]
+ *            [--shadow]
  *        node tools/symbols/level7-compare.js --disassembly <url> (--disc Acornsoft/Monsters | --tape Acornsoft/Hunt)
- *            [--image <name>] [--seconds 25] [--keys SPACE] [--wait 3] [--model Master] [--draft <id>]
+ *            [--image <name>] [--seconds 25] [--keys SPACE] [--wait 3] [--model Master] [--draft <id> | --shadow]
  *
  * The config needs only `source` and `disc` or `tape`; it boots the disc if it has both, unless `--boot-tape`.
  * Without one, `--disassembly` and `--disc` or `--tape`, a zip's path under Stairway to Hell's disc or tape
@@ -17,7 +18,9 @@
  * found, regions and moments for a curator to check, unless they're already there. KEYS are key steps
  * (title-scenario.js's keyStep), each taken in turn with WAIT seconds after it. A SCRIPT, instead, is
  * check-memory.js's runScript commands separated by `;`, where `report` says how much memory holds there;
- * the script's end does too. A draft needs KEYS, not a SCRIPT, for its check's start.
+ * the script's end does too. A draft needs KEYS, not a SCRIPT, for its check's start. On a Master, `--shadow`
+ * measures shadow RAM at &3000 to &7FFF, for code a game keeps there, rather than whatever is paged in; the PC's labels
+ * still come from what's paged in, which is what the CPU runs.
  */
 
 import { createHash } from "node:crypto";
@@ -28,6 +31,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { unzip } from "jsbeeb/src/archive.js";
+import { DefaultModel, findModel } from "jsbeeb/src/models.js";
 import { format, resolveConfig } from "prettier";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
@@ -415,10 +419,18 @@ export async function main(args = process.argv.slice(2)) {
             script: { type: "string" },
             shots: { type: "string" },
             draft: { type: "string" },
+            shadow: { type: "boolean" },
         },
     });
     const seconds = positiveSeconds("seconds", values.seconds);
     const wait = positiveSeconds("wait", values.wait);
+    if (values.shadow) {
+        const model = values.model ? findModel(values.model) : DefaultModel;
+        if (!model) throw new Error(`--model ${values.model} isn't a jsbeeb model`);
+        if (!model.isMaster)
+            throw new Error("--shadow needs a Master, the only model with shadow RAM: give --model Master");
+        if (values.draft) throw new Error("--draft can't use --shadow: a draft's check never asks for shadow RAM");
+    }
     const { config, text, disc: discBytes, tape } = await sourceAndMedia(values);
     const { parts } = readLevel7(text);
     const keys = values.keys.split(",").filter(Boolean);
@@ -426,6 +438,7 @@ export async function main(args = process.argv.slice(2)) {
     if (keys.length && values.script) throw new Error("Give --keys or --script, not both");
     if (values.draft && values.script)
         throw new Error("--draft needs --keys, which become the check's start; a script's moments can't");
+    const paging = values.shadow ? { shadow: true } : {};
     const script = (values.script ?? "")
         .split(";")
         .map((command) => command.trim())
@@ -443,7 +456,7 @@ export async function main(args = process.argv.slice(2)) {
             await runSeconds(session, Math.max(0, seconds - SampleSecs));
             const sample = async (title) => {
                 const hot = await hotLabels(session, labels);
-                const memory = session.readMemory(0, MemoryTop);
+                const memory = session.readMemory(0, MemoryTop, paging);
                 const comparison = compareWithMemory(parts, (at) => memory[at]);
                 printMoment(`${title}, PC ${hex(session.registers().pc)}`, comparison, hot);
                 printAnchors(sets, (at) => memory[at]);
