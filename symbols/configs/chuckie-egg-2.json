@@ -8,11 +8,13 @@
     "commit": "b085c546bcb110d30975cf84d94caded617d97e4",
     "assemble": ["src/main.6502"],
     "defines": {
-      "BUILD": "\"2026-10-13 18:58 UTC 1a06dbc\""
+      "BUILD": {
+        "file": "$.!BOOT",
+        "after": "*| CHUCKIE EGG 2 "
+      }
     },
     "disc": "chuckie-egg-2.ssd"
   },
-  "madeFrom": ["ab7ebf42e10c30bbce2e85e180f63abb"],
   "leftToSystemSets": ["defs.6502"],
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,

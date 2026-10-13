@@ -82,7 +82,7 @@ async function main() {
         else
             console.log(
                 `${entry.image}: key ${entry.key}. It isn't in the corpus, so it has no URL: for a title's own image, ` +
-                    "its path goes in source.disc and this key in madeFrom.",
+                    "its path goes in source.disc, and this key in madeFrom if it's never to change.",
             );
         sides.forEach((files, side) => {
             if (sides.length > 1) console.log(`  side ${side}${files ? "" : ": not a DFS catalogue"}`);

@@ -750,7 +750,7 @@ export function importBaron(config, build) {
  */
 export function withTitle(configPath, options, use) {
     const config = JSON.parse(readFileSync(configPath, "utf8"));
-    return withBaronBuild(config, options, (made) => use({ config, build: readBaronBuild(made.buildDir), ...made }));
+    return withBaronBuild(config, options, (made) => use({ build: readBaronBuild(made.buildDir), ...made }));
 }
 
 /**

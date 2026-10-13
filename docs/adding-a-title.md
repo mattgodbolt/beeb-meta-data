@@ -54,7 +54,7 @@ by the mirror's directory (`.registry-corpus/sth-disc`).
 2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
    ships, or a ROM pinned by URL and key. `node tools/symbols/image-entry.js sth-disc/<path>.zip` prints a disc's
    `disc` entry for the config (its URL, image and key) and each file with where it loads and runs; `sth-tape/...`
-   does the same for a tape's `tape` entry. Given a title's own image, it gives the key for `madeFrom`. For a ROM jsbeeb
+   does the same for a tape's `tape` entry. Given a title's own image, it gives its key, which `madeFrom` needs only if the repository's disc isn't to move with the source. For a ROM jsbeeb
    doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml` hashes as a cross-check has usually worked.
 3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
    check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load), and find
