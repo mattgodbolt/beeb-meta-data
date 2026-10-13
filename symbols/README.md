@@ -9,6 +9,8 @@ describes. None of this data is under this repository's GPL; each set has its ow
 - `mos-sets.json`: the sets that may be marked `"system": true`. Only a MOS's set belongs on it.
 - `index.json`: made from the sets by `npm run build-index`, never by hand. The pre-commit hook remakes it when a set
   is added or changed (not removed), and CI fails if it's stale.
+- `titles.md`: the list of titles, made by `npm run build-index` with the index, from the configs and sets, and
+  checked the same way.
 
 ## Where each set comes from
 

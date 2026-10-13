@@ -71,6 +71,8 @@ in it is an address list; the names come from the build. This is a baron title's
 theirs differ.
 
 - `id` is the prefix of the title's set files.
+- `name` is the title's name in [the titles list](../symbols/titles.md), which a config with more than one set needs;
+  one with a single set is listed under its set's `title`. Every importer's config can have it.
 - `licence`, `notice`, `madeFrom`, and `home` if the author has a page of their own for the work, are copied into
   every set.
 - `source` says where the source is and what of it to assemble.

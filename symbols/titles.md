@@ -1,0 +1,136 @@
+# Titles with symbol sets
+
+The programs, ROMs and operating systems whose code jsbeeb's debugger can name from these sets.
+`npm run build-index` makes this list from `symbols/configs/` and `symbols/sets/`, so don't edit it by hand.
+
+## Programs
+
+- **3D Pool**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/3d-pool-disassembly.txt) (level7-educational)
+- **Arcadians**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/arcadians-disassembly.txt) (level7-educational)
+- **Atic Atac**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/atic-atac-disassembly.txt) (level7-educational)
+- **Boffin**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/boffin-disassembly.txt) (level7-educational)
+- **Bonecruncher**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bonecruncher-disassembly.txt) (level7-educational)
+- **Bruce Lee**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bruce-lee-disassembly.txt) (level7-educational)
+- **Bug Eyes II**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bug-eyes-ii-disassembly.txt) (level7-educational)
+- **By Fair Means or Foul (Enhanced version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt) (level7-educational)
+  - By Fair Means or Foul (Enhanced version)
+  - By Fair Means or Foul (Enhanced version), shadow RAM
+- **By Fair Means or Foul (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-standard-disassembly.txt) (level7-educational)
+- **Castle Quest**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/castle-quest-disassembly.txt) (level7-educational)
+- **Citadel**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/citadel-disassembly.txt) (level7-educational)
+- **Codename Droid**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/codename-droid-disassembly.txt) (level7-educational)
+- **Contraption**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/contraption-disassembly.txt) (level7-educational)
+- **Cyborg Warriors**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/cyborg-warriors-disassembly.txt) (level7-educational)
+- **Dare Devil Denis**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/dare-devil-denis-disassembly.txt) (level7-educational)
+- **Daredevil Demis**, names from [mattgodbolt/daredevil-demis](https://github.com/mattgodbolt/daredevil-demis/tree/bce7954f9ad964033d5fb49e069c1ab6992096b2) (MIT)
+- **Doctor Who and the Mines of Terror**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/doctor-who-and-the-mines-of-terror-disassembly.txt) (level7-educational)
+- **Doctor Who and the Warlord (Part A)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/doctor-who-and-the-warlord-part-a-disassembly.txt) (level7-educational)
+- **Doctor Who and the Warlord (Part B)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/doctor-who-and-the-warlord-part-b-disassembly.txt) (level7-educational)
+- **Eagle's Wing**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/eagles-wing-disassembly.txt) (level7-educational)
+- **Elixir**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/elixir-disassembly.txt) (level7-educational)
+- **Escape from Enthar Seven**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/escape-from-enthar-seven-disassembly.txt) (level7-educational)
+- **Exile (Enhanced version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/exile-enhanced-disassembly.txt) (level7-educational)
+- **Exile (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/exile-standard-disassembly.txt) (level7-educational)
+- **Exile (supervisor)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/exile-disk-protection-and-supervisor-disassembly.txt) (level7-educational)
+- **FireTrack**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/firetrack-disassembly.txt) (level7-educational)
+- **Fortress**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/fortress-disassembly.txt) (level7-educational)
+- **Frak!**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/frak-disassembly.txt) (level7-educational)
+- **Frogman**, names from [mattgodbolt/frogman](https://github.com/mattgodbolt/frogman) (MIT)
+  - Frogman
+  - Frogman's title screen
+- **Future Shock**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/future-shock-disassembly.txt) (level7-educational)
+- **Hopper**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/hopper-disassembly.txt) (level7-educational)
+- **Impossible Mission**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/impossible-mission-disassembly.txt) (level7-educational)
+- **Jet Set Willy**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/jet-set-willy-disassembly.txt) (level7-educational)
+- **Killer Gorilla**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/killer-gorilla-disassembly.txt) (level7-educational)
+- **Kissin' Kousins**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/kissin-kousins-disassembly.txt) (level7-educational)
+- **Kix**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/kix-disassembly.txt) (level7-educational)
+- **Knight Lore**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/knightlore-disassembly.txt) (level7-educational)
+- **Lode Runner**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/lode-runner-disassembly.txt) (level7-educational)
+- **Monsters**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/monsters-disassembly.txt) (level7-educational)
+- **Moon Raider**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/moon-raider-disassembly.txt) (level7-educational)
+- **Myorem (Saga of a Spy - The Rick Hanson Trilogy, Part 3)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/myorem-disassembly.txt) (level7-educational)
+- **Nevryon**, names from [waitingforvsync/nevryon](https://github.com/waitingforvsync/nevryon/tree/5680d10d7b8d7fdc5e28805fe0721dc076308d6a) (MIT)
+- **Nightshade**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/nightshade-disassembly.txt) (level7-educational)
+- **Omega Orb**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/omega-orb-disassembly.txt) (level7-educational)
+- **Palace of Magic**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/palace-of-magic-disassembly.txt) (level7-educational)
+- **PIPELINE**, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f) (MIT)
+  - PIPELINE: the game
+  - PIPELINE: the Graphics Designer
+  - PIPELINE: the Level Designer
+  - PIPELINE: the GAME stub loader
+  - PIPELINE: the GRAPHIC stub loader
+  - PIPELINE: the LEVDES stub loader
+  - PIPELINE: MRUN
+  - PIPELINE: TITLE
+  - PIPELINE: PL, Ian's cheat
+  - PIPELINE: MENU
+  - PIPELINE: MISSION, the Mission Generator
+- **Plan B**, names from [TobyLobster/PlanB](https://github.com/TobyLobster/PlanB) (MIT)
+- **Project Thesius (Saga of a Spy - The Rick Hanson Trilogy, Part 2)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/project-thesius-disassembly.txt) (level7-educational)
+- **Psycastria**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/psycastria-disassembly.txt) (level7-educational)
+- **Ravenskull**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/ravenskull-disassembly.txt) (level7-educational)
+- **Repton 2**, names from [gfoot/repton2disassembly](https://github.com/gfoot/repton2disassembly/tree/c5fed3739573c9c3e5c9b61070052c85c2bd3b8f) (Unlicense)
+- **Rick Hanson (Saga of a Spy - The Rick Hanson Trilogy, Part 1)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/rick-hanson-disassembly.txt) (level7-educational)
+- **Robotron 2084**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/robotron-2084-disassembly.txt) (level7-educational)
+- **Sabre Wulf**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/sabrewulf-disassembly.txt) (level7-educational)
+- **Scorched Earth**, names from [mattgodbolt/beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth/tree/124b65c9e02edd09aeccad63e6fd41070aa1d3bb) (MIT)
+- **Shark**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/shark-disassembly.txt) (level7-educational)
+- **Sim**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/sim-disassembly.txt) (level7-educational)
+- **Skirmish**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/skirmish-disassembly.txt) (level7-educational)
+- **Space Agent Zelda Meets The Bug Eyes**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/space-agent-zelda-meets-the-bug-eyes-disassembly.txt) (level7-educational)
+- **Space Hi-way**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/space-hi-way-disassembly.txt) (level7-educational)
+- **Sphere of Destiny**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/sphere-of-destiny-disassembly.txt) (level7-educational)
+- **Spy Hunter**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/spy-hunter-disassembly.txt) (level7-educational)
+- **Spy vs. Spy**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/spy-vs-spy-disassembly.txt) (level7-educational)
+- **Star Wars**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/star-wars-disassembly.txt) (level7-educational)
+- **Starquake**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/starquake-disassembly.txt) (level7-educational)
+- **Starship Command**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/starship-command-disassembly.txt) (level7-educational)
+- **Styker's Run (Enhanced version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/strykers-run-enhanced-disassembly.txt) (level7-educational)
+- **Styker's Run (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/strykers-run-standard-disassembly.txt) (level7-educational)
+- **Super Invaders**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/super-invaders-disassembly.txt) (level7-educational)
+- **Syncron**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/syncron-disassembly.txt) (level7-educational)
+- **The Hunt**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-hunt-disassembly.txt) (level7-educational)
+- **The Last Ninja**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-last-ninja-disassembly.txt) (level7-educational)
+- **The Sentinel**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-sentinel-disassembly.txt) (level7-educational)
+- **The Way of the Exploding Fist**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-way-of-the-exploding-fist-disassembly.txt) (level7-educational)
+- **Twin Kingdom Valley**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/twin-kingdom-valley-disassembly.txt) (level7-educational)
+- **Vindaloo**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/vindaloo-disassembly.txt) (level7-educational)
+- **Wizadore**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/wizadore-disassembly.txt) (level7-educational)
+- **XOR**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/xor-disassembly.txt) (level7-educational)
+- **Yie Ar Kung-Fu**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/yie-ar-kung-fu-disassembly.txt) (level7-educational)
+- **Zalaga**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/zalaga-disassembly.txt) (level7-educational)
+
+## Sideways ROMs
+
+- **Acorn DFS 2.26**, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py) (MIT)
+  - Acorn DFS 2.26
+  - Acorn Tube host
+- **Acorn NFS and ANFS**, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34.html) (MIT)
+  - Acorn NFS 3.34
+  - Acorn NFS 3.34B
+  - Acorn NFS 3.35D
+  - Acorn NFS 3.35K
+  - Acorn NFS 3.40
+  - Acorn NFS 3.60
+  - Acorn NFS 3.62
+  - Acorn NFS 3.65
+  - Acorn ANFS 4.08.53
+  - Acorn ANFS 4.18
+  - Acorn ANFS 4.21 (variant 1)
+  - Acorn ANFS 4.24
+  - Acorn ANFS 4.25
+  - Acorn ANFS 4.26
+- **Acornsoft LISP 4.06**, names from [TobyLobster/lisp](https://github.com/TobyLobster/lisp) (MIT)
+- **BBC BASIC II**, names from [acornaeology.uk](https://acornaeology.uk/bbc-basic/2.html) (MIT)
+- **XMOS**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
+- **XMOS (1992)**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
+
+## Operating systems
+
+- **BBC Micro B+ MOS 2.00**, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos200.html) (CC-BY-NC-4.0)
+- **BBC Micro MOS**, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos/index.html) (CC-BY-NC-4.0)
+  - BBC Micro MOS 1.20
+  - BBC Micro MOS 1.20 (US)
+  - BBC Micro MOS 1.20 (German)
+  - BBC Micro MOS 0.10

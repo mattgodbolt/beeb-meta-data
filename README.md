@@ -11,6 +11,9 @@ bytes in memory, rather than by which disc was loaded, so its names turn up wher
 at the top of [the proposal](docs/media-registry-proposal.md) explains keys, records, sets and the index in a few
 paragraphs.
 
+[The titles list](symbols/titles.md) has every program, ROM and operating system with a set, and where its names come
+from. It's made from the configs and sets, so it's always current.
+
 ## Layout
 
 | Path              | What                                                                                          |
