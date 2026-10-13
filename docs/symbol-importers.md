@@ -28,6 +28,16 @@ node tools/symbols/build-index.js
 `npm run reimport-all` runs every config's importer, the system sets' first, and `build-index.js`, and lists the sets
 that changed; with `--check` it exits 1 if any did. It needs every importer's tools and the network.
 
+Every Monday, [the weekly refresh](../.github/workflows/refresh.yml) runs `tools/symbols/refresh.js`, which moves each
+config's pins to their latest: a `commit` to the head of the source's `branch`, or of its default branch if the config
+doesn't name one, and a level7 config's `sha256` to what its page hashes to now. It remakes the sets each move
+changes, runs the two checks below on every title whose sets changed, and keeps a move only if all of that passes;
+moving a system set remakes every config. The refresh opens a pull request with what it kept, saying what moved and
+what failed. It won't move a source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's `licenceFile`,
+changed, since its `notice` has to be read again; that, and a move that failed, makes the run fail, so it shows in the
+Actions list. It does nothing while an earlier refresh's pull request is still open. It runs locally too, with the
+tools above, and leaves what it kept in the working tree: `node tools/symbols/refresh.js [CONFIG...]`.
+
 Then the two checks, for any title but a ROM:
 
 ```sh
@@ -93,7 +103,8 @@ theirs differ.
   - `assembler` is `baron` unless it says `beebasm`.
   - `repository` and `commit` pin the source. Each set's `source` links the tree there, or the file `link` names
     where the work is one file of a bigger repository, and for a repository on GitHub each name links to the line
-    that defines it at that commit.
+    that defines it at that commit. `branch` names the branch the weekly refresh moves `commit` along, if it isn't
+    the repository's default.
   - `assemble` is globs, from the repository's root, of every source to assemble, not only those that make a set,
     since the anchors are chosen against everything the title puts in memory.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
