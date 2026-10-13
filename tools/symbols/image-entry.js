@@ -19,12 +19,9 @@ import { parseArgs } from "node:util";
 import { unzip } from "jsbeeb/src/archive.js";
 import { dfsCatalogue } from "../registry/dfs.js";
 import { fingerprint, imageSides, isDiscImage } from "../registry/fingerprint.js";
+import { Mirrors, publishedUrl } from "../registry/mirrors.js";
 import { decodeTape, tapeKey } from "../registry/tape.js";
 
-const Mirrors = {
-    "sth-disc": "https://bbc.xania.org/archive/sth/diskimages/",
-    "sth-tape": "https://bbc.xania.org/archive/sth/tapeimages/",
-};
 const TapeImage = /\.uef$/i;
 const ZipFile = /\.zip$/i;
 const HostAddressBits = 0x30000;
@@ -38,14 +35,8 @@ export const showAddress = (value) =>
 /** A path's part from its mirror's directory on (`sth-disc/<path>`), however it's written, or null if it has none. */
 export function corpusRef(file) {
     const parts = file.split(path.sep).join("/").split("/");
-    const at = parts.findIndex((part) => part in Mirrors);
+    const at = parts.findIndex((part) => Object.hasOwn(Mirrors, part));
     return at >= 0 && at < parts.length - 1 ? parts.slice(at).join("/") : null;
-}
-
-/** The URL of the published copy of the corpus file at `ref` (`sth-disc/<path>` or `sth-tape/<path>`), or null. */
-export function publishedUrl(ref) {
-    const [mirror, ...rest] = ref.split("/");
-    return Mirrors[mirror] && rest.length ? Mirrors[mirror] + rest.map(encodeURIComponent).join("/") : null;
 }
 
 /**

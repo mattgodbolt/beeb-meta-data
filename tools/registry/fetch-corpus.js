@@ -14,11 +14,9 @@ import { mkdir, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { brotliDecompressSync } from "node:zlib";
 
-const Sources = [
-    { name: "sth-disc", base: "https://bbc.xania.org/archive/sth/diskimages/" },
-    { name: "sth-tape", base: "https://bbc.xania.org/archive/sth/tapeimages/" },
-    { name: "hfe", base: "https://bbc.xania.org/archive/bbcdiscs/hfe/" },
-];
+import { Mirrors } from "./mirrors.js";
+
+const Sources = Object.entries(Mirrors).map(([name, base]) => ({ name, base }));
 const Concurrency = 8;
 // Pinned so the findings stay reproducible; the list's last change as of 2026-09-24.
 const MameBbcFloppyList =

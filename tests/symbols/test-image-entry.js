@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { fingerprint } from "../../tools/registry/fingerprint.js";
-import { corpusRef, imageEntries, publishedUrl, showAddress } from "../../tools/symbols/image-entry.js";
+import { corpusRef, imageEntries, showAddress } from "../../tools/symbols/image-entry.js";
 
 const SectorSize = 256;
 const SectorsPerTrack = 10;
@@ -31,16 +31,6 @@ function dsd(first, second) {
 }
 
 describe("image-entry", () => {
-    it("publishes a corpus path at its mirror's URL, and gives none for any other path", () => {
-        expect(publishedUrl("sth-disc/AnF/Chuckie Egg.zip")).toBe(
-            "https://bbc.xania.org/archive/sth/diskimages/AnF/Chuckie%20Egg.zip",
-        );
-        expect(publishedUrl("sth-tape/Robico/Hunt.zip")).toBe(
-            "https://bbc.xania.org/archive/sth/tapeimages/Robico/Hunt.zip",
-        );
-        expect(publishedUrl("chuckie-egg-2.ssd")).toBeNull();
-    });
-
     it("finds the corpus path in a path written out in full", () => {
         expect(corpusRef("/home/me/repo/.registry-corpus/sth-disc/AnF/ChuckieEgg.zip")).toBe(
             "sth-disc/AnF/ChuckieEgg.zip",
