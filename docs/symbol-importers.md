@@ -112,8 +112,12 @@ theirs differ.
     since the anchors are chosen against everything the title puts in memory.
   - `defines` predefines symbols, name to a baron expression, passed as `-D name=expression`. This is for what the
     title's own build passes (a build stamp the code prints, say), without which the source wouldn't rebuild the disc.
-  - `disc` is the original disc in the repository, the one the source rebuilds. Its image key has to be one of
-    `madeFrom`'s, and it's the disc the in-memory check boots.
+    A value can instead be `{ "file": "$.!BOOT", "after": "*| GAME " }`, the text in that file of `disc` after
+    `after` to the end of its line, as a string (refused if it holds a quote): a stamp the disc's `!BOOT` prints,
+    which changes with every disc.
+  - `disc` is the original disc in the repository, the one the source rebuilds, and the disc the in-memory check
+    boots. Where the config lists `madeFrom`, its image key has to be one of them; where it doesn't, its key is the
+    sets' `madeFrom`, which suits a disc the repository rebuilds as it changes.
 - `leftToSystemSets` lists INCLUDEd files whose names the MOS's set already gives. The listing doesn't mark where an
   INCLUDE ends, so these are the `=` names shown straight after the INCLUDE line.
 - `bytesPerAnchor` and `spreadAnchors` ask for at least one anchor per that many bytes of a region, up to that many,
@@ -497,8 +501,8 @@ Where the regions are cut:
 [beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth). INTRO, the BASIC that `!BOOT` chains, has
 no names and no set; the in-memory check makes sure nothing matches while it runs.
 
-- The game prints a build stamp its Makefile passes as `-D BUILD=...`, so `defines` gives the shipped disc's stamp.
-  Without it the code after the stamp would move.
+- The game prints a build stamp its Makefile passes as `-D BUILD=...`, so `defines` reads the shipped disc's stamp
+  from its `!BOOT`. Without it the code after the stamp would move.
 - SCORCH loads at `&1900` and copies the game down to `&0E00`, over where it was loaded, so the loader region is only
   its own code from `loader`. As loaded, it would match beside the game it copied down.
 - `startup` runs once from `skyrow` and `dirtrow`, which the first round fills. Before calling the game it copies five
@@ -517,8 +521,8 @@ CE2, which keeps the rooms in sideways RAM, and CE2S, which streams them from th
 These sets are CE2's; CE2S is the same source assembled with `-D STREAM=1`, and has no set yet. Nor does the code a
 Master keeps in HAZEL (`MasterReset`).
 
-- `defines` gives the shipped disc's build stamp, which `!BOOT`, MENU and CE2DATA all carry, so every new disc needs
-  it and `madeFrom` moved by hand: the refresh can't, and fails until someone does.
+- `defines` reads the shipped disc's build stamp from its `!BOOT`. MENU and CE2DATA carry it too, and `MB_STREAM`'s
+  address depends on its length.
 - MENU loads CE2DATA at `&3000` and copies it into the highest free sideways bank, where it's the game's `data`
   region at `&8000`: the state the game and MENU pass between them, then the rooms.
 - CE2 loads at `&1900` and copies the game down to `&0E00` (`copy_down`, the one `moves`). Its loader runs on into

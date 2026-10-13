@@ -470,7 +470,7 @@ export function discFilesOf(config, sourceDir) {
 export function withTitle(configPath, options, use) {
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     return withBeebasmBuild(config, options, (made) =>
-        use({ ...made, config, build: beebasmBuild(made.build), discFiles: discFilesOf(config, made.sourceDir) }),
+        use({ ...made, build: beebasmBuild(made.build), discFiles: discFilesOf(config, made.sourceDir) }),
     );
 }
 

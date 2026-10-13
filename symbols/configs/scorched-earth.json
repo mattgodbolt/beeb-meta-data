@@ -7,11 +7,13 @@
     "commit": "124b65c9e02edd09aeccad63e6fd41070aa1d3bb",
     "assemble": ["src/main.6502"],
     "defines": {
-      "BUILD": "\"2026-10-04.2035-51BA34D\""
+      "BUILD": {
+        "file": "$.!BOOT",
+        "after": "*| SCORCHED EARTH "
+      }
     },
     "disc": "scorched-earth.ssd"
   },
-  "madeFrom": ["9510d085a8643a1be968b0362b1de883"],
   "leftToSystemSets": ["defs.6502"],
   "bytesPerAnchor": 2048,
   "spreadAnchors": 4,

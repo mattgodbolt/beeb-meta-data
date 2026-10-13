@@ -9,7 +9,8 @@ import { globSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } 
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { fingerprint } from "../registry/fingerprint.js";
+import { dfsCatalogue } from "../registry/dfs.js";
+import { fingerprint, sectorImageSides, SectorSize } from "../registry/fingerprint.js";
 
 /** The command-line options every tool that builds a title takes, as parseArgs reads them. */
 export const BuildOptions = { source: { type: "string" }, baron: { type: "string" } };
@@ -76,16 +77,57 @@ export function cloneCommit({ repository, commit }, dir) {
 
 export const cloneSource = (config, dir) => cloneCommit(config.source, dir);
 
+const LineEnd = /[\r\n]/;
+
 /**
- * Refuses a config whose `source.disc` isn't one of the images its `madeFrom` names: that disc, in the
- * source repository, is the original the source rebuilds.
+ * The text in `file` on a DFS disc after `after`, up to the end of its line, as a baron string.
+ * @param {string} disc - the disc's name, for errors
  */
-export function checkDisc(config, sourceDir) {
-    const { disc } = config.source;
-    if (disc === undefined) return;
-    const { discKey } = fingerprint(disc, readFileSync(path.join(sourceDir, disc)));
-    if (!config.madeFrom?.includes(discKey))
+export function discText(disc, bytes, { file, after }) {
+    const side = sectorImageSides(disc, bytes)[0];
+    const entry = dfsCatalogue(side)?.files.find(({ name }) => name === file);
+    if (!entry) throw new Error(`${disc} has no ${file}`);
+    const start = entry.start * SectorSize;
+    const text = Buffer.from(side.subarray(start, start + entry.length)).toString("latin1");
+    const at = text.indexOf(after);
+    if (at < 0) throw new Error(`${disc}'s ${file} has no "${after}"`);
+    const value = text.slice(at + after.length).split(LineEnd)[0];
+    if (value.includes('"')) throw new Error(`${disc}'s ${file} has a quote after "${after}"`);
+    if (!value) throw new Error(`${disc}'s ${file} has nothing after "${after}"`);
+    return `"${value}"`;
+}
+
+const isDiscText = (value) =>
+    typeof value?.file === "string" && typeof value.after === "string" && value.after.length > 0;
+
+/**
+ * The config with what its `source.disc`, the original the source rebuilds, says filled in: `madeFrom` the
+ * disc's key, unless the config lists the images, when the disc has to be one of them; and each `defines` entry
+ * given as `{ file, after }` the text discText finds.
+ */
+export function fromDisc(config, sourceDir) {
+    const { disc, defines } = config.source;
+    for (const [name, value] of Object.entries(defines ?? {}))
+        if (typeof value !== "string" && !isDiscText(value))
+            throw new Error(`The config's define ${name} is neither a baron expression nor { file, after }`);
+    const fromFile = Object.values(defines ?? {}).some((value) => typeof value !== "string");
+    if (disc === undefined) {
+        if (fromFile) throw new Error("The config's defines read the disc, and it names no source.disc");
+        return config;
+    }
+    const bytes = readFileSync(path.join(sourceDir, disc));
+    const { discKey } = fingerprint(disc, bytes);
+    if (config.madeFrom !== undefined && !config.madeFrom.includes(discKey))
         throw new Error(`${disc} is image ${discKey}, which the config's madeFrom doesn't list`);
+    const read = ([name, value]) => [name, typeof value === "string" ? value : discText(disc, bytes, value)];
+    return {
+        ...config,
+        madeFrom: config.madeFrom ?? [discKey],
+        source: {
+            ...config.source,
+            ...(defines && { defines: Object.fromEntries(Object.entries(defines).map(read)) }),
+        },
+    };
 }
 
 /** The source files `source.assemble`'s globs match, relative to the repository's root, each named once. */
@@ -153,7 +195,8 @@ export function assemble(config, sourceDir, buildDir, baron) {
  * Runs `use` with the config's source and its baron build, in a temporary directory removed afterwards.
  * @param {{source?: string, baron?: string}} options - an existing checkout of the config's commit to
  *     assemble instead of fetching one, and the baron to run (else BARON, else `baron` on the PATH)
- * @param {(build: {sourceDir: string, buildDir: string, sources: string[], baron: string}) => any} use
+ * @param {(build: {config: Object, sourceDir: string, buildDir: string, sources: string[], baron: string}) => any} use
+ *     - given the config as fromDisc fills it in
  */
 export async function withBaronBuild(config, { source, baron } = {}, use) {
     checkAssembler(config, Baron);
@@ -165,10 +208,10 @@ export async function withBaronBuild(config, { source, baron } = {}, use) {
         const sourceDir = source ?? path.join(temp, "source");
         if (source === undefined) cloneSource(config, sourceDir);
         checkSourceCommit(config, sourceDir);
-        checkDisc(config, sourceDir);
+        const filled = fromDisc(config, sourceDir);
         const buildDir = path.join(temp, "build");
-        const sources = assemble(config, sourceDir, buildDir, baronPath);
-        return await use({ sourceDir, buildDir, sources, baron: version });
+        const sources = assemble(filled, sourceDir, buildDir, baronPath);
+        return await use({ config: filled, sourceDir, buildDir, sources, baron: version });
     } finally {
         rmSync(temp, { recursive: true, force: true });
     }

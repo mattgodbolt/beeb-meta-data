@@ -5,16 +5,16 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fingerprint } from "../../tools/registry/fingerprint.js";
+import { fingerprint, SectorSize } from "../../tools/registry/fingerprint.js";
 import {
     baronArguments,
     baronVersion,
     BuildLayout,
     checkAssembler,
-    checkDisc,
     checkSourceCommit,
     cloneSource,
     environmentWithoutGit,
+    fromDisc,
     sourcesToAssemble,
     withBaronBuild,
 } from "../../tools/symbols/baron-build.js";
@@ -50,6 +50,25 @@ printf X > "$files/$(basename "$1" .6502)"
 
 const DiscBytes = 2560;
 const DiscFill = 0xe5;
+const FirstFileSector = 2;
+
+/** A one-sided DFS disc holding `files`, each `{ name, text }`, in `$`. */
+function dfsDisc(files) {
+    const image = Buffer.alloc(DiscBytes);
+    let sector = FirstFileSector;
+    files.forEach(({ name, text }, i) => {
+        const entry = 8 * (i + 1);
+        image.write(name.padEnd(7), entry, "latin1");
+        image.write("$", entry + 7, "latin1");
+        image.writeUInt16LE(text.length, SectorSize + entry + 4);
+        image[SectorSize + entry + 7] = sector;
+        image.write(text, sector * SectorSize, "latin1");
+        sector += Math.ceil(text.length / SectorSize);
+    });
+    image[SectorSize + 5] = 8 * files.length;
+    image[SectorSize + 7] = DiscBytes / SectorSize;
+    return image;
+}
 
 describe("a title's source", () => {
     let dir;
@@ -61,6 +80,13 @@ describe("a title's source", () => {
     const disc = Buffer.alloc(DiscBytes, DiscFill);
     disc.write("DEMO", 0);
     const discKey = fingerprint("demo.ssd", disc).discKey;
+    const bootDisc = dfsDisc([
+        { name: "GAME", text: "X".repeat(SectorSize + 1) },
+        { name: "!BOOT", text: `${"\r".repeat(SectorSize)}*| DEMO 2026-10-04.2035\r*RUN GAME\r` },
+        { name: "QUOTED", text: '*| DEMO "2026"\r' },
+        { name: "EMPTY", text: "*| DEMO \r" },
+    ]);
+    const bootKey = fingerprint("boot.ssd", bootDisc).discKey;
 
     beforeEach(() => {
         dir = mkdtempSync(path.join(tmpdir(), "symbols-source-"));
@@ -71,6 +97,7 @@ describe("a title's source", () => {
         writeFileSync(path.join(dir, "src", "data.6502"), "EQUB 1\n");
         writeFileSync(path.join(dir, "src", "os.6502inc"), "OSWRCH = &FFEE\n");
         writeFileSync(path.join(dir, "original", "demo.ssd"), disc);
+        writeFileSync(path.join(dir, "original", "boot.ssd"), bootDisc);
         git("add", ".");
         git("commit", "-q", "-m", "source");
     });
@@ -144,15 +171,53 @@ describe("a title's source", () => {
         });
     });
 
-    describe("checkDisc", () => {
+    describe("fromDisc", () => {
+        const booted = (defines) => ({
+            source: { ...pinned("").source, disc: "original/boot.ssd", ...(defines && { defines }) },
+        });
+        const stamp = { BUILD: { file: "$.!BOOT", after: "*| DEMO " } };
+
         it("passes a disc madeFrom lists, and a config naming none", () => {
-            expect(() => checkDisc(pinned("", { disc: "original/demo.ssd" }), dir)).not.toThrow();
-            expect(() => checkDisc(pinned(""), dir)).not.toThrow();
+            const config = pinned("", { disc: "original/demo.ssd" });
+            expect(fromDisc(config, dir)).toEqual(config);
+            expect(fromDisc(pinned(""), dir)).toEqual(pinned(""));
         });
 
         it("refuses a disc madeFrom doesn't list", () => {
             const config = { ...pinned("", { disc: "original/demo.ssd" }), madeFrom: ["0".repeat(32)] };
-            expect(() => checkDisc(config, dir)).toThrow(`original/demo.ssd is image ${discKey}`);
+            expect(() => fromDisc(config, dir)).toThrow(`original/demo.ssd is image ${discKey}`);
+        });
+
+        it("makes madeFrom the disc's key when the config lists none", () => {
+            expect(fromDisc(booted(), dir).madeFrom).toEqual([bootKey]);
+        });
+
+        it("reads a define from a file on the disc, to the end of its line, and keeps the others", () => {
+            const filled = fromDisc(booted({ ...stamp, DEBUG: "TRUE" }), dir);
+            expect(filled.source.defines).toEqual({ BUILD: '"2026-10-04.2035"', DEBUG: "TRUE" });
+        });
+
+        it("refuses a define it can't read", () => {
+            expect(() => fromDisc({ source: { ...pinned("").source, defines: stamp } }, dir)).toThrow(
+                "names no source.disc",
+            );
+            expect(() => fromDisc(booted({ BUILD: { file: "$.NONE", after: "*| " } }), dir)).toThrow("has no $.NONE");
+            expect(() => fromDisc(booted({ BUILD: { file: "$.!BOOT", after: "*| GAME " } }), dir)).toThrow(
+                'has no "*| GAME "',
+            );
+            expect(() => fromDisc(booted({ BUILD: { file: "$.QUOTED", after: "*| DEMO " } }), dir)).toThrow(
+                'has a quote after "*| DEMO "',
+            );
+            expect(() => fromDisc(booted({ BUILD: { file: "$.EMPTY", after: "*| DEMO " } }), dir)).toThrow(
+                'has nothing after "*| DEMO "',
+            );
+        });
+
+        it("refuses a define that's neither an expression nor a file and text", () => {
+            for (const value of [1, { file: "$.!BOOT" }, { file: "$.!BOOT", after: "" }])
+                expect(() => fromDisc(booted({ BUILD: value }), dir)).toThrow(
+                    "define BUILD is neither a baron expression nor { file, after }",
+                );
         });
     });
 
@@ -208,6 +273,22 @@ describe("a title's source", () => {
                 'listing of src/data.6502 BUILD="2026-10-04" DEBUG=TRUE\n',
                 'listing of src/prog.6502 BUILD="2026-10-04" DEBUG=TRUE\n',
             ]);
+        });
+
+        it("predefines what the disc gives, and hands use the config as the disc fills it in", async () => {
+            const config = {
+                source: {
+                    ...pinned(git("rev-parse", "HEAD")).source,
+                    disc: "original/boot.ssd",
+                    defines: { BUILD: { file: "$.!BOOT", after: "*| DEMO " } },
+                },
+            };
+            const [listing, filled] = await withBaronBuild(config, { baron }, (made) => [
+                readFileSync(path.join(made.buildDir, BuildLayout.listings, "prog.txt"), "utf8"),
+                made.config,
+            ]);
+            expect(listing).toBe('listing of src/prog.6502 BUILD="2026-10-04.2035"\n');
+            expect(filled.madeFrom).toEqual([bootKey]);
         });
 
         it("runs a baron given by a relative path from the caller's directory", async () => {

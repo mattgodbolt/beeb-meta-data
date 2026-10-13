@@ -10,7 +10,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, write
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { checkAssembler, checkDisc, checkSourceCommit, cloneSource } from "./baron-build.js";
+import { checkAssembler, checkSourceCommit, cloneSource, fromDisc } from "./baron-build.js";
 import { Mnemonics } from "./baron-listing.js";
 import { UnnamedScope } from "./beebasm-listing.js";
 
@@ -245,7 +245,8 @@ export function assemble(config, workDir, buildDir, beebasm) {
  * The build runs in a copy of the checkout, since a SAVE writes wherever its source says.
  * @param {{source?: string, beebasm?: string}} options - an existing checkout of the config's commit to
  *     assemble instead of fetching one, and the beebasm to run (else BEEBASM, else `beebasm` on the PATH)
- * @param {(build: {sourceDir: string, build: ReturnType<typeof assemble>, beebasm: string}) => any} use
+ * @param {(build: {config: Object, sourceDir: string, build: ReturnType<typeof assemble>, beebasm: string}) => any} use
+ *     - given the config as fromDisc fills it in
  */
 export async function withBeebasmBuild(config, { source, beebasm } = {}, use) {
     checkAssembler(config, Beebasm);
@@ -257,11 +258,11 @@ export async function withBeebasmBuild(config, { source, beebasm } = {}, use) {
         const sourceDir = source ?? path.join(temp, "source");
         if (source === undefined) cloneSource(config, sourceDir);
         checkSourceCommit(config, sourceDir);
-        checkDisc(config, sourceDir);
+        const filled = fromDisc(config, sourceDir);
         const workDir = path.join(temp, "work");
         cpSync(sourceDir, workDir, { recursive: true, filter: (from) => path.basename(from) !== GitDir });
-        const build = assemble(config, workDir, path.join(temp, "build"), beebasmPath);
-        return await use({ sourceDir, build, beebasm: version });
+        const build = assemble(filled, workDir, path.join(temp, "build"), beebasmPath);
+        return await use({ config: filled, sourceDir, build, beebasm: version });
     } finally {
         rmSync(temp, { recursive: true, force: true });
     }
