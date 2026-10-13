@@ -657,6 +657,41 @@
       }
     },
     {
+      "url": "sets/chuckie-egg-game.json",
+      "licence": "MIT",
+      "regions": {
+        "low": {
+          "start": "0x0900",
+          "end": "0x1100",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x0900", "bytes": "4c980ba2b2a00a" },
+            { "at": "0x0d34", "bytes": "05110816040c" }
+          ]
+        },
+        "main": {
+          "start": "0x1100",
+          "end": "0x29ab",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1210", "bytes": "00386c5e7e7c" },
+            { "at": "0x1902", "bytes": "a5738581a000" },
+            { "at": "0x1d6d", "bytes": "a58ca240a0e7" },
+            { "at": "0x23c7", "bytes": "60c019b011e014" }
+          ]
+        },
+        "front": {
+          "start": "0x29ab",
+          "end": "0x3000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x2a0a", "bytes": "a53dd022a901" },
+            { "at": "0x2d44", "bytes": "a24ca02d20261a" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/citadel-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

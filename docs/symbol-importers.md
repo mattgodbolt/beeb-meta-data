@@ -520,6 +520,18 @@ disassembly of Bug Byte's game: one region over the binary, which runs where it 
 `title_and_game_loop`, which no anchor covers. TobyLobster's own PlanB repository has no licence, so the set comes
 from py8dis's copy, under py8dis's.
 
+## Chuckie Egg
+
+`symbols/configs/chuckie-egg.json` makes one set, `game`, from py8dis's example `examples/python/chuckie.py`, which
+carries Rich Talbot-Watkins' labels, constants and comments from [his disassembly on
+StarDot](https://stardot.org.uk/forums/viewtopic.php?p=220229#p220229), so the set comes from py8dis's copy, under
+py8dis's licence. `low` is the code `initialise` copies to `&0900` (`copyloop`, the config's `moves`), `main` the game
+up to `entrypoint`, and `front` the title, high scores and start of a game from there to `&3000`. The example's binary is
+the tape release; Stairway to Hell's `AnF/ChuckieEgg.zip` has the same code but for `initialise`'s first OSBYTE, which
+selects the disc rather than the tape, and no anchor covers it. The cheat discs in `Cheats` keep the game byte for byte
+but change the front end from `entrypoint` on, so `front` keeps its anchors off the few bytes they share: they match
+`main` and `low`, and only the original and the Extra Colours cheat match `front`.
+
 ## LISP 4.06
 
 `symbols/configs/lisp-4.06.json` makes one set, `rom`, from py8dis's example `examples/python/lisp406.py`,

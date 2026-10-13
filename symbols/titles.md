@@ -17,6 +17,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
   - By Fair Means or Foul (Enhanced version), shadow RAM, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt)
 - **By Fair Means or Foul (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-standard-disassembly.txt) (level7-educational)
 - **Castle Quest**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/castle-quest-disassembly.txt) (level7-educational)
+- **Chuckie Egg**, names from [stardot.org.uk](https://stardot.org.uk/forums/viewtopic.php?p=220229#p220229) (MIT)
 - **Citadel**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/citadel-disassembly.txt) (level7-educational)
 - **Codename Droid**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/codename-droid-disassembly.txt) (level7-educational)
 - **Contraption**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/contraption-disassembly.txt) (level7-educational)
