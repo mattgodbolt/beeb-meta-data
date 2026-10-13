@@ -213,13 +213,14 @@ describe("differingSpans", () => {
 describe("main", () => {
     const Program = "?&900=&42:REM a program of more than sixteen bytes";
     const tape = basicTape(Program);
-    const listing = `Game disassembly
+    const listingOf = (program, more = "") => `Game disassembly
 ================
 ; program
-&${MasterBasicPage.toString(16).padStart(4, "0")} ${basicLine(Program)
+&${MasterBasicPage.toString(16).padStart(4, "0")} ${basicLine(program)
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join(" ")}
-`;
+${more}`;
+    const listing = listingOf(Program);
     let temp;
 
     afterEach(() => {
@@ -227,10 +228,11 @@ describe("main", () => {
         if (temp) rmSync(temp, { recursive: true, force: true });
     });
 
-    const configWithTape = () => {
+    const configWithTape = (program = Program, text = listing) => {
+        const tape = basicTape(program);
         temp = mkdtempSync(path.join(tmpdir(), "level7-compare-test-"));
         const source = path.join(temp, "listing.txt");
-        writeFileSync(source, listing);
+        writeFileSync(source, text);
         const config = path.join(temp, "config.json");
         writeFileSync(
             config,
@@ -238,7 +240,7 @@ describe("main", () => {
                 id: "hopper",
                 source: {
                     disassembly: "https://example.com/listing.txt",
-                    sha256: createHash("sha256").update(listing).digest("hex"),
+                    sha256: createHash("sha256").update(text).digest("hex"),
                 },
                 tape: { url: "https://example.com/prog.zip", image: "prog.uef", key: tapeKey(decodeTape(tape).files) },
                 sets: [{ id: "game" }],
@@ -264,6 +266,31 @@ describe("main", () => {
             );
         },
     );
+
+    it("reads a Master's shadow RAM with --shadow, and main RAM without", { timeout: 60000 }, async () => {
+        // ACCCON at BASIC's prompt is &18; &1C adds X, putting shadow RAM at &3000 for the program's stores.
+        const shadowWriter =
+            "?&FE34=&1C:!&3000=&04030201:!&3004=&08070605:!&3008=&0C0B0A09:!&300C=&100F0E0D:?&FE34=&18";
+        const text = listingOf(shadowWriter, "; table\n&3000 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10\n");
+        const tableHeld = async (extra) => {
+            const log = vi.spyOn(console, "log").mockImplementation(() => {});
+            const args = [...configWithTape(shadowWriter, text), "--model", "Master", "--seconds", "20", ...extra];
+            await main(args);
+            const line = log.mock.calls.map(([printed]) => printed).find((l) => /^\s+&3000-&300F/.test(l));
+            log.mockRestore();
+            rmSync(temp, { recursive: true, force: true });
+            return line?.match(/(\d+)%$/)[1];
+        };
+        expect(await tableHeld(["--shadow"])).toBe("100");
+        expect(await tableHeld([])).toBe("0");
+    });
+
+    it("refuses --shadow on a machine without it, and in a draft", async () => {
+        await expect(main([...configWithTape(), "--shadow"])).rejects.toThrow("--shadow needs a Master");
+        await expect(main([...configWithTape(), "--keys", "SPACE", "--shadow", "--draft", "test"])).rejects.toThrow(
+            "--draft can't use --shadow",
+        );
+    });
 
     it("refuses a config with nothing to boot, and --boot-tape without a config", async () => {
         const [, config, ...rest] = configWithTape();
