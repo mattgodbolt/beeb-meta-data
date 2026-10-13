@@ -61,7 +61,8 @@ by the mirror's directory (`.registry-corpus/sth-disc`).
    the regions by hand: where the files load and run (`image-entry.js`), where the code moves itself (the source's
    copy loops, which go in `moves`), and what gets overwritten once it has run. Import with `--verbose`, check in
    memory, and adjust. A config with more than one set needs a `name`, its title in
-   [the titles list](../symbols/titles.md).
+   [the titles list](../symbols/titles.md). A source pinned on a branch other than its repository's default needs
+   `branch`, or the weekly refresh moves it to the default branch.
 4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
    random play) or `typedScenario` for a text adventure, from `title-scenario.js`. A title-specific scenario is only
    for what those can't do.

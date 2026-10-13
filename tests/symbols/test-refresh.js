@@ -1,13 +1,10 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { headOf, licenceChanges, moved, movesOf, pinsOf, report } from "../../tools/symbols/refresh.js";
-
-const ConfigsDir = new URL("../../symbols/configs/", import.meta.url);
-const config = (name) => JSON.parse(readFileSync(new URL(name, ConfigsDir), "utf8"));
+import { attempt, headOf, licenceChanges, moved, movesOf, pinsOf, report } from "../../tools/symbols/refresh.js";
 
 let repository;
 const commits = {};
@@ -42,26 +39,22 @@ afterAll(() => rmSync(repository, { recursive: true, force: true }));
 
 describe("pinsOf", () => {
     it("gives a level7 config's page", () => {
-        const { source } = config("hopper.json");
-        expect(pinsOf(config("hopper.json"))).toEqual([{ page: source.disassembly, pinned: source.sha256 }]);
+        const source = { disassembly: "https://l7/hopper.txt", sha256: "ab".repeat(32) };
+        expect(pinsOf({ importer: "level7", source })).toEqual([{ page: source.disassembly, pinned: source.sha256 }]);
     });
 
     it("gives a config's commit and the branch it follows", () => {
-        expect(pinsOf(config("xmos-1992.json"))).toEqual([
-            {
-                repository: "https://github.com/mattgodbolt/xmos",
-                branch: "original-licensed",
-                pinned: "ac713efa9d4071029e7058c7f4bee549fe5111f0",
-                names: true,
-            },
+        const source = { repository: "https://github.com/a/b", commit: "c1", branch: "old" };
+        expect(pinsOf({ source })).toEqual([
+            { repository: "https://github.com/a/b", branch: "old", pinned: "c1", names: true },
         ]);
     });
 
     it("gives py8dis's commit too, as not the names' source", () => {
-        const pins = pinsOf(config("repton2.json"));
-        expect(pins.map(({ repository, names }) => [repository, names])).toEqual([
-            ["https://github.com/gfoot/repton2disassembly", true],
-            ["https://github.com/ZornsLemma/py8dis", false],
+        const config = { source: { repository: "r", commit: "c1" }, py8dis: { repository: "p", commit: "c2" } };
+        expect(pinsOf(config).map(({ repository, names }) => [repository, names])).toEqual([
+            ["r", true],
+            ["p", false],
         ]);
     });
 });
@@ -99,26 +92,28 @@ describe("licenceChanges", () => {
 
 describe("movesOf", () => {
     const pinned = (commit, branch) => ({ source: { repository, commit, ...(branch && { branch }) } });
-    const latest = async ({ branch }) => headOf(repository, branch);
+    const lookups = { latest: async ({ branch }) => headOf(repository, branch), licence: licenceChanges };
 
     it("moves a pin to its branch's head", async () => {
-        expect(await movesOf(pinned(commits.first), latest)).toEqual([
+        expect(await movesOf(pinned(commits.first), lookups)).toEqual([
             { repository, pinned: commits.first, to: commits.code, names: true },
         ]);
     });
 
     it("moves nothing at the head", async () => {
-        expect(await movesOf(pinned(commits.code), latest)).toBeNull();
+        expect(await movesOf(pinned(commits.code), lookups)).toBeNull();
     });
 
     it("refuses to move past a licence change", async () => {
-        await expect(movesOf(pinned(commits.first, "original"), latest)).rejects.toThrow("LICENSE changed between");
+        await expect(movesOf(pinned(commits.first, "original"), lookups)).rejects.toThrow("LICENSE changed between");
     });
 
     it("refuses to move two pins at one commit to different commits", async () => {
         const both = { ...pinned(commits.first), py8dis: { repository, commit: commits.first, branch: "original" } };
         const heads = async ({ branch }) => (branch ? commits.relicensed : commits.code);
-        await expect(movesOf(both, heads)).rejects.toThrow("move to different commits");
+        await expect(movesOf(both, { latest: heads, licence: licenceChanges })).rejects.toThrow(
+            "move to different commits",
+        );
     });
 });
 
@@ -128,6 +123,108 @@ describe("moved", () => {
         expect(moved(text, [{ pinned: commits.first, to: commits.code }])).toBe(
             JSON.stringify({ notice: `from ${repository}/tree/${commits.code}`, commit: commits.code }),
         );
+    });
+
+    it("moves each pin once, even where one moves to where another was", () => {
+        const moves = [
+            { pinned: "a".repeat(40), to: "b".repeat(40) },
+            { pinned: "b".repeat(40), to: "c".repeat(40) },
+        ];
+        expect(moved(`${"a".repeat(40)} ${"b".repeat(40)}`, moves)).toBe(`${"b".repeat(40)} ${"c".repeat(40)}`);
+    });
+});
+
+describe("attempt", () => {
+    let dir;
+    let setsDir;
+    const ok = { status: 0, stdout: "", stderr: "" };
+    const failing = (output) => ({ status: 1, stdout: output, stderr: "" });
+    const configFile = (id, config) => {
+        const file = path.join(dir, `${id}.json`);
+        writeFileSync(file, JSON.stringify({ id, ...config }));
+        return file;
+    };
+    const setFile = (name) => path.join(setsDir, name);
+    const read = (file) => readFileSync(file, "utf8");
+    // Writes the set the config's commit gives, as an importer does, and a new one from the commit "grown".
+    const importer = (file, config) => {
+        writeFileSync(setFile(`${config.id}-game.json`), `${config.uses ?? ""}${config.source.commit}`);
+        if (config.source.commit === "grown") writeFileSync(setFile(`${config.id}-extra.json`), "extra");
+        return ok;
+    };
+    const passing = () => [["in-memory check", () => ok]];
+
+    beforeEach(() => {
+        dir = mkdtempSync(path.join(tmpdir(), "refresh-attempt-"));
+        setsDir = path.join(dir, "sets");
+        mkdirSync(setsDir);
+        writeFileSync(setFile("game-game.json"), "old");
+        writeFileSync(setFile("other-game.json"), "old");
+    });
+
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    const moveOf = (file) => ({ file, pins: [{ pinned: "old", to: "new" }] });
+
+    it("keeps a move whose import and checks pass, and checks only the titles whose sets changed", () => {
+        const game = configFile("game", { source: { commit: "old" } });
+        const other = configFile("other", { source: { commit: "old" } });
+        const checked = [];
+        const checks = (file) => [["in-memory check", () => (checked.push(file), ok)]];
+        const result = attempt([moveOf(game)], { files: [game, other], setsDir, importer, checks });
+        expect([...result.changed.keys()]).toEqual([game]);
+        expect(result.changed.get(game).names).toEqual(["game-game.json"]);
+        expect(checked).toEqual([game]);
+        expect(JSON.parse(read(game)).source.commit).toBe("new");
+        expect(read(setFile("game-game.json"))).toBe("new");
+    });
+
+    it("puts the config and every set back when a check fails", () => {
+        const game = configFile("game", { source: { commit: "old" } });
+        const before = read(game);
+        const move = { file: game, pins: [{ pinned: "old", to: "grown" }] };
+        const checks = () => [["corpus check", () => failing("collides\nwith Frak")]];
+        const result = attempt([move], { files: [game], setsDir, importer, checks });
+        expect(result.failure).toEqual({ file: game, what: "corpus check", output: "collides\nwith Frak" });
+        expect(read(game)).toBe(before);
+        expect(read(setFile("game-game.json"))).toBe("old");
+        expect(existsSync(setFile("game-extra.json"))).toBe(false);
+    });
+
+    it("puts everything back when an import fails", () => {
+        const game = configFile("game", { source: { commit: "old" } });
+        const before = read(game);
+        const result = attempt([moveOf(game)], {
+            files: [game],
+            setsDir,
+            importer: (file, config) => (importer(file, config), failing("no beebasm")),
+            checks: passing,
+        });
+        expect(result.failure).toEqual({ file: game, what: "import", output: "no beebasm" });
+        expect(read(game)).toBe(before);
+        expect(read(setFile("game-game.json"))).toBe("old");
+    });
+
+    it("gives what an importer throws as the failure", () => {
+        const game = configFile("game", { source: { commit: "old" } });
+        const importer = () => {
+            throw new Error("game is for the nope importer, which isn't known");
+        };
+        const result = attempt([moveOf(game)], { files: [game], setsDir, importer, checks: passing });
+        expect(result.failure).toEqual({ file: game, what: "refresh", output: expect.stringContaining("nope") });
+    });
+
+    it("remakes the other configs for a system set's move, the system set's first, and checks those that changed", () => {
+        const mos = configFile("mos", { system: true, source: { commit: "old" } });
+        const other = configFile("other", { uses: "mos ", source: { commit: "old" } });
+        const order = [];
+        const tracing = (file, config) => (order.push(path.basename(file)), importer(file, config));
+        const checked = [];
+        const checks = (file) => [["in-memory check", () => (checked.push(path.basename(file)), ok)]];
+        const result = attempt([moveOf(mos)], { files: [other, mos], setsDir, importer: tracing, checks });
+        expect(order).toEqual(["mos.json", "other.json"]);
+        expect([...result.changed.keys()]).toEqual([mos, other]);
+        expect(checked).toEqual(["mos.json", "other.json"]);
     });
 });
 
@@ -158,7 +255,40 @@ describe("report", () => {
         ]);
         expect(
             report({ kept: [{ moves: [{ file: mos, pins: [github] }], changed }], failed: [], refused: [] }),
-        ).toContain("A system set moved, which also changed `kix.json`.");
+        ).toContain("The system sets' move also changed `kix.json`.");
+    });
+
+    it("names a pin shared by the source and py8dis once", () => {
+        const changed = new Map();
+        const pins = [github, { ...github }];
+        const text = report({ kept: [{ moves: [{ file: xmos, pins }], changed }], failed: [], refused: [] });
+        expect(text.match(/mattgodbolt\/xmos\]/g)).toHaveLength(1);
+    });
+
+    it("says which titles weren't remade against a system set's move", () => {
+        const changed = new Map();
+        const leftOut = ["/x/symbols/configs/hopper.json"];
+        const text = report({
+            kept: [{ moves: [{ file: xmos, pins: [github] }], changed, leftOut }],
+            failed: [],
+            refused: [],
+        });
+        expect(text).toContain("`hopper.json` weren't remade against the new system sets");
+    });
+
+    it("fences output with more backticks than it holds", () => {
+        const hopper = "/x/symbols/configs/hopper.json";
+        const failure = { file: hopper, what: "import", output: "a ```b``` c" };
+        const text = report({ kept: [], failed: [{ moves: [{ file: hopper, pins: [] }], failure }], refused: [] });
+        expect(text).toContain("  ````\n  a ```b``` c\n  ````");
+    });
+
+    it("leaves the outputs out of a report too long for a pull request", () => {
+        const hopper = "/x/symbols/configs/hopper.json";
+        const failure = { file: hopper, what: "import", output: "x".repeat(70000) };
+        const text = report({ kept: [], failed: [{ moves: [{ file: hopper, pins: [] }], failure }], refused: [] });
+        expect(text).not.toContain("xxx");
+        expect(text).toContain("The run's log has each failure's output.");
     });
 
     it("gives a failure's output and a refusal's reason", () => {

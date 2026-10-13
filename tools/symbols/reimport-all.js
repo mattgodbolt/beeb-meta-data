@@ -20,7 +20,7 @@ import { parseArgs } from "node:util";
 
 import { SymbolsDir } from "./build-index.js";
 
-export const ConfigsDir = path.join(SymbolsDir, "configs");
+const ConfigsDir = path.join(SymbolsDir, "configs");
 export const SetsDir = path.join(SymbolsDir, "sets");
 const ToolsDir = fileURLToPath(new URL(".", import.meta.url));
 const ByImporter = {
@@ -40,12 +40,12 @@ export function importerScript(config) {
     return config.source?.assembler === "beebasm" ? "import-beebasm.js" : "import-baron.js";
 }
 
-/** Every set file's text, by its name. */
-export const readSetFiles = () =>
+/** Every set file's text in `dir`, by its name. */
+export const readSetFiles = (dir = SetsDir) =>
     new Map(
-        readdirSync(SetsDir)
+        readdirSync(dir)
             .filter((name) => name.endsWith(".json"))
-            .map((name) => [name, readFileSync(path.join(SetsDir, name), "utf8")]),
+            .map((name) => [name, readFileSync(path.join(dir, name), "utf8")]),
     );
 
 /** The configs with system sets' first, each group in its order. */
@@ -68,7 +68,7 @@ export const configFiles = () =>
         .sort()
         .map((name) => path.join(ConfigsDir, name));
 
-/** Runs the importer for the config in `file`, and says whether it succeeded. */
+/** Runs the importer for the config in `file`, giving spawnSync's result; throws for an importer it doesn't know. */
 export function runImporter(file, config, spawnOptions = { stdio: "inherit" }) {
     const script = importerScript(config);
     console.log(`-- ${path.basename(file)} (${script})`);

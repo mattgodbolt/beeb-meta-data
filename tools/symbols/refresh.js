@@ -3,15 +3,16 @@
  * Moves every config's pinned sources to their latest, remakes the sets that changes, checks them, and writes what it
  * did as Markdown, for the pull request the weekly refresh workflow opens.
  *
- * Usage: node tools/symbols/refresh.js [--report FILE] [--corpus DIR] [CONFIG...]
+ * Usage: node tools/symbols/refresh.js [--report FILE] [CONFIG...]
  *
  * A git pin (`source.commit`, or `py8dis.commit`) moves to the head of its `branch`, else of the repository's default
  * branch; a level7 config's `source.sha256` moves to what its page hashes to now. A source whose licence file changed
- * stays where it is, since its `notice` has to be read again by a person. A move is kept only if every importer it
- * reruns succeeds, and every title whose sets change passes its in-memory check and (for any title but a ROM) its
- * corpus check against the Stairway to Hell discs in `--corpus`, which it fetches first if they aren't there;
- * otherwise its configs and sets go back as they were. A system set's move reruns every config, since the others leave
- * its addresses to it. Exits 1 if any move was refused or failed.
+ * stays where it is, since its `notice` has to be read again by a person. A move is kept only if its importer succeeds
+ * and every title whose sets change passes its in-memory check, if it has one, and its corpus check, which every
+ * config but an acornaeology or ACME one takes, against Stairway to Hell's discs (fetched into `.registry-corpus/`
+ * first); otherwise its config and sets go back as they were. The system sets move last, together, and remake every
+ * config but those left behind their sources, since the others leave the system sets' addresses to them. Exits 1 if
+ * any move was refused or failed.
  */
 
 import { spawnSync } from "node:child_process";
@@ -27,9 +28,13 @@ import { changedSets, configFiles, readSetFiles, runImporter, SetsDir, systemFir
 
 const RepoDir = fileURLToPath(new URL("../../", import.meta.url));
 const ToolsDir = fileURLToPath(new URL(".", import.meta.url));
-const RomImporters = ["acme", "acornaeology"];
+const CorpusDir = path.join(RepoDir, ".registry-corpus");
+const NoCorpusCheck = ["acme", "acornaeology"];
 const FailureLines = 30;
 const ShortSha = 7;
+const MaxOutputBytes = 256 * 1024 * 1024;
+// GitHub refuses a pull request body over 65,536 characters.
+const MaxReportLength = 60000;
 
 /** A config's pins: each git commit, with where it moves to and whether it's the names' source, or a level7 page. */
 export function pinsOf(config) {
@@ -80,16 +85,16 @@ async function pageHash(url) {
 
 /**
  * Where a config's pins move to, each pin with its `to`, or nothing if none moves. Throws, saying why, if one can't
- * move: its licence changed, or two pins that share a commit move to different ones. `latest` looks a pin's new value
- * up, so that pins shared between configs are looked up once.
+ * move: its licence changed, or two pins that share a commit move to different ones. `latest` looks up a pin's new
+ * value and `licence` a source's changed licence files (licenceChanges), so that what configs share is looked up once.
  */
-export async function movesOf(config, latest) {
+export async function movesOf(config, { latest, licence }) {
     const moves = [];
     for (const pin of pinsOf(config)) {
         const to = await latest(pin);
         if (to === pin.pinned) continue;
         if (pin.names) {
-            const changed = licenceChanges(pin.repository, pin.pinned, to, config.source.licenceFile);
+            const changed = licence(pin.repository, pin.pinned, to, config.source.licenceFile);
             if (changed.length)
                 throw new Error(
                     `${changed.join(" and ")} changed between ${pin.pinned.slice(0, ShortSha)} and ` +
@@ -111,28 +116,21 @@ export async function movesOf(config, latest) {
  * The config's text with each move made. A full commit or hash is unique, so every use of it moves together: the pin,
  * and the notice's link to the tree it was read from.
  */
-export const moved = (text, moves) => moves.reduce((result, { pinned, to }) => result.replaceAll(pinned, to), text);
+export function moved(text, moves) {
+    const to = new Map(moves.map((move) => [move.pinned, move.to]));
+    return text.replace(new RegExp([...to.keys()].join("|"), "g"), (pinned) => to.get(pinned));
+}
 
-function latestLookup() {
+function once(lookup, key) {
     const seen = new Map();
-    return (pin) => {
-        const key = pin.page ?? `${pin.repository} ${pin.branch ?? ""}`;
-        if (!seen.has(key))
-            seen.set(key, pin.page ? pageHash(pin.page) : Promise.resolve(headOf(pin.repository, pin.branch)));
-        return seen.get(key);
+    return (...args) => {
+        const id = key(...args);
+        if (!seen.has(id)) seen.set(id, lookup(...args));
+        return seen.get(id);
     };
 }
 
-function snapshot(files) {
-    return { configs: new Map(files.map((file) => [file, readFileSync(file, "utf8")])), sets: readSetFiles() };
-}
-
-function restore({ configs, sets }) {
-    for (const [file, text] of configs) writeFileSync(file, text);
-    const now = readSetFiles();
-    for (const name of now.keys()) if (!sets.has(name)) unlinkSync(path.join(SetsDir, name));
-    for (const [name, text] of sets) if (now.get(name) !== text) writeFileSync(path.join(SetsDir, name), text);
-}
+const latestOf = (pin) => (pin.page ? pageHash(pin.page) : Promise.resolve(headOf(pin.repository, pin.branch)));
 
 const tail = (run) =>
     `${run.stdout ?? ""}${run.stderr ?? ""}`.trimEnd().split("\n").slice(-FailureLines).join("\n") ||
@@ -144,44 +142,31 @@ function step(file, what, run) {
     return run.status === 0 ? null : { file, what, output: tail(run) };
 }
 
-const Captured = { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 };
-
-function runTool(script, args) {
-    return spawnSync(process.execPath, [path.join(ToolsDir, script), ...args], Captured);
-}
-
-function checksOf(file, config, corpus) {
-    const checks = [];
-    if (config.check) checks.push(["in-memory check", () => runTool("check-memory.js", ["--config", file])]);
-    if (!RomImporters.includes(config.importer))
-        checks.push(["corpus check", () => runTool("corpus-check.js", ["--config", file, "--corpus", corpus()])]);
-    return checks;
-}
-
 /**
- * Makes the moves, reruns their importers (every config's, if `everything`) and checks each title whose sets changed.
- * Returns the sets each config changed, or the first failure, after putting everything back.
+ * Makes `moves` in their configs, runs the importer of every config in `files`, and runs the checks of each one whose
+ * sets changed. Returns the sets each config changed, or the first failure, after putting the moved configs and every
+ * set in `setsDir` back as they were. `importer` and each of `checks`' runs give a spawnSync result.
  */
-function attempt(moves, everything, corpus) {
-    const before = snapshot(moves.map(({ file }) => file));
-    for (const { file, pins } of moves) writeFileSync(file, moved(readFileSync(file, "utf8"), pins));
-    const files = everything ? configFiles() : moves.map(({ file }) => file);
-    const configs = files.map((file) => ({ file, config: JSON.parse(readFileSync(file, "utf8")) }));
+export function attempt(moves, { files, setsDir, importer, checks }) {
+    const configsBefore = new Map(moves.map(({ file }) => [file, readFileSync(file, "utf8")]));
+    const setsBefore = readSetFiles(setsDir);
     const changed = new Map();
     let failure = null;
     let current = moves[0].file;
     try {
+        for (const { file, pins } of moves) writeFileSync(file, moved(configsBefore.get(file), pins));
+        const configs = files.map((file) => ({ file, config: JSON.parse(readFileSync(file, "utf8")) }));
         for (const { file, config } of systemFirst(configs)) {
             current = file;
-            const sets = readSetFiles();
-            failure = step(file, "import", runImporter(file, config, Captured));
+            const sets = readSetFiles(setsDir);
+            failure = step(file, "import", importer(file, config));
             if (failure) break;
-            const names = changedSets(sets, readSetFiles());
+            const names = changedSets(sets, readSetFiles(setsDir));
             if (names.length) changed.set(file, { config, names });
         }
         for (const [file, { config }] of failure ? [] : changed) {
             current = file;
-            for (const [what, run] of checksOf(file, config, corpus)) {
+            for (const [what, run] of checks(file, config)) {
                 failure = step(file, what, run());
                 if (failure) break;
             }
@@ -190,30 +175,39 @@ function attempt(moves, everything, corpus) {
     } catch (error) {
         failure = { file: current, what: "refresh", output: error.message };
     }
-    if (failure) restore(before);
-    return failure ? { failure } : { changed };
+    if (!failure) return { changed };
+    for (const [file, text] of configsBefore) writeFileSync(file, text);
+    const now = readSetFiles(setsDir);
+    for (const name of now.keys()) if (!setsBefore.has(name)) unlinkSync(path.join(setsDir, name));
+    for (const [name, text] of setsBefore) if (now.get(name) !== text) writeFileSync(path.join(setsDir, name), text);
+    return { failure };
 }
 
-function corpusFetcher(dir) {
+const Captured = { encoding: "utf8", maxBuffer: MaxOutputBytes };
+
+const runTool = (script, args) => spawnSync(process.execPath, [path.join(ToolsDir, script), ...args], Captured);
+
+function corpusFetcher() {
     let fetched = false;
     return () => {
         if (!fetched) {
-            const run = spawnSync(
-                process.execPath,
-                [
-                    path.join(RepoDir, "tools/registry/fetch-corpus.js"),
-                    "--out",
-                    path.dirname(dir),
-                    "--only",
-                    "sth-disc",
-                ],
-                { stdio: "inherit" },
-            );
+            const fetch = path.join(RepoDir, "tools/registry/fetch-corpus.js");
+            const run = spawnSync(process.execPath, [fetch, "--out", CorpusDir, "--only", "sth-disc"], {
+                stdio: "inherit",
+            });
             if (run.status !== 0) throw new Error("Fetching the corpus failed");
             fetched = true;
         }
-        return dir;
+        return path.join(CorpusDir, "sth-disc");
     };
+}
+
+function checksOf(file, config, corpus) {
+    const checks = [];
+    if (config.check) checks.push(["in-memory check", () => runTool("check-memory.js", ["--config", file])]);
+    if (!NoCorpusCheck.includes(config.importer))
+        checks.push(["corpus check", () => runTool("corpus-check.js", ["--config", file, "--corpus", corpus()])]);
+    return checks;
 }
 
 const short = (value) => `\`${value.slice(0, ShortSha)}\``;
@@ -228,8 +222,13 @@ function describePin({ page, repository, pinned, to }) {
         : `${repository} moved from ${range}`;
 }
 
-/** The pull request's body: what moved and what it changed, and what couldn't move and why. */
-export function report({ kept, failed, refused }) {
+function fenced(text) {
+    const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
+    const fence = "`".repeat(Math.max(3, longest + 1));
+    return ["", `  ${fence}`, ...text.split("\n").map((line) => `  ${line}`), `  ${fence}`];
+}
+
+function reportLines({ kept, failed, refused }, outputs) {
     const lines = [];
     if (kept.length) {
         lines.push("Moved, remade and checked:", "");
@@ -237,12 +236,18 @@ export function report({ kept, failed, refused }) {
             for (const { file, pins } of moves) {
                 const names = changed.get(file)?.names ?? [];
                 const sets = names.length ? `; ${names.map((name) => `\`${name}\``).join(", ")} changed` : "";
-                lines.push(`- ${base(file)}: ${pins.map(describePin).join(", and ")}${sets}`);
+                lines.push(`- ${base(file)}: ${[...new Set(pins.map(describePin))].join(", and ")}${sets}`);
             }
-        const ripple = kept.flatMap(({ moves, changed }) =>
-            [...changed.keys()].filter((file) => !moves.some((move) => move.file === file)),
-        );
-        if (ripple.length) lines.push("", `A system set moved, which also changed ${ripple.map(base).join(", ")}.`);
+        for (const { moves, changed, leftOut = [] } of kept) {
+            const ripple = [...changed.keys()].filter((file) => !moves.some((move) => move.file === file));
+            if (ripple.length) lines.push("", `The system sets' move also changed ${ripple.map(base).join(", ")}.`);
+            if (leftOut.length)
+                lines.push(
+                    "",
+                    `${leftOut.map(base).join(", ")} weren't remade against the new system sets, since they're ` +
+                        "behind their sources; their next move remakes them.",
+                );
+        }
         lines.push("");
     }
     if (failed.length || refused.length) {
@@ -251,53 +256,65 @@ export function report({ kept, failed, refused }) {
         for (const { moves, failure } of failed) {
             const what = moves.map(({ file }) => base(file)).join(", ");
             const whose = moves.length === 1 && moves[0].file === failure.file ? "its" : `${base(failure.file)}'s`;
-            lines.push(
-                `- ${what}: ${whose} ${failure.what} failed`,
-                "",
-                "  ```",
-                ...failure.output.split("\n").map((line) => `  ${line}`),
-                "  ```",
-            );
+            lines.push(`- ${what}: ${whose} ${failure.what} failed`, ...(outputs ? fenced(failure.output) : []));
         }
+        if (!outputs && failed.length) lines.push("", "The run's log has each failure's output.");
         lines.push("");
     }
     if (!lines.length) lines.push("Every pin is at its latest.", "");
     return lines.join("\n");
 }
 
+/** The pull request's body: what moved and what it changed, and what couldn't move and why. */
+export function report(outcome) {
+    const text = reportLines(outcome, true);
+    return text.length <= MaxReportLength ? text : reportLines(outcome, false);
+}
+
 async function main() {
     const { values, positionals } = parseArgs({
-        options: {
-            report: { type: "string" },
-            corpus: { type: "string", default: path.join(RepoDir, ".registry-corpus", "sth-disc") },
-        },
+        options: { report: { type: "string" } },
         allowPositionals: true,
     });
     const files = positionals.length ? positionals.map((file) => path.resolve(file)) : configFiles();
-    const latest = latestLookup();
+    const lookups = {
+        latest: once(latestOf, (pin) => pin.page ?? `${pin.repository} ${pin.branch ?? ""}`),
+        licence: once(licenceChanges, (...args) => args.join(" ")),
+    };
     const moves = [];
     const refused = [];
     for (const file of files) {
         const config = JSON.parse(readFileSync(file, "utf8"));
         try {
-            const pins = await movesOf(config, latest);
+            const pins = await movesOf(config, lookups);
             if (pins) moves.push({ file, config, pins });
         } catch (error) {
             refused.push({ file, reason: error.message });
         }
     }
-    const corpus = corpusFetcher(values.corpus);
+    const corpus = corpusFetcher();
+    const tools = {
+        setsDir: SetsDir,
+        importer: (file, config) => runImporter(file, config, Captured),
+        checks: (file, config) => checksOf(file, config, corpus),
+    };
     const kept = [];
     const failed = [];
-    const system = moves.filter(({ config }) => config.system);
-    const groups = [
-        ...(system.length ? [[system, true]] : []),
-        ...moves.filter(({ config }) => !config.system).map((move) => [[move], false]),
-    ];
-    for (const [group, everything] of groups) {
-        const result = attempt(group, everything, corpus);
+    const tryMoves = (group, files, leftOut = []) => {
+        const result = attempt(group, { ...tools, files });
         if (result.failure) failed.push({ moves: group, failure: result.failure });
-        else kept.push({ moves: group, changed: result.changed });
+        else kept.push({ moves: group, changed: result.changed, leftOut });
+    };
+    for (const move of moves.filter(({ config }) => !config.system)) tryMoves([move], [move.file]);
+    const system = moves.filter(({ config }) => config.system);
+    if (system.length) {
+        const behind = new Set([...refused, ...failed.flatMap((failure) => failure.moves)].map(({ file }) => file));
+        const all = positionals.length ? files : configFiles();
+        tryMoves(
+            system,
+            all.filter((file) => !behind.has(file)),
+            all.filter((file) => behind.has(file)),
+        );
     }
     const index = spawnSync(process.execPath, [path.join(ToolsDir, "build-index.js")], { stdio: "inherit" });
     const text = report({ kept, failed, refused });
