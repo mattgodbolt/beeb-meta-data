@@ -8,6 +8,7 @@
  *
  * Usage: node tools/symbols/level7-compare.js --config symbols/configs/hopper.json [--source <file>] [--boot-tape]
  *            [--seconds 25] [--keys SPACE,RETURN] [--wait 3] [--model Master] [--script <commands>] [--shots DIR]
+ *            [--shadow]
  *        node tools/symbols/level7-compare.js --disassembly <url> (--disc Acornsoft/Monsters | --tape Acornsoft/Hunt)
  *            [--image <name>] [--seconds 25] [--keys SPACE] [--wait 3] [--model Master] [--draft <id>]
  *
@@ -17,7 +18,8 @@
  * found, regions and moments for a curator to check, unless they're already there. KEYS are key steps
  * (title-scenario.js's keyStep), each taken in turn with WAIT seconds after it. A SCRIPT, instead, is
  * check-memory.js's runScript commands separated by `;`, where `report` says how much memory holds there;
- * the script's end does too. A draft needs KEYS, not a SCRIPT, for its check's start.
+ * the script's end does too. A draft needs KEYS, not a SCRIPT, for its check's start. On a Master, `--shadow` reads
+ * shadow RAM rather than main at &3000 to &7FFF, for code a game keeps there.
  */
 
 import { createHash } from "node:crypto";
@@ -28,12 +30,22 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { unzip } from "jsbeeb/src/archive.js";
+import { findModel } from "jsbeeb/src/models.js";
 import { format, resolveConfig } from "prettier";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
 import { publishedUrl } from "../registry/mirrors.js";
 import { decodeTape, tapeKey } from "../registry/tape.js";
-import { bootsTape, fetchDisc, fetchTape, loadTitleSets, runScript, runSeconds, startMachine } from "./check-memory.js";
+import {
+    bootsTape,
+    fetchDisc,
+    fetchTape,
+    loadTitleSets,
+    Model,
+    runScript,
+    runSeconds,
+    startMachine,
+} from "./check-memory.js";
 import { hex, importLevel7, Level7, level7Text, partCalled } from "./import-level7.js";
 import { readLevel7 } from "./level7-text.js";
 import { keyStep, pressStep } from "./title-scenario.js";
@@ -204,12 +216,12 @@ function labelsByAddress(parts) {
 }
 
 /** Where the PC was over a few seconds, by the label of the part whose statement memory holds there, most often first. */
-async function hotLabels(session, labels) {
+async function hotLabels(session, labels, paging) {
     const counts = new Map();
     for (let cycles = 0; cycles < SampleSecs * CyclesPerSecond; cycles += SampleCycles) {
         await session.runFor(SampleCycles);
         const found = (labels.get(session.registers().pc) ?? []).find(({ statement }) => {
-            const held = session.readMemory(statement.address, statement.data.length);
+            const held = session.readMemory(statement.address, statement.data.length, paging);
             return statement.data.every((byte, i) => held[i] === byte);
         });
         if (found) counts.set(found.label, (counts.get(found.label) ?? 0) + 1);
@@ -415,6 +427,7 @@ export async function main(args = process.argv.slice(2)) {
             script: { type: "string" },
             shots: { type: "string" },
             draft: { type: "string" },
+            shadow: { type: "boolean" },
         },
     });
     const seconds = positiveSeconds("seconds", values.seconds);
@@ -426,6 +439,10 @@ export async function main(args = process.argv.slice(2)) {
     if (keys.length && values.script) throw new Error("Give --keys or --script, not both");
     if (values.draft && values.script)
         throw new Error("--draft needs --keys, which become the check's start; a script's moments can't");
+    if (values.shadow && values.draft) throw new Error("--draft can't use --shadow: a draft's check reads main RAM");
+    if (values.shadow && !findModel(values.model ?? Model).isMaster)
+        throw new Error("--shadow needs a Master, the only model with shadow RAM: give --model Master");
+    const paging = values.shadow ? { shadow: true } : {};
     const script = (values.script ?? "")
         .split(";")
         .map((command) => command.trim())
@@ -442,8 +459,8 @@ export async function main(args = process.argv.slice(2)) {
         try {
             await runSeconds(session, Math.max(0, seconds - SampleSecs));
             const sample = async (title) => {
-                const hot = await hotLabels(session, labels);
-                const memory = session.readMemory(0, MemoryTop);
+                const hot = await hotLabels(session, labels, paging);
+                const memory = session.readMemory(0, MemoryTop, paging);
                 const comparison = compareWithMemory(parts, (at) => memory[at]);
                 printMoment(`${title}, PC ${hex(session.registers().pc)}`, comparison, hot);
                 printAnchors(sets, (at) => memory[at]);

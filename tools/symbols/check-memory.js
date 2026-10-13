@@ -39,7 +39,7 @@ import { fetchRom, romOf } from "./rom-images.js";
 import { BuildOptions, BuildUsage, isAssembled, withTitleSource } from "./title-build.js";
 
 const CyclesPerSecond = 2000000;
-const Model = "B-DFS1.2";
+export const Model = "B-DFS1.2";
 const SidewaysBase = 0x8000;
 const SidewaysRamBank = 7;
 const BootTimeoutSecs = 30;
