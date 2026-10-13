@@ -33,8 +33,8 @@ config's pins to their latest: a `commit` to the head of its `branch`, or of the
 config doesn't name one, and a level7 config's `sha256` to what its page hashes to now. It remakes the sets each move
 changes and runs the checks below on every title whose sets changed (the in-memory check where the config has one,
 and the corpus check for all but acornaeology and ACME configs), and keeps a move only if all of that passes. The
-system sets move last and remake every config, even when the run names only some, but a level7 one whose page changed
-and whose move failed. A source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's `licenceFile`, changed
+system sets move last and remake every config but a level7 one whose page changed and whose move failed (every one,
+even when the run names only some). A source whose root `LICENSE`, `LICENCE` or `COPYING`, or the config's `licenceFile`, changed
 isn't moved, since its `notice` has to be read again. The refresh opens a pull request with what it kept, saying what
 moved and what didn't and why, and a refused or failed move fails the run, so it shows in the Actions list. It does
 nothing while an earlier refresh's pull request is open. It runs locally too, with the tools above, and leaves what

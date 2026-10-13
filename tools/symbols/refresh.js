@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Moves every config's pinned sources to their latest, remakes and checks the sets each move changes, and writes what it did
- * as Markdown, for the pull request the weekly refresh opens; "Running it" in docs/symbol-importers.md has the rules.
+ * Moves every config's pinned sources to their latest, remakes and checks the sets each move changes, and writes what
+ * it did as Markdown, for the pull request the weekly refresh opens; "Running it" in docs/symbol-importers.md has the
+ * rules.
  *
  * Usage: node tools/symbols/refresh.js [--report FILE] [CONFIG...]
  */
