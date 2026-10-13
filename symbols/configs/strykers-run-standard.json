@@ -17,7 +17,7 @@
   "sets": [
     {
       "id": "game",
-      "title": "Styker's Run (Standard version)",
+      "title": "Stryker's Run (Standard version)",
       "regions": [{ "name": "main", "part": "GAME??", "from": "&1400", "to": "&4000" }]
     }
   ]
