@@ -36,6 +36,7 @@ describe("image-entry", () => {
             "sth-disc/AnF/ChuckieEgg.zip",
         );
         expect(corpusRef("build/chuckie-egg-2.ssd")).toBeNull();
+        expect(corpusRef(".registry-corpus/hfe/2B4CE560.hfe")).toBeNull();
     });
 
     it("shows a host address as &FFFF and an ordinary one as it is", () => {

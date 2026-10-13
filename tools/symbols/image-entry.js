@@ -7,8 +7,8 @@
  * Usage: node tools/symbols/image-entry.js <sth-disc/... or sth-tape/... zip> [--corpus .registry-corpus]
  *        node tools/symbols/image-entry.js <a local .ssd, .dsd, .uef or a zip of them>
  *
- * A path under one of the corpus's mirrors is read from the corpus and given the mirror's URL; any other path is read
- * as it is, and gets no URL (a disc in a title's own repository, say, which its config names by path).
+ * A path under the corpus's sth-disc or sth-tape is read from the corpus and given its mirror's URL; any other path is
+ * read as it is, and gets no URL (a disc in a title's own repository, say, which its config names by path).
  */
 
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -19,9 +19,10 @@ import { parseArgs } from "node:util";
 import { unzip } from "jsbeeb/src/archive.js";
 import { dfsCatalogue } from "../registry/dfs.js";
 import { fingerprint, imageSides, isDiscImage } from "../registry/fingerprint.js";
-import { Mirrors, publishedUrl } from "../registry/mirrors.js";
+import { publishedUrl } from "../registry/mirrors.js";
 import { decodeTape, tapeKey } from "../registry/tape.js";
 
+const ImageMirrors = ["sth-disc", "sth-tape"];
 const TapeImage = /\.uef$/i;
 const ZipFile = /\.zip$/i;
 const HostAddressBits = 0x30000;
@@ -35,7 +36,7 @@ export const showAddress = (value) =>
 /** A path's part from its mirror's directory on (`sth-disc/<path>`), however it's written, or null if it has none. */
 export function corpusRef(file) {
     const parts = file.split(path.sep).join("/").split("/");
-    const at = parts.findIndex((part) => Object.hasOwn(Mirrors, part));
+    const at = parts.findIndex((part) => ImageMirrors.includes(part));
     return at >= 0 && at < parts.length - 1 ? parts.slice(at).join("/") : null;
 }
 
