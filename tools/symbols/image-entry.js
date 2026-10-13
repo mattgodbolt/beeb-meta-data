@@ -40,6 +40,9 @@ export function corpusRef(file) {
     return at >= 0 && at < parts.length - 1 ? parts.slice(at).join("/") : null;
 }
 
+/** Where the corpus file at `ref` is published, if it's in a mirror whose zips a config can fetch, else null. */
+export const imageUrl = (ref) => (ImageMirrors.includes(ref.split("/")[0]) ? publishedUrl(ref) : null);
+
 /**
  * Each disc and tape image among `members` (path to bytes), with the config's entry for it and its files: a disc's by
  * side, from its DFS catalogue, and a tape's in order.
@@ -65,7 +68,7 @@ async function main() {
     if (positionals.length !== 1) throw new Error("Usage: image-entry.js <corpus path or file> [--corpus <dir>]");
     const [given] = positionals;
     const ref = existsSync(given) ? (corpusRef(given) ?? given) : given;
-    const url = publishedUrl(ref);
+    const url = imageUrl(ref);
     const file = existsSync(given) ? given : path.join(values.corpus, ref);
     if (!existsSync(file))
         throw new Error(`There's no ${file}${url ? "; is the corpus fetched, or elsewhere (--corpus)?" : ""}`);

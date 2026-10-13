@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { fingerprint } from "../../tools/registry/fingerprint.js";
-import { corpusRef, imageEntries, showAddress } from "../../tools/symbols/image-entry.js";
+import { corpusRef, imageEntries, imageUrl, showAddress } from "../../tools/symbols/image-entry.js";
 
 const SectorSize = 256;
 const SectorsPerTrack = 10;
@@ -31,6 +31,17 @@ function dsd(first, second) {
 }
 
 describe("image-entry", () => {
+    it("gives a URL for a disc or tape mirror's path, and none for the HFE captures, which aren't zips", () => {
+        expect(imageUrl("sth-disc/AnF/Chuckie Egg.zip")).toBe(
+            "https://bbc.xania.org/archive/sth/diskimages/AnF/Chuckie%20Egg.zip",
+        );
+        expect(imageUrl("sth-tape/Robico/Hunt.zip")).toBe(
+            "https://bbc.xania.org/archive/sth/tapeimages/Robico/Hunt.zip",
+        );
+        expect(imageUrl("hfe/2B4CE560.hfe")).toBeNull();
+        expect(imageUrl("chuckie-egg-2.ssd")).toBeNull();
+    });
+
     it("finds the corpus path in a path written out in full", () => {
         expect(corpusRef("/home/me/repo/.registry-corpus/sth-disc/AnF/ChuckieEgg.zip")).toBe(
             "sth-disc/AnF/ChuckieEgg.zip",

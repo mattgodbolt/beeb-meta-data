@@ -14,7 +14,7 @@ import { mkdir, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { brotliDecompressSync } from "node:zlib";
 
-import { Mirrors } from "./mirrors.js";
+import { Mirrors, publishedUrl } from "./mirrors.js";
 
 const Sources = Object.entries(Mirrors).map(([name, base]) => ({ name, base }));
 const Concurrency = 8;
@@ -26,8 +26,6 @@ const outIndex = process.argv.indexOf("--out");
 const outDir = outIndex > 0 ? process.argv[outIndex + 1] : ".registry-corpus";
 const onlyIndex = process.argv.indexOf("--only");
 const only = onlyIndex > 0 ? (process.argv[onlyIndex + 1] ?? "").split(",").filter(Boolean) : null;
-
-const encodePath = (p) => p.split("/").map(encodeURIComponent).join("/");
 
 async function exists(file) {
     try {
@@ -58,7 +56,7 @@ async function mirror({ name, base }) {
             if (path.relative(dir, file).startsWith(".."))
                 throw new Error(`${name}: manifest path escapes the corpus: ${entry.path}`);
             if (await exists(file)) continue;
-            let bytes = await fetchBytes(base + encodePath(entry.path));
+            let bytes = await fetchBytes(publishedUrl(`${name}/${entry.path}`));
             // fetch() decodes a Content-Encoding it's told about, but the HFE blobs
             // are stored brotli-compressed; decode them here when they arrive raw.
             if (entry.encoding === "br" && bytes.length !== entry.originalSize) bytes = brotliDecompressSync(bytes);
