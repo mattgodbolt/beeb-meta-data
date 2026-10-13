@@ -229,7 +229,7 @@ ${more}`;
     });
 
     const configWithTape = (program = Program, text = listing) => {
-        const tape = basicTape(program);
+        const programTape = basicTape(program);
         temp = mkdtempSync(path.join(tmpdir(), "level7-compare-test-"));
         const source = path.join(temp, "listing.txt");
         writeFileSync(source, text);
@@ -242,12 +242,16 @@ ${more}`;
                     disassembly: "https://example.com/listing.txt",
                     sha256: createHash("sha256").update(text).digest("hex"),
                 },
-                tape: { url: "https://example.com/prog.zip", image: "prog.uef", key: tapeKey(decodeTape(tape).files) },
+                tape: {
+                    url: "https://example.com/prog.zip",
+                    image: "prog.uef",
+                    key: tapeKey(decodeTape(programTape).files),
+                },
                 sets: [{ id: "game" }],
             }),
         );
         vi.spyOn(globalThis, "fetch").mockImplementation(
-            async () => new Response(createZipBlob([{ name: "prog.uef", data: tape }])),
+            async () => new Response(createZipBlob([{ name: "prog.uef", data: programTape }])),
         );
         return ["--config", config, "--source", source];
     };
@@ -285,11 +289,13 @@ ${more}`;
         expect(await tableHeld([])).toBe("0");
     });
 
-    it("refuses --shadow on a machine without it, and in a draft", async () => {
+    it("refuses --shadow on a machine without it, on a model it doesn't know, and in a draft", async () => {
         await expect(main([...configWithTape(), "--shadow"])).rejects.toThrow("--shadow needs a Master");
-        await expect(main([...configWithTape(), "--keys", "SPACE", "--shadow", "--draft", "test"])).rejects.toThrow(
-            "--draft can't use --shadow",
+        await expect(main([...configWithTape(), "--shadow", "--model", "Mastr"])).rejects.toThrow(
+            "isn't a jsbeeb model",
         );
+        const draft = ["--keys", "SPACE", "--model", "Master", "--shadow", "--draft", "test"];
+        await expect(main([...configWithTape(), ...draft])).rejects.toThrow("--draft can't use --shadow");
     });
 
     it("refuses a config with nothing to boot, and --boot-tape without a config", async () => {
