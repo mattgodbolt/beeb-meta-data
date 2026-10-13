@@ -1,4 +1,4 @@
-/** Styker's Run (Standard version)'s moments for tools/symbols/check-memory.js. */
+/** Stryker's Run (Standard version)'s moments for tools/symbols/check-memory.js. */
 
 import { playScenario } from "../../tools/symbols/title-scenario.js";
 
