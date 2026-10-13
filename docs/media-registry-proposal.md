@@ -161,7 +161,8 @@ made by the importers in [the importers' doc](symbol-importers.md).
   as a record of where it came from, and is never used to find the set.
 - `regions`, each a range of memory from `start` up to but not including `end` (which can be `0x10000`),
   with its `anchors`, `minAnchors` (1 if absent) and `symbols`, the names for addresses in that range. An
-  anchor is 4 to 8 bytes, all inside its region, and none of them in the I/O at `&FC00-&FEFF`.
+  anchor is 4 to 8 bytes, all inside its region, and none of them in the I/O at `&FC00-&FEFF`. Addresses are
+  lower-case hex with `0x` (`0x1a2c`), and an anchor's `bytes` lower-case hex pairs.
 - Optionally a region's `scopes`, each a `start` and `end` inside the region and its own `symbols`: names
   for addresses outside it that apply to the code in that range, such as zero page that routines which
   never run together share.
