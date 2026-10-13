@@ -55,7 +55,7 @@ jobs:
           git -C "$RUNNER_TEMP/beebasm" checkout --quiet ca2cc5f
           make -C "$RUNNER_TEMP/beebasm/src" code
           git clone --quiet --recurse-submodules https://github.com/waitingforvsync/baron "$RUNNER_TEMP/baron"
-          git -C "$RUNNER_TEMP/baron" checkout --quiet d1b1da8
+          git -C "$RUNNER_TEMP/baron" checkout --quiet 50ba7a6
           git -C "$RUNNER_TEMP/baron" submodule update --quiet --init --recursive
           cmake -S "$RUNNER_TEMP/baron" -B "$RUNNER_TEMP/baron/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/baron/build"
