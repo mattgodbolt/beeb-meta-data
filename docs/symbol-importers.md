@@ -57,13 +57,16 @@ The tools each importer needs, and where it looks for them:
 Getting them, if they aren't on the `PATH` already. A title only needs its own importer's; an importer change needs
 them all, since every set has to regenerate unchanged (`npm run reimport-all -- --check`).
 
-- baron: clone [waitingforvsync/baron](https://github.com/waitingforvsync/baron), `git submodule update --init`, then
-  `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build`. It's `build/src/baron`; the build's own
-  tests may print an error, but the binary is fine.
+- baron: clone [waitingforvsync/baron](https://github.com/waitingforvsync/baron) with `--recurse-submodules`, then
+  `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build` (CMake, Ninja and a C17 compiler). It's
+  `build/src/baron`. The sets here were made with 0.5.2, at `d1b1da8`.
 - beebasm: clone [stardot/beebasm](https://github.com/stardot/beebasm), check out `ca2cc5f`, and `make code` in its
   `src`. It's `beebasm` at the top of the checkout.
 - ACME: Debian's and Ubuntu's `acme` package is 0.97.
 - py8dis: nothing to get, since the importer fetches the commit the config names; Python 3 runs it.
+
+Build them outside the repository and pass them as `$BARON`, `$BEEBASM` and `$ACME`, rather than trusting whatever
+`baron` or `beebasm` is on the `PATH`; Ubuntu's snap beebasm is too old.
 
 Baron before 0.5.0 wrote a flat symbol dump, which the importer refuses. The in-memory check doesn't read the dumps,
 so any baron that builds the source does for that. For beebasm, the sets here were made with
@@ -637,7 +640,7 @@ the biggest, `overwritten` where it's only held before a game, and an `avoid` fo
 differs in; and a check that waits for `update_player` or `main_game_loop` if the set has one, else for a routine the
 PC was only in after the keys. A region that overlaps a bigger one by a few bytes at one end loses those bytes; one
 that overlaps it more is left out. Run with `--config` and the sets made, it also lists the anchors memory disagrees
-with.
+with. level7's server drops some connections when several fetches start at once, so run drafts one at a time.
 
 `--tape` takes a zip's path in Stairway to Hell's tape images instead of `--disc` (`Robico/TheHuntSearchForShauna_B`),
 for a disassembly of the tape version; with `--config`, `--boot-tape` boots the config's tape rather than its disc.

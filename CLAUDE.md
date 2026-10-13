@@ -13,8 +13,9 @@ Guidance for Claude Code in this repository. The README says what's here; this s
 - `npm run dist`: lay out what the deploy publishes, under `dist/meta/`
 - `node tools/symbols/check-memory.js --config symbols/configs/<title>.json`: boot the title headless and check its
   sets match where they should. Slow; run it under `nice -n 19`, after changing a title's sets or its importer
-- `node tools/symbols/disc-entry.js sth-disc/<path>.zip`: a disc's `disc` entry for a config, and its files
-- `node tools/registry/fetch-corpus.js --only sth-disc,sth-tape`: the corpus the symbol tools read, into
+- `node tools/symbols/image-entry.js sth-disc/<path>.zip`: a disc's `disc` entry for a config, and its files (also
+  `sth-tape/...`, or a local image)
+- `node tools/registry/fetch-corpus.js --only sth-disc,sth-tape`: Stairway to Hell's discs and tapes, into
   `.registry-corpus/`
 
 ## The data
@@ -85,8 +86,10 @@ nobody asked.
 - Conventional Commits: `feat:` for a new or changed set or anything a user of the data sees, `fix:` for a wrong
   name or a broken link, `chore:` for tooling (a bug in it included), `build:`, `ci:`, `docs:`, `test:` otherwise.
 - Every change goes in by pull request, one title or one tool each. Run the `local-review` skill before opening it
-  and before every push to it, open it, and stop: the maintainer merges. Answer every review comment, with the commit
-  that took it or why not.
+  and before every push to it. Never merge it; the maintainer does. Answer every review comment, with the commit that
+  took it or why not.
+- A choice of policy (whether a CI job blocks merging, which source to trust, whether to ask an author) is the
+  maintainer's: set out the options in the PR or issue rather than choosing.
 - A PR body ends with the `🤖 Generated with [Claude Code](https://claude.com/claude-code)` line. Issues, PRs and
   comments post as the maintainer, so start each with `*Claude here, writing on behalf of real-life human Matt.*`
 - Never put a claude.ai session link, or a `Claude-Session:` trailer, in a commit, PR or comment.

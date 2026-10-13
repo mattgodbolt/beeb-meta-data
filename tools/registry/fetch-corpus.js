@@ -27,7 +27,7 @@ const MameBbcFloppyList =
 const outIndex = process.argv.indexOf("--out");
 const outDir = outIndex > 0 ? process.argv[outIndex + 1] : ".registry-corpus";
 const onlyIndex = process.argv.indexOf("--only");
-const only = onlyIndex > 0 ? process.argv[onlyIndex + 1].split(",") : null;
+const only = onlyIndex > 0 ? (process.argv[onlyIndex + 1] ?? "").split(",").filter(Boolean) : null;
 
 const encodePath = (p) => p.split("/").map(encodeURIComponent).join("/");
 
@@ -74,6 +74,7 @@ async function mirror({ name, base }) {
 }
 
 async function main() {
+    if (only?.length === 0) throw new Error("--only needs the mirrors to fetch, such as sth-disc,sth-tape");
     const unknown = (only ?? []).filter((name) => !Sources.some((source) => source.name === name));
     if (unknown.length)
         throw new Error(
