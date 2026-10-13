@@ -100,7 +100,8 @@ theirs differ.
 - `name` is the title's name in [the titles list](../symbols/titles.md), which a config with more than one set needs;
   one with a single set is listed under its set's `title`. Every importer's config can have it.
 - `licence`, `notice`, `madeFrom`, and `home` if the author has a page of their own for the work, are copied into
-  every set.
+  every set. A `notice` doesn't name the pinned commit, since each set's `source` links what was read at it: a link
+  there would make every move of the pin rewrite the whole notice.
 - `source` says where the source is and what of it to assemble.
   - `assembler` is `baron` unless it says `beebasm`.
   - `repository` and `commit` pin the source. Each set's `source` links the tree there, or the file `link` names

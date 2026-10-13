@@ -352,7 +352,7 @@ async function main() {
     const raw = `${repository.replace("https://github.com/", "https://raw.githubusercontent.com/")}/${commit}`;
     const versions = versionsOf(config);
     const licence = await fetchText(`${raw}/${licenceFile}`);
-    const notice = `The names are acornaeology's, from ${repository}/tree/${commit}, under this licence:\n\n${licence.trim()}`;
+    const notice = `The names are acornaeology's, under this licence:\n\n${licence.trim()}`;
     const roms = await Promise.all(versions.map(({ rom }) => romOf(rom)));
     const otherCopies = await Promise.all(
         (config.otherRoms ?? []).map(async (rom) => ({ name: romName(rom), bytes: await fetchRom(rom) })),
