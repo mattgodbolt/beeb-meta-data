@@ -71,7 +71,7 @@ them all, since every set has to regenerate unchanged (`npm run reimport-all -- 
 
 - baron: clone [waitingforvsync/baron](https://github.com/waitingforvsync/baron) with `--recurse-submodules`, then
   `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build` (CMake, Ninja and a C17 compiler). It's
-  `build/src/baron`. The sets here were made with 0.5.2, at `d1b1da8`.
+  `build/src/baron`. The sets here were made with 0.5.3, at `50ba7a6`.
 - beebasm: clone [stardot/beebasm](https://github.com/stardot/beebasm), check out `ca2cc5f`, and `make code` in its
   `src`. It's `beebasm` at the top of the checkout.
 - ACME: Debian's and Ubuntu's `acme` package is 0.97.
