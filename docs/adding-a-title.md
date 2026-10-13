@@ -13,7 +13,7 @@ add a game.
 
 So: if a title needs the importer or the checks to change, stop, make that change on its own (with a test, and every
 existing set regenerating unchanged), land it, and then add the title. A title's own pull request is a config, a check
-module and its sets, and nothing else. That's also what lets titles be added in parallel without stepping on each other.
+module and its sets (with the index and titles list they remake), and nothing else. That's also what lets titles be added in parallel without stepping on each other.
 
 ## The steps
 
@@ -25,7 +25,8 @@ module and its sets, and nothing else. That's also what lets titles be added in 
    ships, or a ROM pinned by URL and key. For a ROM jsbeeb doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml`
    hashes as a cross-check has usually worked.
 3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
-   check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load).
+   check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load). A config
+   with more than one set needs a `name`, its title in [the titles list](../symbols/titles.md).
 4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
    random play) or `typedScenario` for a text adventure, from `title-scenario.js`. A title-specific scenario is only
    for what those can't do.

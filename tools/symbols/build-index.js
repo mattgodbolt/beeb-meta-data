@@ -2,7 +2,8 @@
 /**
  * Checks every symbol set under symbols/sets/ as the registry's build will, and writes
  * symbols/index.json from them: each set's location, licence and regions, without the
- * regions' symbols and scopes. Also writes symbols/titles.md, the list of titles (titles.js). The format is "Symbol sets" in docs/media-registry-proposal.md.
+ * regions' symbols and scopes. The format is "Symbol sets" in docs/media-registry-proposal.md.
+ * Also writes symbols/titles.md, the list of titles (titles.js).
  *
  * Usage: node tools/symbols/build-index.js
  */
@@ -248,7 +249,7 @@ export function indexOf(sets) {
 }
 
 /** Text as `npm run format` would leave it at `file`. */
-async function formatText(text, file) {
+export async function formatText(text, file) {
     const options = await resolveConfig(file, { editorconfig: true });
     return prettier(text, { ...options, filepath: file });
 }
@@ -269,7 +270,7 @@ async function main() {
     const indexPath = path.join(SymbolsDir, IndexFile);
     writeFileSync(indexPath, await formatJson(indexOf(sets), indexPath));
     const titlesPath = path.join(SymbolsDir, TitlesFile);
-    const rows = titleRows(readConfigs(), new Map(sets.map(({ file, json }) => [file, json])));
+    const rows = titleRows(readConfigs(SymbolsDir), new Map(sets.map(({ file, json }) => [file, json])));
     writeFileSync(titlesPath, await formatText(titlesMarkdown(rows), titlesPath));
     console.log(`Wrote ${IndexFile} with ${sets.length} sets, and ${TitlesFile} with ${rows.length} titles`);
     return 0;

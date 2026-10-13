@@ -6,8 +6,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-import { SymbolsDir } from "./build-index.js";
-
 export const TitlesFile = "titles.md";
 const RomStart = 0x8000;
 const RomEnd = 0xc000;
@@ -18,8 +16,8 @@ const Kinds = [
     ["system", "Operating systems"],
 ];
 
-/** Every curator config, by its file name. */
-export const readConfigs = (dir = SymbolsDir) =>
+/** Every curator config under `dir`, by its file name. */
+export const readConfigs = (dir) =>
     readdirSync(path.join(dir, "configs"))
         .filter((name) => name.endsWith(".json"))
         .sort()
@@ -37,32 +35,36 @@ export function kindOf(sets) {
     return regions.some(inRom) ? "rom" : "program";
 }
 
-const escape = (text) => text.replace(/[\\[\]*_`<]/g, "\\$&");
+const escape = (text) => text.replace(/[\\[\]*_`<~]/g, "\\$&").replace(/&/g, "&amp;");
 const licenceName = (licence) => licence.replace(/^LicenseRef-/, "");
+const link = (url) => `[${escape(shortUrl(url))}](<${url}>)`;
 const shortUrl = (url) => {
     const { hostname, pathname } = new URL(url);
     const [owner, repo] = pathname.split("/").filter(Boolean);
     return hostname === "github.com" && repo ? `${owner}/${repo}` : hostname.replace(/^www\./, "");
 };
 
-/** One row per config: its name, what its sets cover, where the names come from, and their licence. */
+/**
+ * One row per config: its name, its licence, and where its names come from, or for a config with several sets,
+ * each set's title and where its names come from. A config's sets have to share a licence.
+ */
 export function titleRows(configs, setsByFile) {
     return configs.map(({ name, config }) => {
-        const files = setFilesOf(config);
-        const sets = files.map((file) => {
+        const sets = setFilesOf(config).map((file) => {
             const json = setsByFile.get(file);
             if (!json) throw new Error(`${name} makes ${file}, which isn't in symbols/sets`);
             return json;
         });
         if (sets.length > 1 && !config.name)
             throw new Error(`${name} makes ${sets.length} sets, so it needs a name for the titles list`);
-        const from = sets[0].home ?? sets[0].source;
+        const licences = new Set(sets.map((json) => json.licence));
+        if (licences.size > 1) throw new Error(`${name}'s sets have different licences: ${[...licences].join(", ")}`);
+        const links = sets.map((json) => ({ title: json.title, from: json.home ?? json.source }));
         return {
             kind: kindOf(sets),
             title: config.name ?? sets[0].title,
-            covers: sets.length > 1 ? sets.map((json) => json.title) : [],
-            from,
             licence: sets[0].licence,
+            ...(sets.length > 1 ? { covers: links } : { from: links[0].from }),
         };
     });
 }
@@ -77,10 +79,14 @@ export function titlesMarkdown(rows) {
         return [
             `## ${heading}`,
             "",
-            ...these.flatMap(({ title, covers, from, licence }) => [
-                `- **${escape(title)}**, names from [${shortUrl(from)}](${from}) (${escape(licenceName(licence))})`,
-                ...covers.map((cover) => `  - ${escape(cover)}`),
-            ]),
+            ...these.flatMap(({ title, covers, from, licence }) => {
+                const licenceText = `(${escape(licenceName(licence))})`;
+                if (!covers) return [`- **${escape(title)}**, names from ${link(from)} ${licenceText}`];
+                return [
+                    `- **${escape(title)}** ${licenceText}`,
+                    ...covers.map((cover) => `  - ${escape(cover.title)}, names from ${link(cover.from)}`),
+                ];
+            }),
             "",
         ];
     });

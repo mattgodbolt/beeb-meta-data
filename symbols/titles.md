@@ -12,9 +12,9 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Bonecruncher**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bonecruncher-disassembly.txt) (level7-educational)
 - **Bruce Lee**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bruce-lee-disassembly.txt) (level7-educational)
 - **Bug Eyes II**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bug-eyes-ii-disassembly.txt) (level7-educational)
-- **By Fair Means or Foul (Enhanced version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt) (level7-educational)
-  - By Fair Means or Foul (Enhanced version)
-  - By Fair Means or Foul (Enhanced version), shadow RAM
+- **By Fair Means or Foul (Enhanced version)** (level7-educational)
+  - By Fair Means or Foul (Enhanced version), names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt)
+  - By Fair Means or Foul (Enhanced version), shadow RAM, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-enhanced-disassembly.txt)
 - **By Fair Means or Foul (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/by-fair-means-or-foul-standard-disassembly.txt) (level7-educational)
 - **Castle Quest**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/castle-quest-disassembly.txt) (level7-educational)
 - **Citadel**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/citadel-disassembly.txt) (level7-educational)
@@ -35,9 +35,9 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **FireTrack**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/firetrack-disassembly.txt) (level7-educational)
 - **Fortress**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/fortress-disassembly.txt) (level7-educational)
 - **Frak!**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/frak-disassembly.txt) (level7-educational)
-- **Frogman**, names from [mattgodbolt/frogman](https://github.com/mattgodbolt/frogman) (MIT)
-  - Frogman
-  - Frogman's title screen
+- **Frogman** (MIT)
+  - Frogman, names from [mattgodbolt/frogman](https://github.com/mattgodbolt/frogman)
+  - Frogman's title screen, names from [mattgodbolt/frogman](https://github.com/mattgodbolt/frogman)
 - **Future Shock**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/future-shock-disassembly.txt) (level7-educational)
 - **Hopper**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/hopper-disassembly.txt) (level7-educational)
 - **Impossible Mission**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/impossible-mission-disassembly.txt) (level7-educational)
@@ -54,18 +54,18 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Nightshade**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/nightshade-disassembly.txt) (level7-educational)
 - **Omega Orb**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/omega-orb-disassembly.txt) (level7-educational)
 - **Palace of Magic**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/palace-of-magic-disassembly.txt) (level7-educational)
-- **PIPELINE**, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f) (MIT)
-  - PIPELINE: the game
-  - PIPELINE: the Graphics Designer
-  - PIPELINE: the Level Designer
-  - PIPELINE: the GAME stub loader
-  - PIPELINE: the GRAPHIC stub loader
-  - PIPELINE: the LEVDES stub loader
-  - PIPELINE: MRUN
-  - PIPELINE: TITLE
-  - PIPELINE: PL, Ian's cheat
-  - PIPELINE: MENU
-  - PIPELINE: MISSION, the Mission Generator
+- **PIPELINE** (MIT)
+  - PIPELINE: the game, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: the Graphics Designer, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: the Level Designer, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: the GAME stub loader, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: the GRAPHIC stub loader, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: the LEVDES stub loader, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: MRUN, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: TITLE, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: PL, Ian's cheat, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: MENU, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
+  - PIPELINE: MISSION, the Mission Generator, names from [mattgodbolt/pipeline-disasm](https://github.com/mattgodbolt/pipeline-disasm/tree/eb6b2bbacc864395e50ff4d2c302010704a53e0f)
 - **Plan B**, names from [TobyLobster/PlanB](https://github.com/TobyLobster/PlanB) (MIT)
 - **Project Thesius (Saga of a Spy - The Rick Hanson Trilogy, Part 2)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/project-thesius-disassembly.txt) (level7-educational)
 - **Psycastria**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/psycastria-disassembly.txt) (level7-educational)
@@ -103,24 +103,24 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 
 ## Sideways ROMs
 
-- **Acorn DFS 2.26**, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py) (MIT)
-  - Acorn DFS 2.26
-  - Acorn Tube host
-- **Acorn NFS and ANFS**, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34.html) (MIT)
-  - Acorn NFS 3.34
-  - Acorn NFS 3.34B
-  - Acorn NFS 3.35D
-  - Acorn NFS 3.35K
-  - Acorn NFS 3.40
-  - Acorn NFS 3.60
-  - Acorn NFS 3.62
-  - Acorn NFS 3.65
-  - Acorn ANFS 4.08.53
-  - Acorn ANFS 4.18
-  - Acorn ANFS 4.21 (variant 1)
-  - Acorn ANFS 4.24
-  - Acorn ANFS 4.25
-  - Acorn ANFS 4.26
+- **Acorn DFS 2.26** (MIT)
+  - Acorn DFS 2.26, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py)
+  - Acorn Tube host, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py)
+- **Acorn NFS and ANFS** (MIT)
+  - Acorn NFS 3.34, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34.html)
+  - Acorn NFS 3.34B, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34B.html)
+  - Acorn NFS 3.35D, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.35D.html)
+  - Acorn NFS 3.35K, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.35K.html)
+  - Acorn NFS 3.40, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.40.html)
+  - Acorn NFS 3.60, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.60.html)
+  - Acorn NFS 3.62, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.62.html)
+  - Acorn NFS 3.65, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.65.html)
+  - Acorn ANFS 4.08.53, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.08.53.html)
+  - Acorn ANFS 4.18, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.18.html)
+  - Acorn ANFS 4.21 (variant 1), names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.21_variant_1.html)
+  - Acorn ANFS 4.24, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.24.html)
+  - Acorn ANFS 4.25, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.25.html)
+  - Acorn ANFS 4.26, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.26.html)
 - **Acornsoft LISP 4.06**, names from [TobyLobster/lisp](https://github.com/TobyLobster/lisp) (MIT)
 - **BBC BASIC II**, names from [acornaeology.uk](https://acornaeology.uk/bbc-basic/2.html) (MIT)
 - **XMOS**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
@@ -129,8 +129,8 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 ## Operating systems
 
 - **BBC Micro B+ MOS 2.00**, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos200.html) (CC-BY-NC-4.0)
-- **BBC Micro MOS**, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos/index.html) (CC-BY-NC-4.0)
-  - BBC Micro MOS 1.20
-  - BBC Micro MOS 1.20 (US)
-  - BBC Micro MOS 1.20 (German)
-  - BBC Micro MOS 0.10
+- **BBC Micro MOS** (CC-BY-NC-4.0)
+  - BBC Micro MOS 1.20, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos/index.html)
+  - BBC Micro MOS 1.20 (US), names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos120us.html)
+  - BBC Micro MOS 1.20 (German), names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos120de.html)
+  - BBC Micro MOS 0.10, names from [tobylobster.github.io](https://tobylobster.github.io/mos/mos010.html)
