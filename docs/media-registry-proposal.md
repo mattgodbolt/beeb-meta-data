@@ -160,7 +160,8 @@ made by the importers in [the importers' doc](symbol-importers.md).
   any text the licence asks copies to keep. `madeFrom` lists the keys of the images the set was made from,
   as a record of where it came from, and is never used to find the set.
 - `regions`, each a range of memory from `start` up to but not including `end` (which can be `0x10000`),
-  with its `anchors`, `minAnchors` (1 if absent) and `symbols`, the names for addresses in that range.
+  with its `anchors`, `minAnchors` (1 if absent) and `symbols`, the names for addresses in that range. An
+  anchor is 4 to 8 bytes, all inside its region, and none of them in the I/O at `&FC00-&FEFF`.
 - Optionally a region's `scopes`, each a `start` and `end` inside the region and its own `symbols`: names
   for addresses outside it that apply to the code in that range, such as zero page that routines which
   never run together share.
@@ -225,7 +226,7 @@ B+'s RAM ([why](media-registry-design-notes.md#roms)).
 
 `npm run build-index` writes `symbols/index.json`, published as `meta/symbols/index.json`. It has `format`
 (1) and, for every set, its `url` relative to the index, its `licence` and its `regions` without their
-`symbols` ([how a client uses it](media-registry-design-notes.md#finding-sets-by-their-anchors)).
+`symbols` or `scopes` ([how a client uses it](media-registry-design-notes.md#finding-sets-by-their-anchors)).
 
 ### Linked sets
 
