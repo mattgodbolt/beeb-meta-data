@@ -93,6 +93,7 @@ export function discText(disc, bytes, { file, after }) {
     if (at < 0) throw new Error(`${disc}'s ${file} has no "${after}"`);
     const value = text.slice(at + after.length).split(LineEnd)[0];
     if (value.includes('"')) throw new Error(`${disc}'s ${file} has a quote after "${after}"`);
+    if (!value) throw new Error(`${disc}'s ${file} has nothing after "${after}"`);
     return `"${value}"`;
 }
 

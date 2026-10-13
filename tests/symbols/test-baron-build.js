@@ -84,6 +84,7 @@ describe("a title's source", () => {
         { name: "GAME", text: "X".repeat(SectorSize + 1) },
         { name: "!BOOT", text: `${"\r".repeat(SectorSize)}*| DEMO 2026-10-04.2035\r*RUN GAME\r` },
         { name: "QUOTED", text: '*| DEMO "2026"\r' },
+        { name: "EMPTY", text: "*| DEMO \r" },
     ]);
     const bootKey = fingerprint("boot.ssd", bootDisc).discKey;
 
@@ -206,6 +207,9 @@ describe("a title's source", () => {
             );
             expect(() => fromDisc(booted({ BUILD: { file: "$.QUOTED", after: "*| DEMO " } }), dir)).toThrow(
                 'has a quote after "*| DEMO "',
+            );
+            expect(() => fromDisc(booted({ BUILD: { file: "$.EMPTY", after: "*| DEMO " } }), dir)).toThrow(
+                'has nothing after "*| DEMO "',
             );
         });
 

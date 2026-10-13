@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { fingerprint } from "../../tools/registry/fingerprint.js";
 import { environmentWithoutGit } from "../../tools/symbols/baron-build.js";
-
 import {
     assemble,
     assignedNames,
@@ -41,6 +40,9 @@ echo "Saving file 'out/PROG'"
 if grep -q ', ptr$' "$wrapper"; then echo "${PrintPrefix}:ptr:112 "; fi
 `;
 
+const DiscBytes = 2560;
+const DiscFill = 0xe5;
+
 const stubVersion = (version) => `#!/bin/sh\necho "${version}"\n`;
 
 describe("a beebasm build", () => {
@@ -73,7 +75,7 @@ describe("a beebasm build", () => {
                 env: environmentWithoutGit(),
             }).trim();
         git("init", "-q");
-        const disc = Buffer.alloc(2560, 0xe5);
+        const disc = Buffer.alloc(DiscBytes, DiscFill);
         writeFileSync(path.join(repo, "main.asm"), "RTS\n");
         writeFileSync(path.join(repo, "demo.ssd"), disc);
         git("add", ".");
