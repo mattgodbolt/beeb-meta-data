@@ -289,13 +289,13 @@ ${more}`;
         expect(await tableHeld([])).toBe("0");
     });
 
-    it("refuses --shadow on a machine without it, on a model it doesn't know, and in a draft", async () => {
-        await expect(main([...configWithTape(), "--shadow"])).rejects.toThrow("--shadow needs a Master");
-        await expect(main([...configWithTape(), "--shadow", "--model", "Mastr"])).rejects.toThrow(
-            "isn't a jsbeeb model",
-        );
+    it("refuses --shadow on a machine without it, on a model it doesn't know, and in a draft, before fetching", async () => {
+        const args = configWithTape();
+        await expect(main([...args, "--shadow"])).rejects.toThrow("--shadow needs a Master");
+        await expect(main([...args, "--shadow", "--model", "Mastr"])).rejects.toThrow("isn't a jsbeeb model");
         const draft = ["--keys", "SPACE", "--model", "Master", "--shadow", "--draft", "test"];
-        await expect(main([...configWithTape(), ...draft])).rejects.toThrow("--draft can't use --shadow");
+        await expect(main([...args, ...draft])).rejects.toThrow("--draft can't use --shadow");
+        expect(globalThis.fetch).not.toHaveBeenCalled();
     });
 
     it("refuses a config with nothing to boot, and --boot-tape without a config", async () => {

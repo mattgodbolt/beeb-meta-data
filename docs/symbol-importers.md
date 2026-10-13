@@ -646,8 +646,8 @@ with. level7's server drops some connections when several fetches start at once,
 for a disassembly of the tape version; with `--config`, `--boot-tape` boots the config's tape rather than its disc.
 `--model` boots another jsbeeb model (`Master`), and the draft's check asks for it in `machines`. With `--model Master`,
 `--shadow` measures shadow RAM at &3000 to &7FFF, for code a game keeps there, rather than whatever is paged in; the
-PC's labels still come from what's paged in, and the anchors of a set whose region is in main RAM won't match. A draft
-can't use it, since a draft's check never reads shadow RAM. A key in `--keys`, and in `playScenario`'s `start` and
+PC's labels still come from what's paged in, and the anchors of a region in main RAM at those addresses won't match. A
+draft can't use it, since a draft's check never asks for shadow RAM. A key in `--keys`, and in `playScenario`'s `start` and
 `typedScenario`'s `keys`, can be held: `RETURN:2` for two seconds, for a loader that misses a short press, or
 `SPACE:&1F00` until the PC reaches `&1F00`. `typedScenario`'s `afterKeys` are pressed once `keysSecs` have passed, for
 a game that wants RETURN after a long load. For anything else, `--script` takes

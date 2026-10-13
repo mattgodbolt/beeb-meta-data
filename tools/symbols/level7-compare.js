@@ -429,7 +429,7 @@ export async function main(args = process.argv.slice(2)) {
         if (!model) throw new Error(`--model ${values.model} isn't a jsbeeb model`);
         if (!model.isMaster)
             throw new Error("--shadow needs a Master, the only model with shadow RAM: give --model Master");
-        if (values.draft) throw new Error("--draft can't use --shadow: a draft's check never reads shadow RAM");
+        if (values.draft) throw new Error("--draft can't use --shadow: a draft's check never asks for shadow RAM");
     }
     const { config, text, disc: discBytes, tape } = await sourceAndMedia(values);
     const { parts } = readLevel7(text);
