@@ -1,0 +1,116 @@
+name: Weekly refresh
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  waiting:
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: read
+    outputs:
+      open: ${{ steps.open.outputs.open }}
+    steps:
+      - name: Look for a refresh still open
+        id: open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("refresh/"))] | length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != 0 ]; then echo "::notice::A refresh pull request is still open, so this run does nothing."; fi
+
+  # The importers run the sources they fetch (py8dis disassemblies are Python), so this job has no write access; the
+  # next one, which has, runs nothing but git and gh.
+  refresh:
+    needs: waiting
+    if: needs.waiting.outputs.open == '0'
+    runs-on: ubuntu-24.04
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Get the importers' tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq acme ninja-build
+          git clone --quiet https://github.com/stardot/beebasm "$RUNNER_TEMP/beebasm"
+          git -C "$RUNNER_TEMP/beebasm" checkout --quiet ca2cc5f
+          make -C "$RUNNER_TEMP/beebasm/src" code
+          git clone --quiet --recurse-submodules https://github.com/waitingforvsync/baron "$RUNNER_TEMP/baron"
+          git -C "$RUNNER_TEMP/baron" checkout --quiet d1b1da8
+          git -C "$RUNNER_TEMP/baron" submodule update --quiet --init --recursive
+          cmake -S "$RUNNER_TEMP/baron" -B "$RUNNER_TEMP/baron/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/baron/build"
+      - name: Refresh
+        id: refresh
+        env:
+          BEEBASM: ${{ runner.temp }}/beebasm/beebasm
+          BARON: ${{ runner.temp }}/baron/build/src/baron
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          status=0
+          node tools/symbols/refresh.js --report "$RUNNER_TEMP/out/report.md" || status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+      - name: Keep what changed
+        id: diff
+        run: |
+          if [ -f "$RUNNER_TEMP/out/report.md" ]; then cat "$RUNNER_TEMP/out/report.md" >> "$GITHUB_STEP_SUMMARY"; fi
+          git add symbols
+          git diff --cached --binary > "$RUNNER_TEMP/out/refresh.patch"
+          if [ -s "$RUNNER_TEMP/out/refresh.patch" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: refresh
+          path: ${{ runner.temp }}/out/
+          if-no-files-found: error
+      - name: Fail if a move was refused or failed
+        if: steps.refresh.outputs.status != '0'
+        run: exit 1
+
+  pull-request:
+    needs: refresh
+    if: always() && needs.refresh.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: refresh
+          path: ${{ runner.temp }}/refresh
+      # A push or pull request made with this job's token starts no workflow, so the tests are started by hand.
+      - name: Open the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="refresh/$(date -u +%F)-$GITHUB_RUN_ID"
+          title="chore: move the symbol sets' sources to their latest"
+          git apply --index "$RUNNER_TEMP/refresh/refresh.patch"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet -m "$title"
+          git push --quiet origin "HEAD:refs/heads/$branch"
+          {
+            echo "The weekly refresh (\`.github/workflows/refresh.yml\`) moved these sources and remade their sets."
+            echo "Every move here passed its title's checks; the sets' diffs are what to review."
+            echo
+            cat "$RUNNER_TEMP/refresh/report.md"
+          } > "$RUNNER_TEMP/body.md"
+          gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          gh workflow run test-and-deploy.yml --ref "$branch"
