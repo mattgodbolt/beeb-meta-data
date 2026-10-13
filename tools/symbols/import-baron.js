@@ -812,7 +812,7 @@ const configIds = () =>
 export async function writeTitle(config, imported, values) {
     for (const { id, json, regions, dropped } of imported.sets) {
         const summary = regions.map((region) => {
-            const scoped = new Set(region.scopes.flatMap((scope) => [...scope.symbols.keys()]));
+            const scoped = new Set((region.scopes ?? []).flatMap((scope) => [...scope.symbols.keys()]));
             return `${region.name} ${region.anchors.length}/${region.symbols.size}${scoped.size ? ` +${scoped.size} scoped` : ""}`;
         });
         console.log(
