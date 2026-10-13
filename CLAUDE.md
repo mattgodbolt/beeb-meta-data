@@ -4,13 +4,18 @@ Guidance for Claude Code in this repository. The README says what's here; this s
 
 ## Commands
 
+- `npm ci`: after a pull that moves `package-lock.json`, or the tests fail against an older jsbeeb
 - `npm test`: unit tests (`npx vitest run tests/symbols/test-build-index.js` for one file)
-- `npm run ci-checks`: ESLint, Prettier, and that `symbols/index.json` and `symbols/titles.md` match the configs and sets
+- `npm run ci-checks`: ESLint, Prettier, and that `symbols/index.json` and `symbols/titles.md` match the configs and
+  sets
 - `npm run lint-fix`, `npm run format`: fix what they can
 - `npm run build-index`: remake `symbols/index.json` and `symbols/titles.md`; never edit either by hand
 - `npm run dist`: lay out what the deploy publishes, under `dist/meta/`
 - `node tools/symbols/check-memory.js --config symbols/configs/<title>.json`: boot the title headless and check its
   sets match where they should. Slow; run it under `nice -n 19`, after changing a title's sets or its importer
+- `node tools/symbols/disc-entry.js sth-disc/<path>.zip`: a disc's `disc` entry for a config, and its files
+- `node tools/registry/fetch-corpus.js --only sth-disc,sth-tape`: the corpus the symbol tools read, into
+  `.registry-corpus/`
 
 ## The data
 
@@ -27,15 +32,17 @@ Guidance for Claude Code in this repository. The README says what's here; this s
   they land; a ROM's set, against every other ROM by its importer and `tests/symbols/test-shipped-rom-sets.js`.
 - Published paths are read by every jsbeeb in the wild. Don't move or delete one an older index may still name, and
   change a file's shape only with a new `format`.
-- Downloaded discs, repositories and pages are untrusted: keep them in their own directory, outside the repository,
-  and pass their paths as arguments.
+- Downloaded discs, repositories and pages are untrusted: keep them in their own directory, outside the repository
+  (the git-ignored `.registry-corpus/` aside), and pass their paths as arguments.
 
 ## Code
 
 - ES modules, Node 24, Prettier (120 columns, 4-space JS) and ESLint, both run by the pre-commit hook. Never bypass
   the hook.
 - jsbeeb is a dependency: import its modules as `jsbeeb/src/<file>.js`, and its ROMs from `RomsDir` in
-  `tools/jsbeeb.js`. A change jsbeeb needs goes to jsbeeb as its own PR, then the pin here moves.
+  `tools/jsbeeb.js`. A change jsbeeb needs goes to jsbeeb as its own PR, then the pin here moves: set
+  `package.json`'s `jsbeeb` to the merged commit, `npm install`, and `npm run reimport-all -- --check`, since the ROM
+  sets are checked against jsbeeb's ROMs.
 - Constants are PascalCase module-level names. Tests use vitest's `expect`, mock as little as possible, and keep one
   file per module.
 
@@ -76,6 +83,10 @@ nobody asked.
 - Branches made by Claude are `claude/<name>`. Never force-push, amend or rebase anything that has been pushed; fix
   with additive commits, since PRs are squash-merged.
 - Conventional Commits: `feat:` for a new or changed set or anything a user of the data sees, `fix:` for a wrong
-  name or a broken link, `chore:`, `build:`, `ci:`, `docs:`, `test:` otherwise.
-- Run the `local-review` skill before opening a PR and before every push to one.
+  name or a broken link, `chore:` for tooling (a bug in it included), `build:`, `ci:`, `docs:`, `test:` otherwise.
+- Every change goes in by pull request, one title or one tool each. Run the `local-review` skill before opening it
+  and before every push to it, open it, and stop: the maintainer merges. Answer every review comment, with the commit
+  that took it or why not.
+- A PR body ends with the `🤖 Generated with [Claude Code](https://claude.com/claude-code)` line. Issues, PRs and
+  comments post as the maintainer, so start each with `*Claude here, writing on behalf of real-life human Matt.*`
 - Never put a claude.ai session link, or a `Claude-Session:` trailer, in a commit, PR or comment.

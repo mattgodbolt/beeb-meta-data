@@ -13,7 +13,25 @@ add a game.
 
 So: if a title needs the importer or the checks to change, stop, make that change on its own (with a test, and every
 existing set regenerating unchanged), land it, and then add the title. A title's own pull request is a config, a check
-module and its sets (with the index and titles list they remake), and nothing else. That's also what lets titles be added in parallel without stepping on each other.
+module and its sets (with the index and titles list they remake), and its notes in the docs: a paragraph under its
+importer in [the importers' doc](symbol-importers.md), and a row in `symbols/README.md`'s source table unless it's one
+more level7 title. Nothing else. That's also what lets titles be added in parallel without stepping on each other; when
+two land, the second merges `main` and reruns `npm run build-index`, since the index and the titles list are made from
+every set.
+
+## Picking up work
+
+[The titles list](../symbols/titles.md) is what's done; the issues are what isn't, a title or a tool each. Take one,
+add it on its own `claude/<name>` branch as below, and open a pull request for it. The maintainer merges; don't.
+
+Before the first one:
+
+- `npm ci`, and again whenever `package-lock.json` moves jsbeeb's pin. A jsbeeb older than the pin is the usual
+  reason for a pile of failing tests after a pull.
+- `node tools/registry/fetch-corpus.js --only sth-disc,sth-tape` fills `.registry-corpus/` (ignored by git) with
+  Stairway to Hell's discs and tapes, which is all the symbol tools need.
+- The assembler or Python the title's importer needs; [the importers' doc](symbol-importers.md#running-it) says where
+  to get each.
 
 ## The steps
 
@@ -22,17 +40,25 @@ module and its sets (with the index and titles list they remake), and nothing el
    import tools and history, not just its LICENSE: acornaeology's ADFS names were seeded partly from an
    unlicensed disassembly, in ways its history can't separate, which is why there's no ADFS set.
 2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
-   ships, or a ROM pinned by URL and key. For a ROM jsbeeb doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml`
-   hashes as a cross-check has usually worked.
+   ships, or a ROM pinned by URL and key. `node tools/symbols/disc-entry.js sth-disc/<path>.zip` prints a disc's
+   `disc` entry for the config (its URL, image and key) and each file with where it loads and runs. For a ROM jsbeeb
+   doesn't have, mdfs.net's archive with MAME's `bbc_rom.xml` hashes as a cross-check has usually worked.
 3. Start the config from the nearest existing one. For level7, `level7-compare.js --draft` writes the config and the
-   check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load). A config
-   with more than one set needs a `name`, its title in [the titles list](../symbols/titles.md).
+   check for you. For the others, copy the config of the title most like it (a game, a ROM, a multi-load), and find
+   the regions by hand: where the files load and run (`disc-entry.js`), where the code moves itself (the source's
+   copy loops, which go in `moves`), and what gets overwritten once it has run. Import with `--verbose`, check in
+   memory, and adjust. A config with more than one set needs a `name`, its title in
+   [the titles list](../symbols/titles.md).
 4. Write the check with the shared scenarios. `playScenario` (boot, start keys, a routine that only runs in a game,
    random play) or `typedScenario` for a text adventure, from `title-scenario.js`. A title-specific scenario is only
    for what those can't do.
 5. Look at the screenshots (`check-memory.js --shots`). A check that passes on a demo mode or a title screen is
    checking the wrong thing; two titles in the batch did exactly that.
-6. Run the corpus check, and explain or remove every collision.
+6. Run the corpus check, and explain or remove every collision. A collision is usually a cheat or a hack that keeps
+   some of the code and changes the rest. Split the region where they part, so the shared part matches them and the
+   rest doesn't, and keep its anchors off the bytes they share with `avoid` (Chuckie Egg's `front`, below in the
+   importers' doc); or add anchors with `bytesPerAnchor`; or leave out run-once loader code a crack patches. One you
+   can't remove goes in the pull request with why it's harmless.
 7. Open the pull request, saying how it was checked and that nobody has looked in a browser if nobody has.
 
 ## The rules

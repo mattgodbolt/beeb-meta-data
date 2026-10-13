@@ -54,6 +54,17 @@ The tools each importer needs, and where it looks for them:
 | `import-acme.js`         | ACME 0.97 or later    | `--acme`, `$ACME`, else `acme`                |
 | `import-level7.js`       | the network           | `--source`, a copy of the disassembly         |
 
+Getting them, if they aren't on the `PATH` already. A title only needs its own importer's; an importer change needs
+them all, since every set has to regenerate unchanged (`npm run reimport-all -- --check`).
+
+- baron: clone [waitingforvsync/baron](https://github.com/waitingforvsync/baron), `git submodule update --init`, then
+  `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build`. It's `build/src/baron`; the build's own
+  tests may print an error, but the binary is fine.
+- beebasm: clone [stardot/beebasm](https://github.com/stardot/beebasm), check out `ca2cc5f`, and `make code` in its
+  `src`. It's `beebasm` at the top of the checkout.
+- ACME: Debian's and Ubuntu's `acme` package is 0.97.
+- py8dis: nothing to get, since the importer fetches the commit the config names; Python 3 runs it.
+
 Baron before 0.5.0 wrote a flat symbol dump, which the importer refuses. The in-memory check doesn't read the dumps,
 so any baron that builds the source does for that. For beebasm, the sets here were made with
 [stardot/beebasm](https://github.com/stardot/beebasm) at `ca2cc5f`; Ubuntu's snap of 1.10 can't write under `/tmp`,
@@ -526,11 +537,11 @@ from py8dis's copy, under py8dis's.
 carries Rich Talbot-Watkins' labels, constants and comments from [his disassembly on
 StarDot](https://stardot.org.uk/forums/viewtopic.php?p=220229#p220229), so the set comes from py8dis's copy, under
 py8dis's licence. `low` is the code `initialise` copies to `&0900` (`copyloop`, the config's `moves`), `main` the game
-up to `entrypoint`, and `front` the title, high scores and start of a game from there to `&3000`. The example's binary is
-the tape release; Stairway to Hell's `AnF/ChuckieEgg.zip` has the same code but for `initialise`'s first OSBYTE, which
-selects the disc rather than the tape, and no anchor covers it. The cheat discs in `Cheats` keep the game byte for byte
-but change the front end from `entrypoint` on, so `front` keeps its anchors off the few bytes they share: they match
-`main` and `low`, and only the original and the Extra Colours cheat match `front`.
+up to `entrypoint`, and `front` the title, high scores and start of a game from there to `&3000`. The example's binary
+is the tape release; Stairway to Hell's `AnF/ChuckieEgg.zip` has the same code but for `initialise`'s first OSBYTE,
+which selects the disc rather than the tape, and no anchor covers it. The cheat discs in `Cheats` keep the game byte for
+byte but change the front end from `entrypoint` on, so `front` keeps its anchors off the few bytes they share: they
+match `main` and `low`, and only the original and the Extra Colours cheat match `front`.
 
 ## LISP 4.06
 

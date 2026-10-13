@@ -5,7 +5,10 @@
 // already present are skipped, so a rerun only fetches what is new. The mirrors are
 // live, so numbers computed from a later fetch can drift from the findings'.
 //
-//   node tools/registry/fetch-corpus.js [--out .registry-corpus]
+//   node tools/registry/fetch-corpus.js [--out .registry-corpus] [--only sth-disc,sth-tape]
+//
+// --only fetches just the mirrors it names, and not MAME's list: the symbol tools need only sth-disc and sth-tape,
+// tens of megabytes, where the HFE captures are gigabytes.
 
 import { mkdir, writeFile, access } from "node:fs/promises";
 import path from "node:path";
@@ -23,6 +26,8 @@ const MameBbcFloppyList =
 
 const outIndex = process.argv.indexOf("--out");
 const outDir = outIndex > 0 ? process.argv[outIndex + 1] : ".registry-corpus";
+const onlyIndex = process.argv.indexOf("--only");
+const only = onlyIndex > 0 ? process.argv[onlyIndex + 1].split(",") : null;
 
 const encodePath = (p) => p.split("/").map(encodeURIComponent).join("/");
 
@@ -69,8 +74,13 @@ async function mirror({ name, base }) {
 }
 
 async function main() {
-    for (const source of Sources) await mirror(source);
-    await writeFile(path.join(outDir, "bbcb_flop.xml"), await fetchBytes(MameBbcFloppyList));
+    const unknown = (only ?? []).filter((name) => !Sources.some((source) => source.name === name));
+    if (unknown.length)
+        throw new Error(
+            `--only names ${unknown.join(", ")}, which isn't one of ${Sources.map((s) => s.name).join(", ")}`,
+        );
+    for (const source of Sources) if (!only || only.includes(source.name)) await mirror(source);
+    if (!only) await writeFile(path.join(outDir, "bbcb_flop.xml"), await fetchBytes(MameBbcFloppyList));
 }
 
 main().catch((error) => {
