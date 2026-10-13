@@ -14,6 +14,7 @@ import {
     inGameLabel,
     main,
     proposeRegions,
+    sourceAndMedia,
 } from "../../tools/symbols/level7-compare.js";
 import { MasterBasicPage, basicLine, basicTape } from "../registry/tape-images.js";
 import { hex } from "../../tools/symbols/import-level7.js";
@@ -270,6 +271,20 @@ describe("main", () => {
         writeFileSync(config, JSON.stringify(bare));
         await expect(main(["--config", config, ...rest])).rejects.toThrow("names no disc or tape to boot");
         await expect(main(["--boot-tape", "--disassembly", "x", "--tape", "y"])).rejects.toThrow("--boot-tape picks");
+    });
+
+    it("fetches a --tape from its mirror with each part of its path encoded", async () => {
+        const fetch = vi
+            .spyOn(globalThis, "fetch")
+            .mockImplementation(async (url) =>
+                url.endsWith(".txt")
+                    ? new Response(listing)
+                    : new Response(createZipBlob([{ name: "prog.uef", data: tape }])),
+            );
+        const { config } = await sourceAndMedia({ disassembly: "https://example.com/l.txt", tape: "Some Pub/A Game" });
+        const url = "https://bbc.xania.org/archive/sth/tapeimages/Some%20Pub/A%20Game.zip";
+        expect(fetch).toHaveBeenCalledWith(url);
+        expect(config.tape.url).toBe(url);
     });
 
     it("refuses to draft from a script", async () => {

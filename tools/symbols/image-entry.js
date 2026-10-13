@@ -7,8 +7,8 @@
  * Usage: node tools/symbols/image-entry.js <sth-disc/... or sth-tape/... zip> [--corpus .registry-corpus]
  *        node tools/symbols/image-entry.js <a local .ssd, .dsd, .uef or a zip of them>
  *
- * A path under one of the corpus's mirrors is read from the corpus and given the mirror's URL; any other path is read
- * as it is, and gets no URL (a disc in a title's own repository, say, which its config names by path).
+ * A path under the corpus's sth-disc or sth-tape is read from the corpus and given its mirror's URL; any other path is
+ * read as it is, and gets no URL (a disc in a title's own repository, say, which its config names by path).
  */
 
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -19,12 +19,10 @@ import { parseArgs } from "node:util";
 import { unzip } from "jsbeeb/src/archive.js";
 import { dfsCatalogue } from "../registry/dfs.js";
 import { fingerprint, imageSides, isDiscImage } from "../registry/fingerprint.js";
+import { publishedUrl } from "../registry/mirrors.js";
 import { decodeTape, tapeKey } from "../registry/tape.js";
 
-const Mirrors = {
-    "sth-disc": "https://bbc.xania.org/archive/sth/diskimages/",
-    "sth-tape": "https://bbc.xania.org/archive/sth/tapeimages/",
-};
+const ImageMirrors = ["sth-disc", "sth-tape"];
 const TapeImage = /\.uef$/i;
 const ZipFile = /\.zip$/i;
 const HostAddressBits = 0x30000;
@@ -38,15 +36,12 @@ export const showAddress = (value) =>
 /** A path's part from its mirror's directory on (`sth-disc/<path>`), however it's written, or null if it has none. */
 export function corpusRef(file) {
     const parts = file.split(path.sep).join("/").split("/");
-    const at = parts.findIndex((part) => part in Mirrors);
+    const at = parts.findIndex((part) => ImageMirrors.includes(part));
     return at >= 0 && at < parts.length - 1 ? parts.slice(at).join("/") : null;
 }
 
-/** The URL of the published copy of the corpus file at `ref` (`sth-disc/<path>` or `sth-tape/<path>`), or null. */
-export function publishedUrl(ref) {
-    const [mirror, ...rest] = ref.split("/");
-    return Mirrors[mirror] && rest.length ? Mirrors[mirror] + rest.map(encodeURIComponent).join("/") : null;
-}
+/** Where the corpus file at `ref` is published, if it's in a mirror whose zips a config can fetch, else null. */
+export const imageUrl = (ref) => (ImageMirrors.includes(ref.split("/")[0]) ? publishedUrl(ref) : null);
 
 /**
  * Each disc and tape image among `members` (path to bytes), with the config's entry for it and its files: a disc's by
@@ -73,7 +68,7 @@ async function main() {
     if (positionals.length !== 1) throw new Error("Usage: image-entry.js <corpus path or file> [--corpus <dir>]");
     const [given] = positionals;
     const ref = existsSync(given) ? (corpusRef(given) ?? given) : given;
-    const url = publishedUrl(ref);
+    const url = imageUrl(ref);
     const file = existsSync(given) ? given : path.join(values.corpus, ref);
     if (!existsSync(file))
         throw new Error(`There's no ${file}${url ? "; is the corpus fetched, or elsewhere (--corpus)?" : ""}`);

@@ -31,6 +31,7 @@ import { unzip } from "jsbeeb/src/archive.js";
 import { format, resolveConfig } from "prettier";
 import { fingerprint } from "../registry/fingerprint.js";
 import { SymbolsDir, systemGlobals } from "./build-index.js";
+import { publishedUrl } from "../registry/mirrors.js";
 import { decodeTape, tapeKey } from "../registry/tape.js";
 import { bootsTape, fetchDisc, fetchTape, loadTitleSets, runScript, runSeconds, startMachine } from "./check-memory.js";
 import { hex, importLevel7, Level7, level7Text, partCalled } from "./import-level7.js";
@@ -41,8 +42,8 @@ const MemoryTop = 0x8000;
 const KeyFrames = 50;
 const ShortestRun = 16;
 const Archives = {
-    disc: { url: "https://bbc.xania.org/archive/sth/diskimages/", images: /\.[sd]sd$/i },
-    tape: { url: "https://bbc.xania.org/archive/sth/tapeimages/", images: /\.uef$/i },
+    disc: { mirror: "sth-disc", images: /\.[sd]sd$/i },
+    tape: { mirror: "sth-tape", images: /\.uef$/i },
 };
 // A run this much the same as memory is the code that's there.
 const Held = 0.9;
@@ -244,7 +245,7 @@ export async function sourceAndMedia(values) {
     const response = await fetchRetrying(values.disassembly);
     if (!response.ok) throw new Error(`Fetching ${values.disassembly} failed with ${response.status}`);
     const bytes = Buffer.from(await response.arrayBuffer());
-    const url = `${Archives[kind].url}${values[kind]}.zip`;
+    const url = publishedUrl(`${Archives[kind].mirror}/${values[kind]}.zip`);
     const zip = await fetchRetrying(url);
     if (!zip.ok) throw new Error(`Fetching ${url} failed with ${zip.status}`);
     const members = await unzip(new Uint8Array(await zip.arrayBuffer()));
