@@ -435,11 +435,12 @@ MOS jsbeeb has and can't be anchored on its own), `middle`, `boot` (`&DB67-&DB6E
 
 Each MOS keeps as globals the names any program means the MOS's way: page 2's vectors and OS variables, page `&D`, the
 I/O, and the zero page other code is meant to read, the OSBYTE and OSWORD registers a sideways ROM is handed at
-`&EF-&F1`, the command line pointer at `&F2-&F3`, the paged ROM copy at `&F4`, the IRQ's saved A at `&FC`, the BRK
-pointer at `&FD-&FE` and the Escape flag at `&FF`. The rest of its zero page from `&D0`, the VDU, keyboard and tape
-workspace, and page 3, the VDU and filing system variables, are its workspace, which a game that takes over the machine
-reuses: cassette Elite's own variables are at `&D1-&E1` and its commander data in page 3. 0.10 lays its zero page out
-differently, so its ranges are its own: its saved A is at `&DE` and it has no paged ROM.
+`&EF-&F1`, the command line pointer at `&F2-&F3`, the paged ROM copy at `&F4`, the ROM filing system's ROM number and
+pointer at `&F5-&F7`, the IRQ's saved A at `&FC`, the BRK pointer at `&FD-&FE` and the Escape flag at `&FF`. The rest of
+its zero page from `&D0`, the VDU, keyboard and tape workspace, and page 3, the VDU and filing system variables, are its
+workspace, which a game that takes over the machine reuses: cassette Elite's own variables are at `&D1-&E1` and its
+commander data in page 3. 0.10 lays its zero page out differently, so its ranges are its own: its saved A is at `&DE`
+and it has no paged ROM.
 
 jsbeeb has no model with the US, German, 0.10 or B+ MOS, so their in-memory checks only show them matching nowhere
 else; `tests/symbols/test-shipped-rom-sets.js` puts each ROM at `&C000` and checks which sets it matches.

@@ -13,7 +13,7 @@
   "globals": [
     {
       "start": "0x00ef",
-      "end": "0x00f5"
+      "end": "0x00f8"
     },
     {
       "start": "0x00fc",
@@ -38,7 +38,7 @@
       "end": "0x00ef"
     },
     {
-      "start": "0x00f5",
+      "start": "0x00f8",
       "end": "0x00fc"
     },
     {
