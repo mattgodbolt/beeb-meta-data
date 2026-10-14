@@ -122,6 +122,24 @@ describe("the symbol set build", () => {
             expect(problemsWith(() => {}, "sets/Exile v1.1.json")).toEqual([expect.stringContaining("Exile v1.1")]);
         });
 
+        it("reject workspace names on a set that isn't a system set, or naming an address the globals name", () => {
+            const workspace = (names) => (json) => Object.assign(json, { workspace: names });
+            expect(problemsWith(workspace({ plot_mask: "0xd1" }))).toEqual([
+                expect.stringContaining("workspace names, but isn't a system set"),
+            ]);
+            const system = (names) => (json) => Object.assign(json, { system: true, workspace: names });
+            expect(problemsWith(system({ plot_mask: "0xd1" }), MosFile)).toEqual([]);
+            expect(problemsWith(system(["0xd1"]), MosFile)).toEqual([
+                expect.stringContaining("workspace isn't an object of names"),
+            ]);
+            expect(problemsWith(system({ os_lives: "0x70" }), MosFile)).toEqual([
+                "&0070 is named in the globals and in the workspace, as os_lives",
+            ]);
+            expect(problemsWith(system({ lives: "0xd1" }), MosFile)).toEqual([
+                expect.stringContaining("lives is named in the globals and again in the workspace"),
+            ]);
+        });
+
         it("reject a system set the MOS list doesn't name", () => {
             expect(problemsWith((json) => (json.system = true))).toEqual([expect.stringContaining("mos-sets.json")]);
             expect(problemsWith((json) => (json.system = true), MosFile)).toEqual([]);

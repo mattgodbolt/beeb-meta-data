@@ -332,7 +332,14 @@ export function osBlockTargets(source) {
  * @param {{nameLink?: string, system?: boolean}} [options] - the template places fill, if not the
  *     source's lines on GitHub, and whether it's a system set
  */
-export function setJson(config, spec, regions, globals, places = null, { nameLink, system = false } = {}) {
+export function setJson(
+    config,
+    spec,
+    regions,
+    globals,
+    places = null,
+    { nameLink, system = false, workspace = new Map() } = {},
+) {
     const { repository, commit, link } = config.source;
     return {
         format: Format,
@@ -367,6 +374,7 @@ export function setJson(config, spec, regions, globals, places = null, { nameLin
             ]),
         ),
         globals: byAddress(globals),
+        ...(workspace.size && { workspace: byAddress(workspace) }),
         ...(places && { places: Object.fromEntries([...places].sort(([a], [b]) => (a < b ? -1 : 1))) }),
     };
 }
@@ -816,7 +824,7 @@ export async function writeTitle(config, imported, values) {
             return `${region.name} ${region.anchors.length}/${region.symbols.size}${scoped.size ? ` +${scoped.size} scoped` : ""}`;
         });
         console.log(
-            `${id}: ${summary.join(", ")}; ${Object.keys(json.globals).length} globals (${dropped.length} names left out)`,
+            `${id}: ${summary.join(", ")}; ${Object.keys(json.globals).length} globals${json.workspace ? `, ${Object.keys(json.workspace).length} workspace names` : ""} (${dropped.length} names left out)`,
         );
         if (values.verbose)
             for (const [name, address, why] of dropped) console.log(`    left out ${name} ${hex(address)}: ${why}`);

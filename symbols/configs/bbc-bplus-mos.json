@@ -11,12 +11,16 @@
   "system": true,
   "globals": [
     {
-      "start": "0x00d0",
+      "start": "0x00ef",
+      "end": "0x00f5"
+    },
+    {
+      "start": "0x00fc",
       "end": "0x0100"
     },
     {
       "start": "0x0200",
-      "end": "0x0400"
+      "end": "0x0300"
     },
     {
       "start": "0x0d00",
@@ -25,6 +29,20 @@
     {
       "start": "0xfc00",
       "end": "0xff00"
+    }
+  ],
+  "workspace": [
+    {
+      "start": "0x00d0",
+      "end": "0x00ef"
+    },
+    {
+      "start": "0x00f5",
+      "end": "0x00fc"
+    },
+    {
+      "start": "0x0300",
+      "end": "0x0400"
     }
   ],
   "leaveOut": ["^mosVariablesMinus\\d+$"],

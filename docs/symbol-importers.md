@@ -169,11 +169,12 @@ Every importer links names back to the author's own work where it can, with the 
 `places`. Source on GitHub links to the line at the pinned commit; an acornaeology disassembly links to its per-address
 anchors. Where the author has no site of their own, `source` is the only link.
 
-The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set names to the
-system set, unless the address is in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored`
-in `anchor-chooser.js`). `&F4` and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and
-the IRQ's saved A). The baron and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by
-`leftToSystemSets`, and py8dis always leaves out `acorn.py`'s.
+The level7, beebasm, acornaeology and ACME importers leave a title's name for an address a system set's globals name to
+the system set (its workspace names, which name only the MOS's own code, leave the address free), unless the address is
+in zero page or page 3 and the code in the set's regions stores to it (`ownedIfStored` in `anchor-chooser.js`). `&F4`
+and `&FC` don't count, since games write them in the MOS's sense (the paged ROM copy and the IRQ's saved A). The baron
+and py8dis importers have no such rule: baron leaves names from INCLUDEd OS files by `leftToSystemSets`, and py8dis
+always leaves out `acorn.py`'s.
 
 ## Anchors
 
@@ -398,20 +399,22 @@ A config has `"importer": "acme"`, an `id`, and
 
 - `licence`, `notice` and `home`, copied into every set, and `system` for the MOS's sets;
 - `source`, the `repository` and `commit`;
-- `globals`, the ranges whose `=` names can be globals, and `bytesPerAnchor`, `spreadAnchors`, `otherRoms` and
-  `leaveOut` as for acornaeology and py8dis;
+- `globals`, the ranges whose `=` names can be globals, `workspace`, for a system set, the ranges whose `=` names
+  are its workspace instead (no range in both), and `bytesPerAnchor`, `spreadAnchors`, `otherRoms` and `leaveOut`
+  as for acornaeology and py8dis;
 - `check`, the in-memory check's scenarios;
 - `sets`, one per version, each with an `id`, a `title`, the source to `assemble`, its `rom` (jsbeeb's file, or a `url`
   and `key`), its `regions`, each a `name`, `from` and `to` (expressions, as for baron) and optionally a `sameCodeIn`
-  as for acornaeology, and optionally its own `home` and `pages`.
+  as for acornaeology, and optionally its own `home`, `pages`, `globals` and `workspace`.
 
 The source has to assemble to the ROM's bytes in every region. Each label assembled into a region is named there, the
 last written winning where two share an address. A `=` name is a global if an instruction uses it first in a
-non-immediate operand, its address is in a `globals` range, and the system sets don't name it (unless the set is one
-of them); where several share an address, the one the most instructions use wins. Each name links to the line that
-defines it, or, for a version with `pages` (a `directory` of the checkout and the `url` it's published at), to the
-paragraph anchor (`id="SP21"`) before the line of those HTML pages that defines it. A name defined in more than one
-place, or in none of the pages, stops the import. Anchors are chosen and every ROM is matched as for acornaeology.
+non-immediate operand, its address is in a `globals` range, and the system sets' globals don't name it (unless the set
+is one of them); where several share an address, the one the most instructions use wins. One in a `workspace` range is a
+workspace name in the same way. Each name links to the line that defines it, or, for a version with `pages` (a
+`directory` of the checkout and the `url` it's published at), to the paragraph anchor (`id="SP21"`) before the line of
+those HTML pages that defines it. A name defined in more than one place, or in none of the pages, stops the import.
+Anchors are chosen and every ROM is matched as for acornaeology.
 
 Only the names in the source the config names are read, not those of files it includes, and a source of a program loaded
 from disc has no config of this kind yet. A read register and a write register at one address get one name, the one the
@@ -429,6 +432,14 @@ loaded. So 1.20's set is cut there into `low` (to `&C310`, since the font before
 MOS jsbeeb has and can't be anchored on its own), `middle`, `boot` (`&DB67-&DB6E`), `high` and `top-page`, and its
 `middle`, `high` and `top-page` have `sameCodeIn` the German ROM, matching it too. The German set is only `low` and
 `boot`, with no globals, which 1.20's give it.
+
+Each MOS keeps as globals the names any program means the MOS's way: page 2's vectors and OS variables, page `&D`, the
+I/O, and the zero page other code is meant to read, the OSBYTE and OSWORD registers a sideways ROM is handed at
+`&EF-&F1`, the command line pointer at `&F2-&F3`, the paged ROM copy at `&F4`, the IRQ's saved A at `&FC`, the BRK
+pointer at `&FD-&FE` and the Escape flag at `&FF`. The rest of its zero page from `&D0`, the VDU, keyboard and tape
+workspace, and page 3, the VDU and filing system variables, are its workspace, which a game that takes over the machine
+reuses: cassette Elite's own variables are at `&D1-&E1` and its commander data in page 3. 0.10 lays its zero page out
+differently, so its ranges are its own: its saved A is at `&DE` and it has no paged ROM.
 
 jsbeeb has no model with the US, German, 0.10 or B+ MOS, so their in-memory checks only show them matching nowhere
 else; `tests/symbols/test-shipped-rom-sets.js` puts each ROM at `&C000` and checks which sets it matches.

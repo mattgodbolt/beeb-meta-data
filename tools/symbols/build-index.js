@@ -55,6 +55,7 @@ function checkLinks(json, set, problems) {
     if (!wantsPlaces) problems.push("it has places, but no nameLink with {place}");
     const names = new Set([
         ...set.globals.values(),
+        ...set.workspace.values(),
         ...set.regions.flatMap((region) => [
             ...region.symbols.values(),
             ...region.scopes.flatMap((scope) => [...scope.symbols.values()]),
@@ -112,6 +113,7 @@ function checkShape(json) {
     if (!isObject(json)) return ["it isn't a JSON object"];
     const problems = [];
     if (json.globals !== undefined && !isObject(json.globals)) problems.push("globals isn't an object of names");
+    if (json.workspace !== undefined && !isObject(json.workspace)) problems.push("workspace isn't an object of names");
     if (
         json.places !== undefined &&
         !(isObject(json.places) && Object.values(json.places).every((place) => typeof place === "string"))
@@ -171,6 +173,7 @@ export function checkSet(json, { file, mosSets }) {
     if (json.link !== undefined) problems.push("it has a link, and linked sets aren't supported yet");
     if (json.system !== undefined && typeof json.system !== "boolean") problems.push("system isn't true or false");
     if (set.system && !mosSets.includes(file)) problems.push(`it's a system set, but ${MosSetsFile} doesn't list it`);
+    if (json.workspace !== undefined && !set.system) problems.push("it has workspace names, but isn't a system set");
     if (set.regions.length === 0) problems.push("it has no regions");
     checkLinks(json, set, problems);
 
@@ -210,6 +213,10 @@ export function checkSet(json, { file, mosSets }) {
 
     const seen = new Map();
     checkNames(json.globals, "the globals", seen, problems);
+    checkNames(json.workspace, "the workspace", seen, problems);
+    for (const [address, name] of set.workspace)
+        if (set.globals.has(address))
+            problems.push(`${hex(address)} is named in the globals and in the workspace, as ${name}`);
     for (const [name, region] of Object.entries(json.regions ?? {})) {
         checkNames(region.symbols, `region ${name}`, seen, problems);
         for (const [i, scope] of (region.scopes ?? []).entries())
