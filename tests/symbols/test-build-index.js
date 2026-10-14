@@ -257,12 +257,15 @@ describe("the symbol set build", () => {
 });
 
 describe("systemGlobals", () => {
-    it("reads the globals of every set mos-sets.json lists", () => {
+    it("reads the globals of every set mos-sets.json lists, and not their workspace", () => {
         const dir = mkdtempSync(path.join(tmpdir(), "symbols-system-"));
         try {
             mkdirSync(path.join(dir, "sets"));
             writeFileSync(path.join(dir, "mos-sets.json"), JSON.stringify([MosFile]));
-            writeFileSync(path.join(dir, MosFile), JSON.stringify({ ...good(), system: true }));
+            writeFileSync(
+                path.join(dir, MosFile),
+                JSON.stringify({ ...good(), system: true, workspace: { plot_mask: "0xd1" } }),
+            );
             expect([...systemGlobals(dir)]).toEqual([[0x70, "lives"]]);
         } finally {
             rmSync(dir, { recursive: true, force: true });

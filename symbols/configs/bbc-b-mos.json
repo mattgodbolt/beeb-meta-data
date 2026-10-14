@@ -12,7 +12,7 @@
   "system": true,
   "globals": [
     {
-      "start": "0x00ef",
+      "start": "0x00ec",
       "end": "0x00f8"
     },
     {
@@ -35,7 +35,7 @@
   "workspace": [
     {
       "start": "0x00d0",
-      "end": "0x00ef"
+      "end": "0x00ec"
     },
     {
       "start": "0x00f8",
@@ -140,8 +140,16 @@
       "home": "https://tobylobster.github.io/mos/mos010.html",
       "globals": [
         {
+          "start": "0x00d7",
+          "end": "0x00d8"
+        },
+        {
           "start": "0x00de",
           "end": "0x00df"
+        },
+        {
+          "start": "0x00ed",
+          "end": "0x00ee"
         },
         {
           "start": "0x00fd",
@@ -163,10 +171,18 @@
       "workspace": [
         {
           "start": "0x00d0",
+          "end": "0x00d7"
+        },
+        {
+          "start": "0x00d8",
           "end": "0x00de"
         },
         {
           "start": "0x00df",
+          "end": "0x00ed"
+        },
+        {
+          "start": "0x00ee",
           "end": "0x00fd"
         },
         {

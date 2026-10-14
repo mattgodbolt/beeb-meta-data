@@ -329,8 +329,8 @@ export function osBlockTargets(source) {
  * @param {Map<string, number>} globals
  * @param {Map<string, string> | null} places - each name's place, for its `nameLink`; null for a set with
  *     no links
- * @param {{nameLink?: string, system?: boolean}} [options] - the template places fill, if not the
- *     source's lines on GitHub, and whether it's a system set
+ * @param {{nameLink?: string, system?: boolean, workspace?: Map<string, number>}} [options] - the template
+ *     places fill, if not the source's lines on GitHub, whether it's a system set, and its workspace names
  */
 export function setJson(
     config,

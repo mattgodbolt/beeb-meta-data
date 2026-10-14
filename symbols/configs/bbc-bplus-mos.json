@@ -11,7 +11,7 @@
   "system": true,
   "globals": [
     {
-      "start": "0x00ef",
+      "start": "0x00ec",
       "end": "0x00f8"
     },
     {
@@ -34,7 +34,7 @@
   "workspace": [
     {
       "start": "0x00d0",
-      "end": "0x00ef"
+      "end": "0x00ec"
     },
     {
       "start": "0x00f8",

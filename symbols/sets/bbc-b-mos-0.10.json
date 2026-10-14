@@ -901,7 +901,9 @@
     }
   },
   "globals": {
+    "lastKeyPressedInternal": "0x00d7",
     "interruptAccumulator": "0x00de",
+    "firstKeyPressedInternal": "0x00ed",
     "displayStringAddressLow": "0x00fd",
     "displayStringAddressHigh": "0x00fe",
     "escapeFlag": "0x00ff",
@@ -1032,7 +1034,6 @@
     "vduGraphicsColourByteEOR": "0x00d0",
     "unknownInterruptDisableFlag": "0x00d5",
     "timeClockSwitch": "0x00d6",
-    "lastKeyPressedInternal": "0x00d7",
     "keyboardStatusFlags": "0x00d8",
     "keyboardAutoRepeatDelay": "0x00d9",
     "keyboardAutoRepeatRate": "0x00da",
@@ -1051,7 +1052,6 @@
     "acia6850ControlRegisterCopy": "0x00ea",
     "keyboardFirstAutorepeatCount": "0x00eb",
     "autorepeatCountdownTimer": "0x00ec",
-    "firstKeyPressedInternal": "0x00ed",
     "keyboardLinks": "0x00f4",
     "osword0BufferAddressLow": "0x00f5",
     "osword0BufferAddressHigh": "0x00f6",

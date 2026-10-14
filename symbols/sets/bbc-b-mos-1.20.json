@@ -1065,6 +1065,8 @@
     }
   },
   "globals": {
+    "lastKeyPressedInternal": "0x00ec",
+    "firstKeyPressedInternal": "0x00ed",
     "osbyteA": "0x00ef",
     "oswordX": "0x00f0",
     "osbyteY": "0x00f1",
@@ -1265,8 +1267,6 @@
     "osword0BufferAddressHigh": "0x00e9",
     "rs423TimeoutCounter": "0x00ea",
     "tapeCritical": "0x00eb",
-    "lastKeyPressedInternal": "0x00ec",
-    "firstKeyPressedInternal": "0x00ed",
     "tempStoreFA": "0x00fa",
     "tempStoreFB": "0x00fb",
     "vduVariablesStart": "0x0300",

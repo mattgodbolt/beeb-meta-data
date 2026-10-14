@@ -3,8 +3,7 @@
  * Makes ROMs' symbol sets from ACME sources (acme-build.js): for each version a curator's config under
  * symbols/configs/ lists, the labels the source assembles into the ROM, in regions anchored on it, and the
  * `=` names its instructions use as memory operands in the config's `globals` and `workspace` ranges.
- * docs/symbol-importers.md
- * says how the names are chosen.
+ * docs/symbol-importers.md says how the names are chosen.
  *
  * Usage: node tools/symbols/import-acme.js --config symbols/configs/bbc-b-mos.json [--source <checkout>]
  *            [--acme <path>] [--out symbols/sets] [--verbose] && node tools/symbols/build-index.js
@@ -91,7 +90,7 @@ export function pageDefinitions(pages) {
  * @param {object} options
  * @param {Uint8Array} options.rom - the ROM the version is anchored on
  * @param {{name: string, bytes: Uint8Array}[]} options.otherRoms - ROMs whose banks the anchors must tell apart
- * @param {Map<number, string>} options.systemGlobals - addresses the system sets name, which a set that isn't
+ * @param {Map<number, string>} options.systemGlobals - addresses the system sets' globals name, which a set that isn't
  *     one leaves to them
  * @param {Map<string, string[]> | null} [options.pages] - where the set's `pages` define each name
  *     (pageDefinitions), to link to instead of the source's lines

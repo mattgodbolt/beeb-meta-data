@@ -494,7 +494,7 @@ class Importer {
 
 /**
  * A title's sets from its level7 disassembly, as its config describes them.
- * @param {{systemGlobals: Map<number, string>}} options - the addresses the system sets name, left to them
+ * @param {{systemGlobals: Map<number, string>}} options - the addresses the system sets' globals name, left to them
  */
 export function importLevel7(config, text, options) {
     const importer = new Importer(config, text, options);

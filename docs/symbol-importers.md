@@ -118,8 +118,8 @@ theirs differ.
   - `disc` is the original disc in the repository, the one the source rebuilds, and the disc the in-memory check
     boots. Where the config lists `madeFrom`, its image key has to be one of them; where it doesn't, its key is the
     sets' `madeFrom`, which suits a disc the repository rebuilds as it changes.
-- `leftToSystemSets` lists INCLUDEd files whose names the MOS's set already gives. The listing doesn't mark where an
-  INCLUDE ends, so these are the `=` names shown straight after the INCLUDE line.
+- `leftToSystemSets` lists INCLUDEd files whose names the MOS's set already gives as globals. The listing doesn't mark
+  where an INCLUDE ends, so these are the `=` names shown straight after the INCLUDE line.
 - `bytesPerAnchor` and `spreadAnchors` ask for at least one anchor per that many bytes of a region, up to that many,
   before the anchors that tell other programs apart.
 - `check` is the module of scenarios for the in-memory check, `<title>-check.js` beside the config.
@@ -434,13 +434,14 @@ MOS jsbeeb has and can't be anchored on its own), `middle`, `boot` (`&DB67-&DB6E
 `boot`, with no globals, which 1.20's give it.
 
 Each MOS keeps as globals the names any program means the MOS's way: page 2's vectors and OS variables, page `&D`, the
-I/O, and the zero page other code is meant to read, the OSBYTE and OSWORD registers a sideways ROM is handed at
-`&EF-&F1`, the command line pointer at `&F2-&F3`, the paged ROM copy at `&F4`, the ROM filing system's ROM number and
-pointer at `&F5-&F7`, the IRQ's saved A at `&FC`, the BRK pointer at `&FD-&FE` and the Escape flag at `&FF`. The rest of
-its zero page from `&D0`, the VDU, keyboard and tape workspace, and page 3, the VDU and filing system variables, are its
-workspace, which a game that takes over the machine reuses: cassette Elite's own variables are at `&D1-&E1` and its
-commander data in page 3. 0.10 lays its zero page out differently, so its ranges are its own: its saved A is at `&DE`
-and it has no paged ROM.
+I/O, and the zero page other code is meant to read: the keys last and first pressed at `&EC-&ED`, which games poll, the
+OSBYTE and OSWORD registers a sideways ROM is handed at `&EF-&F1`, the command line pointer at `&F2-&F3`, the paged ROM
+copy at `&F4`, the ROM filing system's ROM number and pointer at `&F5-&F7`, the IRQ's saved A at `&FC`, the BRK pointer
+at `&FD-&FE` and the Escape flag at `&FF`. The rest of its zero page from `&D0`, the VDU, keyboard and tape workspace,
+and page 3, the VDU and filing system variables, are its workspace, which a game that takes over the machine reuses:
+cassette Elite's own variables are at `&D1-&E1` and its commander data in page 3. 0.10 lays its zero page out
+differently, so its ranges are its own: its keys are at `&D7` and `&ED`, its saved A is at `&DE`, and it has no paged
+ROM.
 
 jsbeeb has no model with the US, German, 0.10 or B+ MOS, so their in-memory checks only show them matching nowhere
 else; `tests/symbols/test-shipped-rom-sets.js` puts each ROM at `&C000` and checks which sets it matches.

@@ -123,6 +123,22 @@ describe("the shipped ROM sets", () => {
         expect(names.address(0xfff4)?.name).toBe("OSBYTE");
     });
 
+    it("names a B's MOS workspace only in the MOS's own code, and what other code reads everywhere", async () => {
+        const cpu = fake6502(findModel("B"));
+        await cpu.initialise();
+        const names = await namesFor((address) => cpu.peekmem(address));
+        const nameOf = (at, target) => names.operand(at, target)?.name;
+        expect(nameOf(0xe0a4, 0xd1)).toBe("vduCurrentPlotByteMask");
+        expect(nameOf(0x2000, 0xd1)).toBeUndefined();
+        expect(nameOf(0xe0a4, 0x355)).toBe("vduCurrentScreenMODE");
+        expect(nameOf(0x2000, 0x355)).toBeUndefined();
+        expect(nameOf(0x2000, 0xec)).toBe("lastKeyPressedInternal");
+        expect(nameOf(0x2000, 0xf4)).toBe("currentlySelectedROM");
+        expect(nameOf(0x2000, 0xf6)).toBe("romAddressLow");
+        expect(nameOf(0x2000, 0xfc)).toBe("interruptAccumulator");
+        expect(nameOf(0x2000, 0xff)).toBe("escapeFlag");
+    });
+
     it("leaves a Master's addresses plain", async () => {
         const cpu = fake6502(findModel("Master"));
         await cpu.initialise();
