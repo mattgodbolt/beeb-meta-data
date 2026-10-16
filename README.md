@@ -26,7 +26,7 @@ from. It's made from the configs and sets, so it's always current.
 | `tests/`          | Unit tests for all of the above, and the real sets against jsbeeb's real ROMs                 |
 
 The tools use jsbeeb as a library (its symbol-set parser, its disc code and a headless machine) at the version
-`package.json` pins, so the checks here are the ones the client makes.
+`package-lock.json` locks, so the checks here are the ones the client makes.
 
 ## Working on it
 
