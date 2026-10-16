@@ -33,8 +33,8 @@ doesn't get a second one over the same code without asking. A new candidate beco
 
 Before the first one:
 
-- `npm ci`, and again whenever `package-lock.json` moves jsbeeb's pin. A jsbeeb older than the pin is the usual
-  reason for a pile of failing tests after a pull.
+- `npm ci`, and again whenever `package-lock.json` moves jsbeeb to a new version. A jsbeeb older than the locked one
+  is the usual reason for a pile of failing tests after a pull.
 - `node tools/registry/fetch-corpus.js --only sth-disc,sth-tape` fills `.registry-corpus/` (ignored by git) with
   Stairway to Hell's discs, which the corpus check and the in-memory check read, and its tapes, for finding a tape
   title's image. If another checkout has a `.registry-corpus`, pass it with `--corpus` instead of fetching again.

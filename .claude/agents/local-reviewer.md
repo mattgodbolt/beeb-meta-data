@@ -39,7 +39,7 @@ skipped question is not.
    built from it encoded per segment and restricted to safe schemes?
 4. **Published data.** For each set, config or index change: is `symbols/index.json` regenerated
    to match (CI's `check-index` fails otherwise; don't run it, since it rewrites the file)? Does
-   jsbeeb's parser, at the version `package.json` pins, accept it? Is a set reproducible from the
+   jsbeeb's parser, at the version `package-lock.json` locks, accept it? Is a set reproducible from the
    commit its config pins, and do its `licence` and `notice` match the source's own LICENSE at
    that commit? Were its anchors checked against the title in memory (`check-memory.js`) and
    against other titles (`build-index.js`, `corpus-check.js`)? Does each per-name link point at
