@@ -200,7 +200,7 @@ function otherImages(otherRoms, base, size) {
  * @param {Uint8Array} options.rom - the ROM the set is anchored on
  * @param {{name: string, bytes: Uint8Array}[]} options.otherRoms - ROMs whose banks the anchors must tell
  *     apart, and shorter ROMs whose start they must
- * @param {Map<number, string>} options.systemGlobals - addresses the system sets name, which the set leaves to them
+ * @param {Map<number, string>} options.systemGlobals - addresses the system sets' globals name, left to them
  * @param {string} options.notice
  * @param {Map<number, string>} [options.anchors] - the ids the set's `home` page has for addresses
  *     (pageAnchors), to link each name with one to it

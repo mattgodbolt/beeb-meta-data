@@ -728,6 +728,7 @@
     "os_screen_memory_type": "0x0356",
     "vdu_vector_low": "0x035d",
     "vdu_vector_high": "0x035e",
+    "os_colours_available": "0x0360",
     "main_binary_key": "0x4e00"
   },
   "places": {
@@ -1102,6 +1103,7 @@
     "not_supporting": "boffin-disassembly.txt#:~:text=not_supporting,-%263377",
     "odd_feet_left": "boffin-disassembly.txt#:~:text=odd_feet_left,-%26344b",
     "odd_feet_right": "boffin-disassembly.txt#:~:text=odd_feet_right,-%3B",
+    "os_colours_available": "boffin-disassembly.txt#:~:text=os_colours_available",
     "os_screen_memory_type": "boffin-disassembly.txt#:~:text=os_screen_memory_type",
     "osbyte_with_zero_x": "boffin-disassembly.txt#:~:text=osbyte_with_zero_x",
     "out_of_time": "boffin-disassembly.txt#:~:text=out_of_time,-%23",

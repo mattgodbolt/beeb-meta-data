@@ -2,8 +2,8 @@
 /**
  * Makes ROMs' symbol sets from ACME sources (acme-build.js): for each version a curator's config under
  * symbols/configs/ lists, the labels the source assembles into the ROM, in regions anchored on it, and the
- * `=` names its instructions use as memory operands in the config's `globals` ranges. docs/symbol-importers.md
- * says how the names are chosen.
+ * `=` names its instructions use as memory operands in the config's `globals` and `workspace` ranges.
+ * docs/symbol-importers.md says how the names are chosen.
  *
  * Usage: node tools/symbols/import-acme.js --config symbols/configs/bbc-b-mos.json [--source <checkout>]
  *            [--acme <path>] [--out symbols/sets] [--verbose] && node tools/symbols/build-index.js
@@ -90,7 +90,7 @@ export function pageDefinitions(pages) {
  * @param {object} options
  * @param {Uint8Array} options.rom - the ROM the version is anchored on
  * @param {{name: string, bytes: Uint8Array}[]} options.otherRoms - ROMs whose banks the anchors must tell apart
- * @param {Map<number, string>} options.systemGlobals - addresses the system sets name, which a set that isn't
+ * @param {Map<number, string>} options.systemGlobals - addresses the system sets' globals name, which a set that isn't
  *     one leaves to them
  * @param {Map<string, string[]> | null} [options.pages] - where the set's `pages` define each name
  *     (pageDefinitions), to link to instead of the source's lines
@@ -179,10 +179,19 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
     const labelAt = new Map(labels.map(({ address, name }) => [name, address]));
     for (const region of regions) leaveOutChanged(region, region.differing, statementAt, labelAt, dropped, notes);
 
-    const globalRanges = (spec.globals ?? config.globals ?? []).map(({ start, end }, i) => ({
-        start: parseAddress(start, `globals range ${i}'s start`),
-        end: parseAddress(end, `globals range ${i}'s end`, AddressLimit),
-    }));
+    const rangesNamed = (key) =>
+        (spec[key] ?? config[key] ?? []).map(({ start, end }, i) => ({
+            start: parseAddress(start, `${key} range ${i}'s start`),
+            end: parseAddress(end, `${key} range ${i}'s end`, AddressLimit),
+        }));
+    const globalRanges = rangesNamed("globals");
+    const workspaceRanges = rangesNamed("workspace");
+    for (const global of globalRanges)
+        for (const workspace of workspaceRanges)
+            if (global.start < workspace.end && workspace.start < global.end)
+                errors.push(
+                    `the globals range at ${hex(global.start)} overlaps the workspace range at ${hex(workspace.start)}`,
+                );
     const uses = operandUses(statements);
     const stored = ownedIfStored(chooserStatements.filter((s) => regions.some((r) => holds(r, s.address))));
     const candidates = new Map();
@@ -193,8 +202,8 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
             dropped.push([nameOf(name), value, "no instruction uses it as a memory operand"]);
             continue;
         }
-        if (!globalRanges.some((range) => holds(range, value))) {
-            dropped.push([nameOf(name), value, "it's outside the globals' ranges"]);
+        if (![...globalRanges, ...workspaceRanges].some((range) => holds(range, value))) {
+            dropped.push([nameOf(name), value, "it's outside the globals' and the workspace's ranges"]);
             continue;
         }
         if (!config.system && systemGlobals.has(value) && !stored.has(value)) {
@@ -205,11 +214,17 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
         candidates.get(value).push(definition);
     }
     const globals = new Map();
+    const workspace = new Map();
     for (const [address, named] of candidates) {
         const [chosen, ...others] = [...named].sort((a, b) => uses.get(b.name) - uses.get(a.name) || a.line - b.line);
-        globals.set(nameOf(chosen.name), address);
+        const inWorkspace = workspaceRanges.some((range) => holds(range, address));
+        (inWorkspace ? workspace : globals).set(nameOf(chosen.name), address);
         for (const { name } of others)
-            dropped.push([nameOf(name), address, `the globals call it ${nameOf(chosen.name)}`]);
+            dropped.push([
+                nameOf(name),
+                address,
+                `the ${inWorkspace ? "workspace" : "globals"} call it ${nameOf(chosen.name)}`,
+            ]);
     }
 
     const spread = { bytesPerAnchor: config.bytesPerAnchor, spreadAnchors: config.spreadAnchors };
@@ -228,11 +243,12 @@ export function importAcmeSet(config, spec, build, { rom, otherRoms, systemGloba
             if (!definedAt.has(nameOf(name))) definedAt.set(nameOf(name), []);
             definedAt.get(nameOf(name)).push(`${spec.assemble}#L${line}`);
         }
-    const every = [...regions.flatMap((region) => [...region.symbols.keys()]), ...globals.keys()];
+    const every = [...regions.flatMap((region) => [...region.symbols.keys()]), ...globals.keys(), ...workspace.keys()];
     const places = onePlaceEach(spec.id, every, definedAt, errors);
     const json = setJson(setConfig(config, spec, rom), spec, regions, globals, places, {
         nameLink: pages ? `${spec.pages.url}{place}` : undefined,
         system: config.system === true,
+        workspace,
     });
     return {
         id: spec.id,

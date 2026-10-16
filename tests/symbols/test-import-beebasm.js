@@ -492,9 +492,10 @@ describe("discFilesOf", () => {
 });
 
 describe("systemAddresses", () => {
-    it("holds what the MOS set names", () => {
+    it("holds what the MOS set names, but not its workspace", () => {
         const addresses = systemAddresses();
         expect(addresses.has(0xffee)).toBe(true);
         expect(addresses.has(0xfe40)).toBe(true);
+        expect(addresses.has(0xd1)).toBe(false);
     });
 });

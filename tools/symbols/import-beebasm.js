@@ -210,7 +210,7 @@ export function osBlockTargets(file, labelAddresses) {
     return out;
 }
 
-/** Every address a system set (the MOS's) names, which a title's `=` names are left to. */
+/** Every address a system set (the MOS's) names in its globals or regions, which a title's `=` names are left to. */
 export function systemAddresses(dir = SymbolsDir) {
     const out = new Set();
     for (const set of readSystemSets(dir)) {

@@ -109,6 +109,28 @@ describe("importAcmeSet", () => {
         expect(dropped).toContainEqual(["count", 3, "no instruction uses it as a memory operand"]);
     });
 
+    it("takes the = names in the workspace's ranges as workspace names, and no globals range may overlap one", () => {
+        const withWorkspace = {
+            ...config,
+            system: true,
+            globals: [{ start: "0xfc00", end: "0xff00" }],
+            workspace: [{ start: "0x0000", end: "0x0100" }],
+        };
+        const { json, dropped } = importDemo({}, demoBuild(), withWorkspace);
+        expect(json.globals).toEqual({ port: "0xfe40" });
+        expect(json.workspace).toEqual({ work: "0x0070" });
+        expect(dropped).toContainEqual(["temp", Workspace, "the workspace call it work"]);
+        expect(importDemo({}, demoBuild(), { ...config, globals: [] }).dropped).toContainEqual([
+            "port",
+            Io,
+            "it's outside the globals' and the workspace's ranges",
+        ]);
+        const overlapping = { ...withWorkspace, workspace: [{ start: "0xfe00", end: "0xfe80" }] };
+        expect(importDemo({}, demoBuild(), overlapping).errors).toContainEqual(
+            "the globals range at &FC00 overlaps the workspace range at &FE00",
+        );
+    });
+
     it("leaves the system sets' addresses to them but the zero page its code stores to, unless it's a system set itself", () => {
         const clock = 0xfc;
         const reading = () => {

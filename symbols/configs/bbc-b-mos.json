@@ -12,12 +12,16 @@
   "system": true,
   "globals": [
     {
-      "start": "0x00d0",
+      "start": "0x00ec",
+      "end": "0x00f8"
+    },
+    {
+      "start": "0x00fc",
       "end": "0x0100"
     },
     {
       "start": "0x0200",
-      "end": "0x0400"
+      "end": "0x0300"
     },
     {
       "start": "0x0d00",
@@ -26,6 +30,20 @@
     {
       "start": "0xfc00",
       "end": "0xff00"
+    }
+  ],
+  "workspace": [
+    {
+      "start": "0x00d0",
+      "end": "0x00ec"
+    },
+    {
+      "start": "0x00f8",
+      "end": "0x00fc"
+    },
+    {
+      "start": "0x0300",
+      "end": "0x0400"
     }
   ],
   "leaveOut": ["^mosVariablesMinus\\d+$"],
@@ -100,6 +118,7 @@
       "rom": "deos.rom",
       "home": "https://tobylobster.github.io/mos/mos120de.html",
       "globals": [],
+      "workspace": [],
       "regions": [
         {
           "name": "low",
@@ -119,6 +138,58 @@
       "assemble": "docs/os010_acme.a",
       "rom": "os01.rom",
       "home": "https://tobylobster.github.io/mos/mos010.html",
+      "globals": [
+        {
+          "start": "0x00d7",
+          "end": "0x00d8"
+        },
+        {
+          "start": "0x00de",
+          "end": "0x00df"
+        },
+        {
+          "start": "0x00ed",
+          "end": "0x00ee"
+        },
+        {
+          "start": "0x00fd",
+          "end": "0x0100"
+        },
+        {
+          "start": "0x0200",
+          "end": "0x0300"
+        },
+        {
+          "start": "0x0d00",
+          "end": "0x0e00"
+        },
+        {
+          "start": "0xfc00",
+          "end": "0xff00"
+        }
+      ],
+      "workspace": [
+        {
+          "start": "0x00d0",
+          "end": "0x00d7"
+        },
+        {
+          "start": "0x00d8",
+          "end": "0x00de"
+        },
+        {
+          "start": "0x00df",
+          "end": "0x00ed"
+        },
+        {
+          "start": "0x00ee",
+          "end": "0x00fd"
+        },
+        {
+          "start": "0x0300",
+          "end": "0x0400"
+        }
+      ],
       "regions": [
         {
           "name": "main",

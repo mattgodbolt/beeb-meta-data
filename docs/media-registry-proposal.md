@@ -169,14 +169,18 @@ made by the importers in [the importers' doc](symbol-importers.md).
 - `globals`, names not tied to one region's code, such as zero page, buffers, data the program loads, or
   a table that replaces code once it has run.
 - `system`, true only on a MOS's set listed in `symbols/mos-sets.json`.
+- Optionally, on a system set only, `workspace`: names like the globals but for memory only the MOS's own code
+  means them for, such as its VDU and filing system workspace in zero page and page 3, which a program that
+  takes over the machine reuses for its own variables.
 - Optionally `home`, the author's own page for the work, and `nameLink`, a URL template for one name's
   place on the author's site. Its placeholders are `{name}`, `{addr}` (four upper-case hex digits) and
   `{place}`, which comes from `places`, an object from a name to a relative path and optional fragment.
   A name `places` doesn't give has no link from a template with `{place}`.
 
 Every name is an address, so constants stay out. A name means one address throughout a set. It's in one
-region or the globals or neither, and if not in a region it can also be in several scopes. No address has
-two names in one region, the globals or one scope, and two scopes that overlap don't name the same address.
+region, the globals, the workspace or none of them, and if not in a region it can also be in several scopes.
+No address has two names in one region, the globals, the workspace or one scope, none is in both the globals
+and the workspace, and two scopes that overlap don't name the same address.
 A scope names only addresses outside its region, and a system set's scopes are ignored. `home` and
 `nameLink` are https, the template starts with its site (which no placeholder can change), and a place has
 no `.` or `..` segments.
@@ -191,18 +195,21 @@ If two matching regions overlap, neither counts.
 
 A set's globals name only its own code's operands, except a system set's. A system set's globals (system
 globals) name its own code's operands as any set's do, and also every other code's, last, while any of its
-regions matches, but never an address inside a matching region of a non-system set.
+regions matches, but never an address inside a matching region of a non-system set. Its workspace names
+only its own code's operands, under the same exception: what the MOS's workspace holds is known only while
+the MOS's code is the one using it.
 
 For an operand of an instruction in one of a set's matching regions, the name comes from the scope the
-instruction is in, then that set's matching regions, then its globals, then other sets' matching regions,
-then system globals if its set isn't the system set. For an instruction outside every matching region, it
-comes from matching regions, then system globals.
+instruction is in, then that set's matching regions, then its globals or workspace, then other sets'
+matching regions, then system globals if its set isn't the system set. For an instruction outside every
+matching region, it comes from matching regions, then system globals.
 
 An address shown on its own, such as in the disassembly's address column, takes only its region's names if
 it lies in a matching region. Otherwise it takes the name the scope holding the PC gives it, then the
-global of the non-system set whose matching region holds the PC, if that set names it. Failing that, it
-takes the global that one non-system set with a matching region names, no name if two or more such sets
-name it differently, or a system global if none does.
+workspace name of the system set whose matching region holds the PC, then the global of the non-system set
+whose matching region holds the PC, if that set names it. Failing that, it takes the global that one
+non-system set with a matching region names, no name if two or more such sets name it differently, or a
+system global if none does.
 
 jsbeeb's debugger shows the names from every set that matches, with each set's `home` and `source`, and
 links each name to its place. Not built yet are dropping a set so it counts as not matching, offering a
