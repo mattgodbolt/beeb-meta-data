@@ -41,9 +41,9 @@ Guidance for Claude Code in this repository. The README says what's here; this s
 - ES modules, Node 24, Prettier (120 columns, 4-space JS) and ESLint, both run by the pre-commit hook. Never bypass
   the hook.
 - jsbeeb is a dependency: import its modules as `jsbeeb/src/<file>.js`, and its ROMs from `RomsDir` in
-  `tools/jsbeeb.js`. A change jsbeeb needs goes to jsbeeb as its own PR, then the pin here moves: set
-  `package.json`'s `jsbeeb` to the merged commit, `npm install`, and `npm run reimport-all -- --check`, since the ROM
-  sets are checked against jsbeeb's ROMs.
+  `tools/jsbeeb.js`. A change jsbeeb needs goes to jsbeeb as its own PR and out in a jsbeeb release
+  on npm; then raise `package.json`'s `jsbeeb` to that version, `npm install`, and `npm run reimport-all -- --check`,
+  since the ROM sets are checked against jsbeeb's ROMs.
 - Constants are PascalCase module-level names. Tests use vitest's `expect`, mock as little as possible, and keep one
   file per module.
 
