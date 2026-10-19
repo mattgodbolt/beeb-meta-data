@@ -4,7 +4,7 @@
   "licence": "MIT",
   "source": {
     "repository": "https://github.com/acornaeology/acorn-nfs",
-    "commit": "32a089515b2e44738f9bcec4ff858e4270d92346",
+    "commit": "70628bf0502784d87ccc043fa760c6bc68ac45bc",
     "licenceFile": "LICENSE"
   },
   "globals": [],
@@ -72,7 +72,7 @@
       "disassembly": "versions/nfs-3.35D/output/nfs-3.35D.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.35D.html",
       "rom": {
-        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/32a089515b2e44738f9bcec4ff858e4270d92346/versions/nfs-3.35D/rom/nfs-3.35D.rom",
+        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/70628bf0502784d87ccc043fa760c6bc68ac45bc/versions/nfs-3.35D/rom/nfs-3.35D.rom",
         "key": "b092bd49107cabd05a4d4e3fce641f24"
       },
       "regions": [
@@ -174,7 +174,7 @@
       "disassembly": "versions/nfs-3.62/output/nfs-3.62.json",
       "home": "https://acornaeology.uk/acorn-nfs/3.62.html",
       "rom": {
-        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/32a089515b2e44738f9bcec4ff858e4270d92346/versions/nfs-3.62/rom/nfs-3.62.rom",
+        "url": "https://raw.githubusercontent.com/acornaeology/acorn-nfs/70628bf0502784d87ccc043fa760c6bc68ac45bc/versions/nfs-3.62/rom/nfs-3.62.rom",
         "key": "1a2ab7609f0dd43d77cc2e9af2c26db8"
       },
       "regions": [
