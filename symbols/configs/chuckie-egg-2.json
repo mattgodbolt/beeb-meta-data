@@ -5,7 +5,7 @@
   "notice": "The names are chuckie-egg-2-beeb's, under this licence:\n\nMIT License\n\nCopyright (c) 2026 Matt Godbolt\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\n---\n\nThis licence covers the port's own work: its source code, tools and\ndocumentation. Chuckie Egg 2 itself is (c) 1985 A&F Software. The game's\ndesign, rooms, graphics, text and sounds, carried in src/data/ and in the\ndisc image, remain theirs and are not covered by this licence.",
   "source": {
     "repository": "https://github.com/mattgodbolt/chuckie-egg-2-beeb",
-    "commit": "b085c546bcb110d30975cf84d94caded617d97e4",
+    "commit": "9115ea2cbe722ac26422acb9880d608bc7833ad6",
     "assemble": ["src/main.6502"],
     "defines": {
       "BUILD": {
