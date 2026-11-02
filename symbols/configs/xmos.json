@@ -5,7 +5,7 @@
   "home": "https://github.com/mattgodbolt/xmos",
   "source": {
     "repository": "https://github.com/mattgodbolt/xmos",
-    "commit": "73cf1883b3444b8a2043351805c203acaf2b8b30",
+    "commit": "2f0785e19faaaa81eab293f41eeb18dff7d408d2",
     "assembler": "beebasm",
     "assemble": "xmos.asm"
   },

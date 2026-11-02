@@ -5,7 +5,7 @@
   "home": "https://github.com/TobyLobster/lisp",
   "source": {
     "repository": "https://github.com/ZornsLemma/py8dis",
-    "commit": "2a6046356e20e93c4a2d484bc04bd5d74d66254e",
+    "commit": "914b2069853352d10f9c93ff747f2cc2a6414eb3",
     "directory": "examples",
     "script": "examples/python/lisp406.py",
     "assembly": "examples/known_good/lisp406_beebasm.asm",
@@ -13,7 +13,7 @@
   },
   "py8dis": {
     "repository": "https://github.com/ZornsLemma/py8dis",
-    "commit": "2a6046356e20e93c4a2d484bc04bd5d74d66254e"
+    "commit": "914b2069853352d10f9c93ff747f2cc2a6414eb3"
   },
   "rom": {
     "url": "https://mdfs.net/System/ROMs/Language/LISP/LISP406",
