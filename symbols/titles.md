@@ -46,6 +46,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Hopper**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/hopper-disassembly.txt) (level7-educational)
 - **Impossible Mission**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/impossible-mission-disassembly.txt) (level7-educational)
 - **Jet Set Willy**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/jet-set-willy-disassembly.txt) (level7-educational)
+- **Karateka (NOVA 2020 demo)**, names from [simondotm/beeb-karateka](https://github.com/simondotm/beeb-karateka/tree/1075a9ed549c1dd451eb94f672f866a2af26abd9) (MIT)
 - **Killer Gorilla**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/killer-gorilla-disassembly.txt) (level7-educational)
 - **Kissin' Kousins**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/kissin-kousins-disassembly.txt) (level7-educational)
 - **Kix**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/kix-disassembly.txt) (level7-educational)

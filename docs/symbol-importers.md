@@ -666,6 +666,14 @@ globals. The repository's `bbc/stipple256.ssd` is what the source builds, and th
 `submission/mona-stipple.ssd`, holds the same MONASTP. `bbc/stipple.ssd`, the larger player the intro was cut down
 from, has no set. The in-memory check runs it on a Master until the picture is done.
 
+## Karateka
+
+`symbols/configs/karateka.json` makes one set, `demo`, from [beeb-karateka](https://github.com/simondotm/beeb-karateka),
+Simon M's Master 128 demo for NOVA 2020: one region over Main, its one program, which runs where it loads, up to the
+tune it INCBINs at its end. The frames it plays are in BANK1 to BANK3, data the source only PUTFILEs into sideways RAM,
+so they have no region. The repository's `karateka.ssd` is what the source builds. The in-memory check runs it on a
+Master, which it needs, while it loads its banks and as the animation plays.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't

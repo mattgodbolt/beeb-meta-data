@@ -1396,6 +1396,24 @@
       }
     },
     {
+      "url": "sets/karateka-demo.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x0e00",
+          "end": "0x21da",
+          "minAnchors": 5,
+          "anchors": [
+            { "at": "0x1644", "bytes": "608e1b168c1c16" },
+            { "at": "0x186e", "bytes": "c977d089205219" },
+            { "at": "0x1a74", "bytes": "ad2b1aa2080e2a1a" },
+            { "at": "0x1d86", "bytes": "60205a1d90fa" },
+            { "at": "0x1fe4", "bytes": "20091a8dd717" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/killer-gorilla-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
