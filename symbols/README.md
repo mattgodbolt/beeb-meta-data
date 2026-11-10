@@ -31,6 +31,7 @@ describes. None of this data is under this repository's GPL; each set has its ow
 | `karateka-demo.json`                          | [Karateka's source](https://github.com/simondotm/beeb-karateka)               | `import-beebasm.js`      |
 | `beeb-step-demo.json`                         | [Beeb-Step's source](https://github.com/bitshifters/beeb-step)                | `import-beebasm.js`      |
 | `nula-gallery-gallery.json`                   | [The VideoNuLA Gallery's source](https://github.com/bitshifters/bbc-nula)     | `import-beebasm.js`      |
+| `teletext-slojd-editor.json`                  | [Teletext Slojd's source](https://github.com/kieranhj/teletext-slojd)         | `import-beebasm.js`      |
 | `repton2-game.json`                           | [Repton 2's disassembly](https://github.com/gfoot/repton2disassembly)         | `import-py8dis.js`       |
 | `dfs-2.26-*.json`                             | [py8dis's DFS 2.26 example](https://github.com/ZornsLemma/py8dis)             | `import-py8dis.js`       |
 | `planb-game.json`                             | [py8dis's Plan B example](https://github.com/ZornsLemma/py8dis)               | `import-py8dis.js`       |
