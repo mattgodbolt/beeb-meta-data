@@ -9,6 +9,8 @@ import { runScript, runSeconds } from "../../tools/symbols/check-memory.js";
 const LoadSecs = 60;
 const SlideMoments = 4;
 const SlideSecsPerMoment = 10;
+// Volume 3's older !Boot runs from here too, as its catalogue says.
+const Volume3Exec = 0x1f06;
 
 const Gallery = ["gallery/code"];
 
@@ -29,17 +31,21 @@ export const scenarios = {
     async volume1({ session, address, shots, check }) {
         await session.runUntilAddress(address("gallery", "code", "main.show_logo"));
         check("the logo", Gallery);
-        await session.runUntilAddress(address("gallery", "code", "slide_show"), LoadSecs);
+        await session.runUntilAddress(address("gallery", "code", "main.load_complete"), LoadSecs);
+        await session.runUntilAddress(address("gallery", "code", "slide_show"));
         check("the first picture", Gallery);
         await slides(session, check, Gallery);
         await runScript(session, ["shot show"], { shots });
     },
     async volume2({ session, address, check }) {
-        await session.runUntilAddress(address("gallery", "code", "slide_show"), LoadSecs);
+        await session.runUntilAddress(address("gallery", "code", "main.load_complete"), LoadSecs);
+        await session.runUntilAddress(address("gallery", "code", "slide_show"));
         check("volume 2's first picture", Gallery);
         await slides(session, check, Gallery);
     },
     async volume3({ session, check }) {
+        await session.runUntilAddress(Volume3Exec);
+        check("volume 3's gallery starting", []);
         await slides(session, check, []);
     },
 };
