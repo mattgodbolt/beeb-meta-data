@@ -1592,6 +1592,23 @@
       }
     },
     {
+      "url": "sets/mode7-video-player.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x1900",
+          "end": "0x1dd5",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x195c", "bytes": "20061ba586d009" },
+            { "at": "0x1a71", "bytes": "6020c81cb013" },
+            { "at": "0x1b6b", "bytes": "20721ab00b20aa1a" },
+            { "at": "0x1ca4", "bytes": "2a2677ca10fa" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/monsters-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
