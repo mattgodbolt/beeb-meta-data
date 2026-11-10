@@ -692,6 +692,15 @@ the config builds volume 1, whose `bbcnula1.ssd` is what the source builds, as i
 holds an older build of it, which the set doesn't name. The in-memory check runs each volume on a Master, for its
 sideways and shadow RAM.
 
+## Teletext Slojd
+
+`symbols/configs/teletext-slojd.json` makes one set, `editor`, from
+[teletext-slojd](https://github.com/kieranhj/teletext-slojd), Kieran Connell's MODE 7 canvas editor that records each
+keystroke to play the drawing back: one region over TTSLOJD, with its zero page as globals. The canvas and the keystroke
+buffer above it are workspace, and raq2 and raq3 are recordings, so none has a region. The repository's
+`teletext-slojd.ssd` is what the source builds. `copy_canvas_to_screen` is written twice, under an `IF` and its
+`ELSE`, and links to the one assembled. The in-memory check draws on the canvas with a few keys.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
