@@ -137,11 +137,11 @@ describe("a beebasm build", () => {
         expect(existsSync(path.join(dir, "build", "marked"))).toBe(false);
     });
 
-    it("keeps the place beebasm assembles of a name an IF and its ELSE define, leaving the work copy unmarked", () => {
+    it("keeps the place beebasm assembles of a name an IF and its ELSE define, one place for a line that defines it twice, leaving the work copy unmarked", () => {
         const work = path.join(dir, "work");
         mkdirSync(path.join(work, "src"), { recursive: true });
         const source =
-            ".start\nIF 0\n.dup RTS\nELSE\n.dup NOP ; taken\nENDIF\n.once\n.twice\n.twice\nIF 0\n.gone\n.gone\nENDIF\n";
+            ".start\nIF 0\n.dup RTS\nELSE\n.dup NOP ; taken\nENDIF\n.once\n.twice\n.twice\nIF 0\n.gone\n.gone\nENDIF\nIF 0 : one = 1 : ELSE : one = 2 : ENDIF\n";
         writeFileSync(path.join(work, "src", "main.asm"), source);
         const config = { source: { assemble: "src/main.asm" } };
         const made = assemble(config, work, path.join(dir, "build"), stub("beebasm", IfStubBeebasm));
@@ -152,6 +152,7 @@ describe("a beebasm build", () => {
                 ["once", ["src/main.asm#L7"]],
                 ["twice", ["src/main.asm#L8", "src/main.asm#L9"]],
                 ["gone", []],
+                ["one", ["src/main.asm#L14"]],
             ]),
         );
         expect(readFileSync(path.join(work, "src", "main.asm"), "latin1")).toBe(source);

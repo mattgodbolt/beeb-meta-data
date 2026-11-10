@@ -279,7 +279,8 @@ export function assemble(config, workDir, buildDir, beebasm) {
         if (fromRoot[0] === "..") return;
         for (const { name, line, exported: isExported } of definitionsIn(texts[i])) {
             if (!definitions.has(name)) definitions.set(name, []);
-            definitions.get(name).push(`${fromRoot.join("/")}#L${line}`);
+            const place = `${fromRoot.join("/")}#L${line}`;
+            if (!definitions.get(name).includes(place)) definitions.get(name).push(place);
             if (isExported) exported.add(name);
         }
     });
