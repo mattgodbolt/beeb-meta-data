@@ -645,6 +645,14 @@ Neither keeps globals: XMOS is paged in at BASIC's prompt, and jsbeeb shows a RO
 paged in. The in-memory check puts each ROM in a Master's sideways RAM, checks no other bank matches, and runs several
 commands, with both sets loaded, so each set matches nothing while the other's ROM is in.
 
+## Teletext Canvas
+
+`symbols/configs/teletext-canvas.json` makes one set, `viewer`, from
+[teletext-canvas](https://github.com/kieranhj/teletext-canvas), Kieran Connell's viewer for a MODE 7 picture taller
+than the screen: one region over canvas, up to the picture it INCBINs. The picture (Steve's castle, the history says)
+isn't the viewer's own work, so it has neither names nor anchors. The repository's `canvas.ssd` is what the source
+builds. The in-memory check watches the picture scroll down and back, then scrolls it with the cursor keys.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
