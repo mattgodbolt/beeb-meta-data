@@ -2735,6 +2735,22 @@
       }
     },
     {
+      "url": "sets/stipple-256-intro.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x1900",
+          "end": "0x19f1",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x1900", "bytes": "a20da9088581" },
+            { "at": "0x198a", "bytes": "209719c680d004" },
+            { "at": "0x19b1", "bytes": "faaafebfea56" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/strykers-run-enhanced-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

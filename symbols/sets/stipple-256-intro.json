@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "title": "Stipple 256",
+  "licence": "MIT",
+  "source": "https://github.com/kieranhj/stipple-256/tree/c7af66251ac721a0778a33a3299b57885f7507b3",
+  "notice": "The names are stipple-256's, under this licence:\n\nMIT License\n\nCopyright (c) 2026 Kieran Connell\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "madeFrom": ["4f0cfda971c6615665b84267754943cf"],
+  "nameLink": "https://github.com/kieranhj/stipple-256/blob/c7af66251ac721a0778a33a3299b57885f7507b3/{place}",
+  "regions": {
+    "code": {
+      "start": "0x1900",
+      "end": "0x19f1",
+      "minAnchors": 3,
+      "anchors": [
+        { "at": "0x1900", "bytes": "a20da9088581" },
+        { "at": "0x198a", "bytes": "209719c680d004" },
+        { "at": "0x19b1", "bytes": "faaafebfea56" }
+      ],
+      "symbols": {
+        "start": "0x1900",
+        "vinit": "0x1908",
+        "loop": "0x1917",
+        "shloop": "0x194c",
+        "sh_done": "0x1950",
+        "emit_plot": "0x198a",
+        "skip_dot": "0x198d",
+        "hang": "0x1993",
+        "not_yet": "0x1995",
+        "emit6": "0x1997",
+        "e6_lp": "0x1999",
+        "vdutab": "0x19a3",
+        "image": "0x19b1"
+      }
+    }
+  },
+  "globals": {
+    "buf": "0x0070",
+    "xa": "0x007c",
+    "ya": "0x007e",
+    "cnt_lo": "0x0080",
+    "cnt_hi": "0x0081",
+    "tmp": "0x0082"
+  },
+  "places": {
+    "buf": "bbc/stipple256.asm#L27",
+    "cnt_hi": "bbc/stipple256.asm#L32",
+    "cnt_lo": "bbc/stipple256.asm#L31",
+    "e6_lp": "bbc/stipple256.asm#L160",
+    "emit6": "bbc/stipple256.asm#L158",
+    "emit_plot": "bbc/stipple256.asm#L138",
+    "hang": "bbc/stipple256.asm#L146",
+    "image": "bbc/stipple256.asm#L190",
+    "loop": "bbc/stipple256.asm#L66",
+    "not_yet": "bbc/stipple256.asm#L150",
+    "sh_done": "bbc/stipple256.asm#L96",
+    "shloop": "bbc/stipple256.asm#L92",
+    "skip_dot": "bbc/stipple256.asm#L141",
+    "start": "bbc/stipple256.asm#L38",
+    "tmp": "bbc/stipple256.asm#L33",
+    "vdutab": "bbc/stipple256.asm#L181",
+    "vinit": "bbc/stipple256.asm#L57",
+    "xa": "bbc/stipple256.asm#L29",
+    "ya": "bbc/stipple256.asm#L30"
+  }
+}

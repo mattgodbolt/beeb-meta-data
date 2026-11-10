@@ -90,6 +90,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Star Wars**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/star-wars-disassembly.txt) (level7-educational)
 - **Starquake**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/starquake-disassembly.txt) (level7-educational)
 - **Starship Command**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/starship-command-disassembly.txt) (level7-educational)
+- **Stipple 256**, names from [kieranhj/stipple-256](https://github.com/kieranhj/stipple-256/tree/c7af66251ac721a0778a33a3299b57885f7507b3) (MIT)
 - **Stryker's Run (Enhanced version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/strykers-run-enhanced-disassembly.txt) (level7-educational)
 - **Stryker's Run (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/strykers-run-standard-disassembly.txt) (level7-educational)
 - **Super Invaders**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/super-invaders-disassembly.txt) (level7-educational)

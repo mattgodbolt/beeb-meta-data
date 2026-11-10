@@ -653,6 +653,14 @@ than the screen: one region over `canvas`, the file its SAVE writes, up to the p
 isn't the viewer's own work, so it has neither names nor anchors. The repository's `canvas.ssd` is what the source
 builds. The in-memory check watches the picture scroll down and back, then scrolls it with the cursor keys.
 
+## Stipple 256
+
+`symbols/configs/stipple-256.json` makes one set, `intro`, from [stipple-256](https://github.com/kieranhj/stipple-256),
+Kieran Connell's 256-byte intro for the Master: one region over MONASTP, the whole intro, with its zero page as
+globals. The repository's `bbc/stipple256.ssd` is what the source builds, and the release disc,
+`submission/mona-stipple.ssd`, holds the same MONASTP. `bbc/stipple.ssd`, the larger player the intro was cut down
+from, has no set. The in-memory check runs it on a Master until the picture is done.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
