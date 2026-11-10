@@ -19,21 +19,27 @@ export const BuildUsage = "[--source <checkout>] [--beebasm <path>]";
 
 /** What starts a line of the listing that the wrapper's PRINTs wrote. */
 export const PrintPrefix = "@jsbeeb-symbol";
+/** What starts a line of output that a PRINT markedSource added wrote. */
+export const PlacePrefix = "@jsbeeb-place";
 export const Beebasm = "beebasm";
 const ListingBytesMost = 1 << 30;
 const MinimumVersion = [1, 11];
 const Wrapper = "jsbeeb-symbols.asm";
 const LabelsFile = "labels.txt";
+const MarkedCopy = "marked";
+const MarkedBuild = "marked-build";
 const GitDir = ".git";
 const Including = /^Including file (.*)$/gm;
 const SavingFile = /^Saving file '(.*)'$/gm;
 const Assignment = /(?:^|:)[ \t]*([A-Za-z_]\w*)[ \t]*=/gm;
 const QuotedOrCharacter = /"(?:[^"]|"")*"|'.'/g;
 const Comment = /[;\\].*$/;
-const Definition = /^[ \t]*(?:\.(\*?)([A-Za-z_]\w*)|([A-Za-z_]\w*)[ \t]*=(?!=))/;
+const Definition = /^[ \t]*(?:\.([*^]?)([A-Za-z_]\w*)|([A-Za-z_]\w*)[ \t]*=(?!=))/;
 const Braces = /[{}]/g;
-const LoneLabel = /^[ \t]*\.\*?([A-Za-z_]\w*)[ \t]*$/;
+const LoneLabel = /^[ \t]*\.[*^]?([A-Za-z_]\w*)[ \t]*$/;
+const CommentStart = /[;\\]/;
 const VersionLine = /^beebasm (\d+)\.(\d+)/;
+const AssembledPlace = new RegExp(String.raw`^${PlacePrefix}:(.*?)\s*$`, "gm");
 const UnwritableSave = /^Error: (.*): Could not open object file for writing\.$/m;
 const UnreadablePut = /: error: Error opening file\.\s*\n\s*PUT(?:FILE|BASIC|TEXT)\s+"((?:[^"]|"")*)"/;
 const CmosMemoryMnemonics = ["STZ", "TRB", "TSB"];
@@ -66,8 +72,8 @@ export function assignedNames(text) {
 }
 
 /**
- * Each label (`.name`, or `.*name`, which beebasm `exported` to the top level) and `=` name a source
- * defines, with the line it's on, from 1: every statement of a line, outside its strings and its comment.
+ * Each label (`.name`, `.^name`, or `.*name`, which beebasm `exported` to the top level) and `=` name a
+ * source defines, with the line it's on, from 1: every statement of a line, outside its strings and its comment.
  * A name inside braces is qualified as beebasm's label dump has it, with the label of each enclosing
  * pair's own statement just before its `{` (`routine.loop`). A pair with no such label is named after its
  * first label if that's exported, as labelName names it, and otherwise gets a part no dumped name has.
@@ -111,6 +117,28 @@ export function definitionsIn(text) {
                 return found;
             }),
     );
+}
+
+/**
+ * `text` with a PRINT of `PlacePrefix:place#L<line>` after each statement that defines a name on each of `lines`
+ * (from 1), so that the output of a run of beebasm says which of those lines it assembled. A line counts if any
+ * of its definitions is assembled, so an IF on the line itself only counts when nothing after it is a definition.
+ */
+export function markedSource(text, lines, place) {
+    const marked = new Set(lines);
+    return text
+        .split(/\r\n|\r|\n/)
+        .map((line, i) => {
+            if (!marked.has(i + 1)) return line;
+            const blanked = line.replace(QuotedOrCharacter, (quoted) => " ".repeat(quoted.length));
+            const comment = blanked.search(CommentStart);
+            const code = comment < 0 ? blanked : blanked.slice(0, comment);
+            const print = `:PRINT "${PlacePrefix}:${place.replaceAll('"', '""')}#L${i + 1}"`;
+            const ends = [...code.matchAll(/:/g)].map(({ index }) => index).concat(code.length);
+            const after = ends.filter((end, j) => Definition.test(code.slice(j ? ends[j - 1] + 1 : 0, end)));
+            return after.reduceRight((out, end) => `${out.slice(0, end)}${print}${out.slice(end)}`, line);
+        })
+        .join("\n");
 }
 
 /** definitionsIn's names with their lines. */
@@ -190,13 +218,46 @@ function runWrapped(beebasm, workDir, runDir, buildDir, main, names) {
 }
 
 /**
+ * Narrows each name defined on more than one line to the lines beebasm assembles, so that a name an IF and
+ * its ELSE both define keeps the place of the branch taken: a run of the source in a copy of `workDir` with a
+ * PRINT on each of those lines (markedSource).
+ */
+function narrowToAssembled(definitions, beebasm, workDir, runDir, buildDir, main) {
+    const ambiguous = [...definitions].filter(([, places]) => places.length > 1);
+    if (!ambiguous.length) return;
+    const linesByFile = new Map();
+    for (const [, places] of ambiguous)
+        for (const place of places) {
+            const [file, line] = place.split("#L");
+            if (!linesByFile.has(file)) linesByFile.set(file, []);
+            linesByFile.get(file).push(parseInt(line));
+        }
+    const markedDir = path.join(buildDir, MarkedCopy);
+    cpSync(workDir, markedDir, { recursive: true });
+    for (const [file, lines] of linesByFile) {
+        const at = path.join(markedDir, ...file.split("/"));
+        writeFileSync(at, markedSource(readFileSync(at, "latin1"), lines, file), "latin1");
+    }
+    const marked = (inWork) => path.join(markedDir, path.relative(workDir, inWork));
+    const markedBuild = path.join(buildDir, MarkedBuild);
+    mkdirSync(markedBuild, { recursive: true });
+    const { stdout } = runWrapped(beebasm, markedDir, marked(runDir), markedBuild, marked(main), []);
+    const assembled = new Set([...stdout.matchAll(AssembledPlace)].map(([, place]) => place));
+    for (const [name, places] of ambiguous) {
+        const kept = places.filter((place) => assembled.has(place));
+        definitions.set(name, kept);
+    }
+}
+
+/**
  * Assembles the config's main source (`source.assemble`) in `workDir`, a copy of the checkout, running
  * beebasm in `source.directory` (the root if it names none), as source INCLUDEs are found from there.
  * @returns {{listing: string, dump: string, saved: Map<string, Uint8Array>, names: string[],
  *     operandNames: Map<string, Set<string>>, definitions: Map<string, string[]>, exported: Set<string>}} the
  *     listing, the label dump, each SAVEd file by the name its SAVE gave, the `=` names PRINTed, the names the
  *     sources write as an instruction's memory operand with the files (from the root) that do, every place
- *     (`<file>#L<line>`, from the root) each name is defined, and the labels written `.*name`, each as
+ *     (`<file>#L<line>`, from the root) each name is defined, narrowed to those beebasm assembles where there
+ *     are more (narrowToAssembled), and the labels written `.*name`, each as
  *     definitionsIn qualifies it
  */
 export function assemble(config, workDir, buildDir, beebasm) {
@@ -218,7 +279,8 @@ export function assemble(config, workDir, buildDir, beebasm) {
         if (fromRoot[0] === "..") return;
         for (const { name, line, exported: isExported } of definitionsIn(texts[i])) {
             if (!definitions.has(name)) definitions.set(name, []);
-            definitions.get(name).push(`${fromRoot.join("/")}#L${line}`);
+            const place = `${fromRoot.join("/")}#L${line}`;
+            if (!definitions.get(name).includes(place)) definitions.get(name).push(place);
             if (isExported) exported.add(name);
         }
     });
@@ -229,6 +291,7 @@ export function assemble(config, workDir, buildDir, beebasm) {
         if (saved.has(file)) throw new Error(`${config.source.assemble} saves ${file} twice`);
         saved.set(file, readFileSync(path.resolve(runDir, file)));
     }
+    narrowToAssembled(definitions, beebasm, workDir, runDir, buildDir, main);
     return {
         listing: stdout,
         dump: readFileSync(path.join(buildDir, LabelsFile), "latin1"),

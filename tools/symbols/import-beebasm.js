@@ -81,7 +81,7 @@ const agrees = (statement, data, start) =>
 /**
  * Where a saved file starts, which the listing doesn't say: the address, of a statement or label listed
  * before its SAVE, from which the file agrees with every statement it covers and covers the most that
- * show bytes.
+ * show bytes; null if it agrees with none.
  */
 export function savedStart(name, data, inMemory, labelAddresses) {
     const starts = [...new Set([...inMemory.map((s) => s.address), ...labelAddresses])].sort((a, b) => a - b);
@@ -98,18 +98,16 @@ export function savedStart(name, data, inMemory, labelAddresses) {
             bestCount = count;
         } else if (count === bestCount) best.push(start);
     }
-    if (best.length !== 1)
-        throw new Error(
-            best.length
-                ? `${name} could start at any of ${best.map(hex).join(", ")}`
-                : `${name} agrees with no statement listed before it's saved`,
-        );
+    if (!best.length) return null;
+    if (best.length > 1) throw new Error(`${name} could start at any of ${best.map(hex).join(", ")}`);
     return best[0];
 }
 
 /**
  * A beebasm build as the importer reads it: each saved file where it runs, with its statements and
- * labels, every label, and the `=` names that hold numbers.
+ * labels, every label, and the `=` names that hold numbers. A file that agrees with no statement (data a
+ * SAVE writes after a CLEAR, which the listing doesn't show) is in `unplaced` instead, with why, and only
+ * fails the import if a region or the ROM is that file.
  * @param {ReturnType<typeof import("./beebasm-build.js").assemble>} build
  */
 export function beebasmBuild({ listing, dump, saved, names, operandNames, definitions, exported = new Set() }) {
@@ -137,21 +135,25 @@ export function beebasmBuild({ listing, dump, saved, names, operandNames, defini
         if (text !== "" && Number.isInteger(value)) constants.set(name, value);
     }
     const { statements } = parsed;
-    const files = new Map(
-        parsed.saves.map(({ order, file }) => {
-            const data = saved.get(file);
-            const inMemory = statementsInMemory(statements, order);
-            const listedBefore = labels.filter((label) => label.order < order);
-            const start = savedStart(
-                file,
-                data,
-                inMemory,
-                listedBefore.map(({ address }) => address),
-            );
-            return [file, savedFile(file, data, start, inMemory, listedBefore, statements)];
-        }),
-    );
-    return { files, labels, constants, operandNames, definitions };
+    const files = new Map();
+    const unplaced = new Map();
+    for (const { order, file } of parsed.saves) {
+        const data = saved.get(file);
+        const inMemory = statementsInMemory(statements, order);
+        const listedBefore = labels.filter((label) => label.order < order);
+        const start = savedStart(
+            file,
+            data,
+            inMemory,
+            listedBefore.map(({ address }) => address),
+        );
+        if (start === null) {
+            unplaced.set(file, `${file} agrees with no statement listed before it's saved`);
+            continue;
+        }
+        files.set(file, savedFile(file, data, start, inMemory, listedBefore, statements));
+    }
+    return { files, unplaced, labels, constants, operandNames, definitions };
 }
 
 /** One saved file: where it runs, its bytes, and its statements and labels. */
@@ -276,8 +278,8 @@ class Importer {
 
     file(name) {
         const file = this.build.files.get(name);
-        if (!file) throw new Error(`Nothing is saved as ${name}`);
-        return file;
+        if (file) return file;
+        throw new Error(this.build.unplaced.get(name) ?? `Nothing is saved as ${name}`);
     }
 
     region(spec, regionSpec) {

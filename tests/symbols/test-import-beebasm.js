@@ -183,6 +183,20 @@ describe("beebasmBuild", () => {
         expect(file.statements.map((s) => s.address)).toEqual([0x2000, 0x2004]);
     });
 
+    it("leaves a file it can't place out of its files, with why, for a region that names it to fail on", () => {
+        const withData = {
+            ...made(),
+            listing: `${listing}\nSaving file 'DATA'`,
+            saved: new Map([...made().saved, ["DATA", Uint8Array.from([9, 9, 9])]]),
+        };
+        const placed = beebasmBuild(withData);
+        expect([...placed.files.keys()]).toEqual(["PROG", "out/OVER"]);
+        expect(placed.unplaced).toEqual(new Map([["DATA", "DATA agrees with no statement listed before it's saved"]]));
+        expect(importBeebasm(config(), placed, { system }).errors).toEqual([]);
+        const naming = config([{ name: "data", file: "DATA" }]);
+        expect(() => importBeebasm(naming, placed, { system })).toThrow("DATA agrees with no statement");
+    });
+
     it("refuses a dump that doesn't agree with the listing's labels", () => {
         expect(() => beebasmBuild({ ...made(), dump: dump.replace("'.block'", "'.blob'") })).toThrow("is .blob");
         expect(() => beebasmBuild({ ...made(), dump: "[{'.start':6400L}]" })).toThrow("labels");
@@ -204,8 +218,8 @@ describe("savedStart", () => {
         expect(savedStart("F", Uint8Array.from([1, 2, 3, 4]), [...skips, ...inMemory], [])).toBe(0x2000);
     });
 
-    it("refuses a file that agrees with nothing, or that could start in more than one place", () => {
-        expect(() => savedStart("F", Uint8Array.from([9, 9]), inMemory, [])).toThrow("F agrees with no statement");
+    it("is null for a file that agrees with nothing, and refuses one that could start in more than one place", () => {
+        expect(savedStart("F", Uint8Array.from([9, 9]), inMemory, [])).toBeNull();
         const repeated = [statement(0x2000, [1, 2]), statement(0x2002, [1, 2])];
         expect(() => savedStart("F", Uint8Array.from([1, 2]), repeated, [])).toThrow("could start at any of");
     });
