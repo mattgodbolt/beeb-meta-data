@@ -701,6 +701,14 @@ buffer above it are workspace, and raq2 and raq3 are recordings, so none has a r
 `teletext-slojd.ssd` is what the source builds. `copy_canvas_to_screen` is written twice, under an `IF` and its
 `ELSE`, and links to the one assembled. The in-memory check draws on the canvas with a few keys.
 
+## Bad Apple (MODE 7 video player)
+
+`symbols/configs/mode7-video.json` makes one set, `player`, from [mode7-video](https://github.com/kieranhj/mode7-video),
+Kieran Connell's and Simon Morris's 2016 player that streams Bad Apple from disc as MODE 7 graphics: one region over
+M7VPLAY, which runs where it loads. The repository's discs are put together by another tool from the player and the
+encoded video, so the config boots `badappl/disks/badappl_disk1.ssd`, whose M7VPLAY is what the source builds. The
+video has no region. The in-memory check plays the first part of it.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't

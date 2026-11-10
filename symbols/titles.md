@@ -8,6 +8,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **3D Pool**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/3d-pool-disassembly.txt) (level7-educational)
 - **Arcadians**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/arcadians-disassembly.txt) (level7-educational)
 - **Atic Atac**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/atic-atac-disassembly.txt) (level7-educational)
+- **Bad Apple (MODE 7 video player)**, names from [kieranhj/mode7-video](https://github.com/kieranhj/mode7-video/tree/9544fd4a6a44abd7d9b2711d1156a6ccd54737df) (MIT)
 - **Beeb-Step**, names from [bitshifters/beeb-step](https://github.com/bitshifters/beeb-step/tree/3d28c0d4597ddf9fe72087a6c047ac7d5e5646c4) (MIT)
 - **Boffin**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/boffin-disassembly.txt) (level7-educational)
 - **Bonecruncher**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/bonecruncher-disassembly.txt) (level7-educational)
