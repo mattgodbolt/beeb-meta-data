@@ -470,6 +470,26 @@
       }
     },
     {
+      "url": "sets/beeb-step-demo.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x1100",
+          "end": "0x2400",
+          "minAnchors": 7,
+          "anchors": [
+            { "at": "0x13ed", "bytes": "f0179848209311" },
+            { "at": "0x15c1", "bytes": "ad7815a2080e7715" },
+            { "at": "0x18b5", "bytes": "38a52ae528b0ee" },
+            { "at": "0x1b03", "bytes": "603031323334" },
+            { "at": "0x1ce9", "bytes": "a90a20031e201a1e" },
+            { "at": "0x1f5d", "bytes": "60000d1a2734" },
+            { "at": "0x21ac", "bytes": "c632d036a90a" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/boffin-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

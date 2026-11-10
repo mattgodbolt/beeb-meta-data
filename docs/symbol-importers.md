@@ -674,6 +674,15 @@ tune it INCBINs at its end. The frames it plays are in BANK1 to BANK3, data the 
 so they have no region. The repository's `karateka.ssd` is what the source builds. The in-memory check runs it on a
 Master, which it needs, while it loads its banks and as the animation plays.
 
+## Beeb-Step
+
+`symbols/configs/beeb-step.json` makes one set, `demo`, from [beeb-step](https://github.com/bitshifters/beeb-step),
+Bitshifters' 2019 demo ("code by Henley and Kieran", its scroller says): one region over Main, which runs where
+it loads. The tune, TMM12's SMStep, is in Bank0 to Bank3, which the source SAVEs after a CLEAR from data it INCBINs,
+so the importer can't place them and they have no region; the teletext page, Page, has none either. The repository's
+`beebstep.ssd` is what the source builds. The in-memory check runs it on a Master, for its sideways RAM, while it loads
+the tune and as the effects play.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
