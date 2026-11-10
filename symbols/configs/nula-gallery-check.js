@@ -9,7 +9,7 @@ import { runScript, runSeconds } from "../../tools/symbols/check-memory.js";
 const LoadSecs = 60;
 const SlideMoments = 4;
 const SlideSecsPerMoment = 10;
-// Volume 3's older !Boot runs from here too, as its catalogue says.
+// Volume 3's older !Boot runs from here, as its catalogue says.
 const Volume3Exec = 0x1f06;
 
 const Gallery = ["gallery/code"];
