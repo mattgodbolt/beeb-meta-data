@@ -109,7 +109,9 @@ export function savedStart(name, data, inMemory, labelAddresses) {
 
 /**
  * A beebasm build as the importer reads it: each saved file where it runs, with its statements and
- * labels, every label, and the `=` names that hold numbers.
+ * labels, every label, and the `=` names that hold numbers. A file savedStart can't place (data a SAVE
+ * writes after a CLEAR, which the listing doesn't show) is in `unplaced` instead, with why, and only
+ * fails the import if a region or the ROM is that file.
  * @param {ReturnType<typeof import("./beebasm-build.js").assemble>} build
  */
 export function beebasmBuild({ listing, dump, saved, names, operandNames, definitions, exported = new Set() }) {
@@ -137,21 +139,27 @@ export function beebasmBuild({ listing, dump, saved, names, operandNames, defini
         if (text !== "" && Number.isInteger(value)) constants.set(name, value);
     }
     const { statements } = parsed;
-    const files = new Map(
-        parsed.saves.map(({ order, file }) => {
-            const data = saved.get(file);
-            const inMemory = statementsInMemory(statements, order);
-            const listedBefore = labels.filter((label) => label.order < order);
-            const start = savedStart(
+    const files = new Map();
+    const unplaced = new Map();
+    for (const { order, file } of parsed.saves) {
+        const data = saved.get(file);
+        const inMemory = statementsInMemory(statements, order);
+        const listedBefore = labels.filter((label) => label.order < order);
+        let start;
+        try {
+            start = savedStart(
                 file,
                 data,
                 inMemory,
                 listedBefore.map(({ address }) => address),
             );
-            return [file, savedFile(file, data, start, inMemory, listedBefore, statements)];
-        }),
-    );
-    return { files, labels, constants, operandNames, definitions };
+        } catch (error) {
+            unplaced.set(file, error.message);
+            continue;
+        }
+        files.set(file, savedFile(file, data, start, inMemory, listedBefore, statements));
+    }
+    return { files, unplaced, labels, constants, operandNames, definitions };
 }
 
 /** One saved file: where it runs, its bytes, and its statements and labels. */
@@ -276,8 +284,8 @@ class Importer {
 
     file(name) {
         const file = this.build.files.get(name);
-        if (!file) throw new Error(`Nothing is saved as ${name}`);
-        return file;
+        if (file) return file;
+        throw new Error(this.build.unplaced.get(name) ?? `Nothing is saved as ${name}`);
     }
 
     region(spec, regionSpec) {

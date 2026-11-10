@@ -12,7 +12,9 @@ import {
     assignedNames,
     beebasmVersion,
     definitionLines,
+    markedSource,
     memoryOperandNames,
+    PlacePrefix,
     PrintPrefix,
     withBeebasmBuild,
     wrapperSource,
@@ -38,6 +40,15 @@ echo "[{'.start':6400L}]" > "$labels"
 echo ".start"
 echo "Saving file 'out/PROG'"
 if grep -q ', ptr$' "$wrapper"; then echo "${PrintPrefix}:ptr:112 "; fi
+`;
+
+// Acts as beebasm would on a source whose IF 0 ... ELSE skips the lines between: PRINTs the importer's place
+// marks on every other line.
+const IfStubBeebasm = `#!/bin/sh
+if [ "$1" = "--help" ]; then echo "beebasm 1.11"; exit 0; fi
+echo "Including file src/main.asm" >&2
+echo "[{'.start':6400L}]" > "$6"
+awk '/^IF 0/ { skip = 1 } /^ELSE/ { skip = 0 } !skip' src/main.asm | grep -o '${PlacePrefix}:[^"]*' || true
 `;
 
 const DiscBytes = 2560;
@@ -126,6 +137,46 @@ describe("a beebasm build", () => {
     });
 });
 
+describe("a beebasm build with a name defined in an IF and its ELSE", () => {
+    let dir;
+    beforeEach(() => {
+        dir = mkdtempSync(path.join(tmpdir(), "symbols-beebasm-test-"));
+    });
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    it("keeps the place beebasm assembles, from a marked copy that leaves the checkout's copy alone", () => {
+        const work = path.join(dir, "work");
+        mkdirSync(path.join(work, "src"), { recursive: true });
+        const source = ".start\nIF 0\n.dup RTS\nELSE\n.dup NOP ; taken\nENDIF\n.once\n.twice\n.twice\n";
+        writeFileSync(path.join(work, "src", "main.asm"), source);
+        const beebasm = path.join(dir, "beebasm");
+        writeFileSync(beebasm, IfStubBeebasm);
+        chmodSync(beebasm, 0o755);
+        const made = assemble({ source: { assemble: "src/main.asm" } }, work, path.join(dir, "build"), beebasm);
+        expect(made.definitions).toEqual(
+            new Map([
+                ["start", ["src/main.asm#L1"]],
+                ["dup", ["src/main.asm#L5"]],
+                ["once", ["src/main.asm#L7"]],
+                ["twice", ["src/main.asm#L8", "src/main.asm#L9"]],
+            ]),
+        );
+        expect(readFileSync(path.join(work, "src", "main.asm"), "latin1")).toBe(source);
+    });
+});
+
+describe("markedSource", () => {
+    it("PRINTs a line's place at the end of its code, before its comment, outside strings", () => {
+        const text = ['.a RTS ; "a;b"', '.b EQUS "x;y\\z" \\ note', ".c", ".d"].join("\r\n");
+        expect(markedSource(text, [1, 2, 4], 'src/q"t.asm').split("\n")).toEqual([
+            `.a RTS :PRINT "${PlacePrefix}:src/q""t.asm#L1"; "a;b"`,
+            `.b EQUS "x;y\\z" :PRINT "${PlacePrefix}:src/q""t.asm#L2"\\ note`,
+            ".c",
+            `.d:PRINT "${PlacePrefix}:src/q""t.asm#L4"`,
+        ]);
+    });
+});
+
 describe("a beebasm build's stand-ins", () => {
     let dir;
     beforeEach(() => {
@@ -173,6 +224,7 @@ describe("definitionLines", () => {
             ".loop: count=3",
             "LDA #':' : .after_char",
             "IF x == 1",
+            "  .^up",
         ].join("\n");
         expect(definitionLines(text)).toEqual([
             ["ptr", 1],
@@ -180,6 +232,7 @@ describe("definitionLines", () => {
             ["loop", 4],
             ["count", 4],
             ["after_char", 5],
+            ["up", 7],
         ]);
     });
 });

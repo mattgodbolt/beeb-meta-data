@@ -183,6 +183,20 @@ describe("beebasmBuild", () => {
         expect(file.statements.map((s) => s.address)).toEqual([0x2000, 0x2004]);
     });
 
+    it("leaves a file it can't place out of its files, with why, for a region that names it to fail on", () => {
+        const withData = {
+            ...made(),
+            listing: `${listing}\nSaving file 'DATA'`,
+            saved: new Map([...made().saved, ["DATA", Uint8Array.from([9, 9, 9])]]),
+        };
+        const placed = beebasmBuild(withData);
+        expect([...placed.files.keys()]).toEqual(["PROG", "out/OVER"]);
+        expect(placed.unplaced).toEqual(new Map([["DATA", "DATA agrees with no statement listed before it's saved"]]));
+        expect(importBeebasm(config(), placed, { system }).errors).toEqual([]);
+        const naming = config([{ name: "data", file: "DATA" }]);
+        expect(() => importBeebasm(naming, placed, { system })).toThrow("DATA agrees with no statement");
+    });
+
     it("refuses a dump that doesn't agree with the listing's labels", () => {
         expect(() => beebasmBuild({ ...made(), dump: dump.replace("'.block'", "'.blob'") })).toThrow("is .blob");
         expect(() => beebasmBuild({ ...made(), dump: "[{'.start':6400L}]" })).toThrow("labels");
