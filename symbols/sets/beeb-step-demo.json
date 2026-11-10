@@ -330,21 +330,11 @@
     "vgm_player_song_author_len": "0x03ab",
     "vgm_player_song_author": "0x03ac",
     "DISKSYS_BUFFER_ADDR": "0x0600",
-    "FX_SCROLLY_ADDR": "0x7fc2",
-    "USR_T1C_L": "0xfe64",
-    "USR_T1C_H": "0xfe65",
-    "USR_T2C_L": "0xfe68",
-    "USR_T2C_H": "0xfe69",
-    "USR_ACR": "0xfe6b"
+    "FX_SCROLLY_ADDR": "0x7fc2"
   },
   "places": {
     "DISKSYS_BUFFER_ADDR": "lib/disksys.asm#L8",
     "FX_SCROLLY_ADDR": "fx/scrolly.asm#L3",
-    "USR_ACR": "beebstep.asm#L31",
-    "USR_T1C_H": "beebstep.asm#L25",
-    "USR_T1C_L": "beebstep.asm#L24",
-    "USR_T2C_H": "beebstep.asm#L29",
-    "USR_T2C_L": "beebstep.asm#L28",
     "anim_data_lines_x": "fx/pixel_anim.asm#L272",
     "anim_data_lines_y": "fx/pixel_anim.asm#L287",
     "anim_data_scan": "fx/pixel_anim.asm#L257",

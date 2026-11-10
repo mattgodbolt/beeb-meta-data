@@ -12,6 +12,7 @@
   "bytesPerAnchor": 512,
   "spreadAnchors": 8,
   "check": "beeb-step-check.js",
+  "leaveOut": ["^USR_"],
   "sets": [
     {
       "id": "demo",

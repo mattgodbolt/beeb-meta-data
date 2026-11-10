@@ -679,7 +679,7 @@ Master, which it needs, while it loads its banks and as the animation plays.
 `symbols/configs/beeb-step.json` makes one set, `demo`, from [beeb-step](https://github.com/bitshifters/beeb-step),
 Bitshifters' 2019 demo ("code by Henley and Kieran", its scroller says): one region over Main, which runs where
 it loads. The tune, TMM12's SMStep, is in Bank0 to Bank3, which the source SAVEs after a CLEAR from data it INCBINs,
-so the importer can't place them and they have no region; the teletext page, Page, has none either. The repository's
+so the importer can't place them and they have no region; the teletext page, Page, has none either. `leaveOut` drops the source's names for the user VIA's registers, which belong to the hardware rather than the demo. The repository's
 `beebstep.ssd` is what the source builds. The in-memory check runs it on a Master, for its sideways RAM, while it loads
 the tune and as the effects play.
 
