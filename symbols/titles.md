@@ -115,8 +115,8 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 ## Sideways ROMs
 
 - **Acorn DFS 2.26** (MIT)
-  - Acorn DFS 2.26, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py)
-  - Acorn Tube host, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/2a6046356e20e93c4a2d484bc04bd5d74d66254e/examples/python/dfs226.py)
+  - Acorn DFS 2.26, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/914b2069853352d10f9c93ff747f2cc2a6414eb3/examples/python/dfs226.py)
+  - Acorn Tube host, names from [ZornsLemma/py8dis](https://github.com/ZornsLemma/py8dis/blob/914b2069853352d10f9c93ff747f2cc2a6414eb3/examples/python/dfs226.py)
 - **Acorn NFS and ANFS** (MIT)
   - Acorn NFS 3.34, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34.html)
   - Acorn NFS 3.34B, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/3.34B.html)

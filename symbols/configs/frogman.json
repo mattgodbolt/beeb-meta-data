@@ -6,7 +6,7 @@
   "home": "https://github.com/mattgodbolt/frogman",
   "source": {
     "repository": "https://github.com/mattgodbolt/frogman",
-    "commit": "4f8948c2531bf908ee90eb7966193745da287156",
+    "commit": "33ce46e20a1fa4e929c8416a882d37f6fae2c000",
     "assembler": "beebasm",
     "assemble": "frogman.asm",
     "disc": "frogman_rebuilt.ssd"
