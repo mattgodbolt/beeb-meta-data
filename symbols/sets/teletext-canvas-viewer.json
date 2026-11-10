@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "title": "Teletext Canvas",
+  "licence": "MIT",
+  "source": "https://github.com/kieranhj/teletext-canvas/tree/0f8cdac9fcde605cc90598e213d6d5bef377f102",
+  "notice": "The names are teletext-canvas's, under this licence:\n\nMIT License\n\nCopyright (c) 2020 Kieran Connell\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "madeFrom": ["481d90c8bfd96e9425fae67948c82b80"],
+  "nameLink": "https://github.com/kieranhj/teletext-canvas/blob/0f8cdac9fcde605cc90598e213d6d5bef377f102/{place}",
+  "regions": {
+    "code": {
+      "start": "0x1900",
+      "end": "0x1b38",
+      "minAnchors": 3,
+      "anchors": [
+        { "at": "0x1940", "bytes": "a981a2bea0ff" },
+        { "at": "0x19a7", "bytes": "6000285078a0" },
+        { "at": "0x1a6b", "bytes": "78a0c8f01800" }
+      ],
+      "symbols": {
+        "main": "0x1900",
+        "main.loop_down": "0x1918",
+        "main.loop_up": "0x192c",
+        "main.loop_keys": "0x1940",
+        "main.not_up": "0x1953",
+        "main.not_down": "0x1968",
+        "main.return": "0x1975",
+        "copy_from_row": "0x1976",
+        "copy_from_row.outer": "0x1993",
+        "copy_from_row.read_addr": "0x1995",
+        "copy_from_row.write_addr": "0x1998",
+        "copy_from_row.return": "0x19a7",
+        "mult40_LO": "0x19a8",
+        "mult40_HI": "0x1a70"
+      }
+    }
+  },
+  "globals": { "current_row": "0x0070" },
+  "places": {
+    "copy_from_row": "canvas.asm#L99",
+    "copy_from_row.outer": "canvas.asm#L116",
+    "copy_from_row.read_addr": "canvas.asm#L121",
+    "copy_from_row.return": "canvas.asm#L136",
+    "copy_from_row.write_addr": "canvas.asm#L124",
+    "current_row": "canvas.asm#L20",
+    "main": "canvas.asm#L27",
+    "main.loop_down": "canvas.asm#L40",
+    "main.loop_keys": "canvas.asm#L70",
+    "main.loop_up": "canvas.asm#L55",
+    "main.not_down": "canvas.asm#L85",
+    "main.not_up": "canvas.asm#L77",
+    "main.return": "canvas.asm#L95",
+    "mult40_HI": "canvas.asm#L145",
+    "mult40_LO": "canvas.asm#L140"
+  }
+}

@@ -94,6 +94,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Stryker's Run (Standard version)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/strykers-run-standard-disassembly.txt) (level7-educational)
 - **Super Invaders**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/super-invaders-disassembly.txt) (level7-educational)
 - **Syncron**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/syncron-disassembly.txt) (level7-educational)
+- **Teletext Canvas**, names from [kieranhj/teletext-canvas](https://github.com/kieranhj/teletext-canvas/tree/0f8cdac9fcde605cc90598e213d6d5bef377f102) (MIT)
 - **The Hunt**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-hunt-disassembly.txt) (level7-educational)
 - **The Last Ninja**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-last-ninja-disassembly.txt) (level7-educational)
 - **The Sentinel**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/the-sentinel-disassembly.txt) (level7-educational)

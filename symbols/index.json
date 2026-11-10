@@ -2803,6 +2803,22 @@
       }
     },
     {
+      "url": "sets/teletext-canvas-viewer.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x1900",
+          "end": "0x1b38",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x1940", "bytes": "a981a2bea0ff" },
+            { "at": "0x19a7", "bytes": "6000285078a0" },
+            { "at": "0x1a6b", "bytes": "78a0c8f01800" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/the-hunt-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
