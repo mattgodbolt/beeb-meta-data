@@ -264,9 +264,9 @@ Names and anchors come out much as for baron, with these differences.
 - beebasm doesn't say where a saved file starts, so the importer takes the address, among those listed before its
   SAVE, from which the file agrees with every statement it covers and covers the most. Its statements are those in
   memory when it was saved, so a block assembled over another after a CLEAR belongs to the files saved after it, and
-  only statements that show bytes count. SKIPTO and ALIGN padding never anchors. A file it can't place that way (one
-  a SAVE writes after a CLEAR from INCBINned data, which the listing doesn't show) is left out, and only stops the
-  import if a region names it.
+  only statements that show bytes count. SKIPTO and ALIGN padding never anchors. A file that agrees with no statement
+  (one a SAVE writes after a CLEAR from INCBINned data, which the listing doesn't show) is left out, and only stops
+  the import if a region or the ROM is that file; its labels are then treated as `=` names.
 - A label in a scope with no label of its own (a FOR loop's pass, a macro's call) is left out, as baron's `@` scopes
   are, and so is any label a macro makes. A label exported with `.*name` is named alone, as the source calls it, and
   braces with no label whose first label is exported (`{ .*routine ...}`) take its name for the labels inside.
@@ -282,9 +282,10 @@ Names and anchors come out much as for baron, with these differences.
   apart.
 - Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`, `.^name`) or with `=`,
   outside strings and comments. A scoped name (`start.loop`) is found by following the braces, else by its last part.
-  Where more than one line defines a name, beebasm runs again on a copy of the source with a PRINT added to each of
-  those lines, and the name keeps the lines it assembles, so a name an IF and its ELSE both define is linked to the
-  branch taken. A name that no line, or still more than one, defines stops the import.
+  Where more than one line defines a name, beebasm runs again on a copy of the source with a PRINT after each
+  definition on those lines, and the name keeps the lines that printed, so a name an IF and its ELSE both define is
+  linked to the branch taken. A line prints if any definition on it is assembled. A name that no line, or still more
+  than one, defines stops the import.
 
 What it gets wrong, beyond the baron importer's list: names shared by code that doesn't run together (a sound driver's
 and a title screen's workspace at one zero page address) are left out; a `=` name used only in an expression's later

@@ -121,8 +121,8 @@ export function definitionsIn(text) {
 
 /**
  * `text` with a PRINT of `PlacePrefix:place#L<line>` after each statement that defines a name on each of `lines`
- * (from 1), so that the output of a run of beebasm says which of those lines it assembled, even where an IF on the
- * line itself skips the definition.
+ * (from 1), so that the output of a run of beebasm says which of those lines it assembled. A line counts if any
+ * of its definitions is assembled, so an IF on the line itself only counts when nothing after it is a definition.
  */
 export function markedSource(text, lines, place) {
     const marked = new Set(lines);
@@ -220,7 +220,7 @@ function runWrapped(beebasm, workDir, runDir, buildDir, main, names) {
 /**
  * Narrows each name defined on more than one line to the lines beebasm assembles, so that a name an IF and
  * its ELSE both define keeps the place of the branch taken: a run of the source in a copy of `workDir` with a
- * PRINT on each of those lines (markedSource). A name none of whose lines print keeps them all.
+ * PRINT on each of those lines (markedSource).
  */
 function narrowToAssembled(definitions, beebasm, workDir, runDir, buildDir, main) {
     const ambiguous = [...definitions].filter(([, places]) => places.length > 1);
@@ -240,12 +240,12 @@ function narrowToAssembled(definitions, beebasm, workDir, runDir, buildDir, main
     }
     const marked = (inWork) => path.join(markedDir, path.relative(workDir, inWork));
     const markedBuild = path.join(buildDir, MarkedBuild);
-    mkdirSync(markedBuild);
+    mkdirSync(markedBuild, { recursive: true });
     const { stdout } = runWrapped(beebasm, markedDir, marked(runDir), markedBuild, marked(main), []);
     const assembled = new Set([...stdout.matchAll(AssembledPlace)].map(([, place]) => place));
     for (const [name, places] of ambiguous) {
         const kept = places.filter((place) => assembled.has(place));
-        if (kept.length) definitions.set(name, kept);
+        definitions.set(name, kept);
     }
 }
 

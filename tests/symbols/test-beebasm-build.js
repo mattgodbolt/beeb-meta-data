@@ -42,13 +42,13 @@ echo "Saving file 'out/PROG'"
 if grep -q ', ptr$' "$wrapper"; then echo "${PrintPrefix}:ptr:112 "; fi
 `;
 
-// Acts as beebasm would on a source whose IF 0 ... ELSE skips the lines between: PRINTs the importer's place
+// Acts as beebasm would on a source whose IF 0 skips the lines up to its ELSE or ENDIF: PRINTs the importer's place
 // marks on every other line.
 const IfStubBeebasm = `#!/bin/sh
 if [ "$1" = "--help" ]; then echo "beebasm 1.11"; exit 0; fi
 echo "Including file src/main.asm" >&2
 echo "[{'.start':6400L}]" > "$6"
-awk '/^IF 0/ { skip = 1 } /^ELSE/ { skip = 0 } !skip' src/main.asm | grep -o '${PlacePrefix}:[^"]*' || true
+awk '/^IF 0/ { skip = 1 } /^(ELSE|ENDIF)/ { skip = 0 } !skip' src/main.asm | grep -o '${PlacePrefix}:[^"]*' || true
 `;
 
 const DiscBytes = 2560;
@@ -134,31 +134,24 @@ describe("a beebasm build", () => {
                 ["start", ["src/main.asm#L5"]],
             ]),
         );
+        expect(existsSync(path.join(dir, "build", "marked"))).toBe(false);
     });
-});
 
-describe("a beebasm build with a name defined in an IF and its ELSE", () => {
-    let dir;
-    beforeEach(() => {
-        dir = mkdtempSync(path.join(tmpdir(), "symbols-beebasm-test-"));
-    });
-    afterEach(() => rmSync(dir, { recursive: true, force: true }));
-
-    it("keeps the place beebasm assembles, from a marked copy that leaves the checkout's copy alone", () => {
+    it("keeps the place beebasm assembles of a name an IF and its ELSE define, leaving the work copy unmarked", () => {
         const work = path.join(dir, "work");
         mkdirSync(path.join(work, "src"), { recursive: true });
-        const source = ".start\nIF 0\n.dup RTS\nELSE\n.dup NOP ; taken\nENDIF\n.once\n.twice\n.twice\n";
+        const source =
+            ".start\nIF 0\n.dup RTS\nELSE\n.dup NOP ; taken\nENDIF\n.once\n.twice\n.twice\nIF 0\n.gone\n.gone\nENDIF\n";
         writeFileSync(path.join(work, "src", "main.asm"), source);
-        const beebasm = path.join(dir, "beebasm");
-        writeFileSync(beebasm, IfStubBeebasm);
-        chmodSync(beebasm, 0o755);
-        const made = assemble({ source: { assemble: "src/main.asm" } }, work, path.join(dir, "build"), beebasm);
+        const config = { source: { assemble: "src/main.asm" } };
+        const made = assemble(config, work, path.join(dir, "build"), stub("beebasm", IfStubBeebasm));
         expect(made.definitions).toEqual(
             new Map([
                 ["start", ["src/main.asm#L1"]],
                 ["dup", ["src/main.asm#L5"]],
                 ["once", ["src/main.asm#L7"]],
                 ["twice", ["src/main.asm#L8", "src/main.asm#L9"]],
+                ["gone", []],
             ]),
         );
         expect(readFileSync(path.join(work, "src", "main.asm"), "latin1")).toBe(source);

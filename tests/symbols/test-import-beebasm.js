@@ -218,8 +218,8 @@ describe("savedStart", () => {
         expect(savedStart("F", Uint8Array.from([1, 2, 3, 4]), [...skips, ...inMemory], [])).toBe(0x2000);
     });
 
-    it("refuses a file that agrees with nothing, or that could start in more than one place", () => {
-        expect(() => savedStart("F", Uint8Array.from([9, 9]), inMemory, [])).toThrow("F agrees with no statement");
+    it("is null for a file that agrees with nothing, and refuses one that could start in more than one place", () => {
+        expect(savedStart("F", Uint8Array.from([9, 9]), inMemory, [])).toBeNull();
         const repeated = [statement(0x2000, [1, 2]), statement(0x2002, [1, 2])];
         expect(() => savedStart("F", Uint8Array.from([1, 2]), repeated, [])).toThrow("could start at any of");
     });
