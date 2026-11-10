@@ -120,8 +120,9 @@ export function definitionsIn(text) {
 }
 
 /**
- * `text` with a PRINT of `PlacePrefix:place#L<line>` at the end of the code on each of `lines` (from 1), before
- * its comment, so that the output of a run of beebasm says which of those lines it assembled.
+ * `text` with a PRINT of `PlacePrefix:place#L<line>` after each statement that defines a name on each of `lines`
+ * (from 1), so that the output of a run of beebasm says which of those lines it assembled, even where an IF on the
+ * line itself skips the definition.
  */
 export function markedSource(text, lines, place) {
     const marked = new Set(lines);
@@ -131,9 +132,11 @@ export function markedSource(text, lines, place) {
             if (!marked.has(i + 1)) return line;
             const blanked = line.replace(QuotedOrCharacter, (quoted) => " ".repeat(quoted.length));
             const comment = blanked.search(CommentStart);
-            const end = comment < 0 ? line.length : comment;
+            const code = comment < 0 ? blanked : blanked.slice(0, comment);
             const print = `:PRINT "${PlacePrefix}:${place.replaceAll('"', '""')}#L${i + 1}"`;
-            return `${line.slice(0, end)}${print}${line.slice(end)}`;
+            const ends = [...code.matchAll(/:/g)].map(({ index }) => index).concat(code.length);
+            const after = ends.filter((end, j) => Definition.test(code.slice(j ? ends[j - 1] + 1 : 0, end)));
+            return after.reduceRight((out, end) => `${out.slice(0, end)}${print}${out.slice(end)}`, line);
         })
         .join("\n");
 }

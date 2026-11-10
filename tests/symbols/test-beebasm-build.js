@@ -166,13 +166,21 @@ describe("a beebasm build with a name defined in an IF and its ELSE", () => {
 });
 
 describe("markedSource", () => {
-    it("PRINTs a line's place at the end of its code, before its comment, outside strings", () => {
-        const text = ['.a RTS ; "a;b"', '.b EQUS "x;y\\z" \\ note', ".c", ".d"].join("\r\n");
-        expect(markedSource(text, [1, 2, 4], 'src/q"t.asm').split("\n")).toEqual([
-            `.a RTS :PRINT "${PlacePrefix}:src/q""t.asm#L1"; "a;b"`,
-            `.b EQUS "x;y\\z" :PRINT "${PlacePrefix}:src/q""t.asm#L2"\\ note`,
+    it("PRINTs a line's place after each statement on it that defines a name, outside strings and comments", () => {
+        const text = [
+            '.a RTS ; "a;b"',
+            '.b EQUS "x;y\\\\z" \\\\ note',
             ".c",
-            `.d:PRINT "${PlacePrefix}:src/q""t.asm#L4"`,
+            ".d",
+            "IF 0 : .e NOP : ENDIF : f = 1",
+        ].join("\r\n");
+        const print = (line) => `:PRINT "${PlacePrefix}:src/q""t.asm#L${line}"`;
+        expect(markedSource(text, [1, 2, 4, 5], 'src/q"t.asm').split("\n")).toEqual([
+            `.a RTS ${print(1)}; "a;b"`,
+            `.b EQUS "x;y\\\\z" ${print(2)}\\\\ note`,
+            ".c",
+            `.d${print(4)}`,
+            `IF 0 : .e NOP ${print(5)}: ENDIF : f = 1${print(5)}`,
         ]);
     });
 });
