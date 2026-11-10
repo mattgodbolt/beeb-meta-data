@@ -3,7 +3,8 @@
 import { runScript, runSeconds } from "../../tools/symbols/check-memory.js";
 
 const PlottingSecs = 2;
-const DoneSecs = 60;
+// cnt_hi's start: the dot loop reaches `hang` each time cnt_lo wraps, and stays there on the last.
+const DotLoopWraps = 8;
 
 const Intro = ["intro/code"];
 
@@ -15,7 +16,7 @@ export const scenarios = {
         check("the dot loop starting", Intro);
         await runSeconds(session, PlottingSecs);
         check("plotting", Intro);
-        await session.runUntilAddress(address("intro", "code", "hang"), DoneSecs);
+        for (let wrap = 0; wrap < DotLoopWraps; wrap++) await session.runUntilAddress(address("intro", "code", "hang"));
         check("the picture done", Intro);
         await runScript(session, ["shot done"], { shots });
     },

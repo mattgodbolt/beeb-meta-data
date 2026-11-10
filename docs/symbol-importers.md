@@ -657,8 +657,7 @@ builds. The in-memory check watches the picture scroll down and back, then scrol
 
 `symbols/configs/stipple-256.json` makes one set, `intro`, from [stipple-256](https://github.com/kieranhj/stipple-256),
 Kieran Connell's 256-byte intro for the Master: one region over MONASTP, the whole intro, with its zero page as
-globals. The repository's `bbc/stipple256.ssd` is what the source builds; `bbc/stipple.ssd`, the 4 KB player it was cut
-down from, has no set. The in-memory check runs it on a Master until the picture is done.
+globals. The repository's `bbc/stipple256.ssd` is what the source builds, and `bbc/stipple.ssd` and the release disc, `submission/mona-stipple.ssd`, hold the same MONASTP; STIPPLE, the 4 KB player it was cut down from, has no set. The in-memory check runs it on a Master until the picture is done.
 
 ## level7's disassemblies
 
