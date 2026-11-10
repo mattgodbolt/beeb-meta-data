@@ -280,7 +280,7 @@ Names and anchors come out much as for baron, with these differences.
 - An OS block is an `LDX #lo` beside an `LDY #hi` that make a label's address.
 - The original disc's files, where its catalogue loads them, are among the images the anchors are chosen to tell
   apart.
-- Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`, `.^name`) or with `=`,
+- Each name's place is the line of an INCLUDEd file that defines it, as a label (`.name`, or `.^name`, which keeps its braces' scope as beebasm's label dump does) or with `=`,
   outside strings and comments. A scoped name (`start.loop`) is found by following the braces, else by its last part.
   Where more than one line defines a name, beebasm runs again on a copy of the source with a PRINT after each
   definition on those lines, and the name keeps the lines that printed, so a name an IF and its ELSE both define is
