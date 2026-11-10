@@ -1933,6 +1933,24 @@
       }
     },
     {
+      "url": "sets/nula-gallery-gallery.json",
+      "licence": "MIT",
+      "regions": {
+        "code": {
+          "start": "0x1400",
+          "end": "0x204d",
+          "minAnchors": 5,
+          "anchors": [
+            { "at": "0x190b", "bytes": "ad0a19608e0719" },
+            { "at": "0x1980", "bytes": "ad7419186908" },
+            { "at": "0x1b28", "bytes": "a003be951b209d1b" },
+            { "at": "0x1d8f", "bytes": "08090a0b0c00" },
+            { "at": "0x1edd", "bytes": "60a50cd00320581e" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/omega-orb-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

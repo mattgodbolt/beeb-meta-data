@@ -683,6 +683,15 @@ so the importer can't place them and they have no region; the teletext page, Pag
 `beebstep.ssd` is what the source builds. The in-memory check runs it on a Master, for its sideways RAM, while it loads
 the tune and as the effects play.
 
+## VideoNuLA Gallery
+
+`symbols/configs/nula-gallery.json` makes one set, `gallery`, from [bbc-nula](https://github.com/bitshifters/bbc-nula),
+Simon M's slide show for the VideoNuLA palette board: one region over !Boot, the gallery program each volume's disc
+runs, up to the logo it INCBINs. The three volumes assemble the same program with a different list of pictures, and
+the config builds volume 1, whose `bbcnula1.ssd` is what the source builds, as is volume 2's !Boot. Volume 3's disc
+holds an older build of it, which the set doesn't name. The in-memory check runs each volume on a Master, for its
+sideways and shadow RAM.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't
