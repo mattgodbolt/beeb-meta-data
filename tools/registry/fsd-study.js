@@ -23,7 +23,7 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { IbmDiscFormat } from "jsbeeb/src/disc.js";
+import { IbmDiscFormat } from "jsbeeb/src/disc-format.js";
 import { addCopy, fingerprint, fluxSideBytes, inFingerprintOrder, loadFlux, trimFill } from "./fingerprint.js";
 import { describeFsdError, fsdSideBytes, parseFsd } from "./fsd.js";
 

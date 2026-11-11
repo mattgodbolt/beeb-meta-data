@@ -3,7 +3,7 @@
 // with jsbeeb's own disc code and turned back into the same bytes first.
 
 import { createHash } from "node:crypto";
-import { IbmDiscFormat } from "jsbeeb/src/disc.js";
+import { IbmDiscFormat } from "jsbeeb/src/disc-format.js";
 import { discFor } from "jsbeeb/src/fdc.js";
 
 export const SectorSize = 256;
