@@ -7,7 +7,7 @@
 // sector is its ID (track, head, sector, size code) and, on a readable track, the size
 // code of what was actually read, an error code, and that many bytes.
 
-import { IbmDiscFormat } from "jsbeeb/src/disc.js";
+import { IbmDiscFormat } from "jsbeeb/src/disc-format.js";
 import { addCopy, inFingerprintOrder, repeatedIds } from "./fingerprint.js";
 
 export const FsdError = {

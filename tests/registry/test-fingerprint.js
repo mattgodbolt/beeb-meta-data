@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Disc, DiscConfig, IbmDiscFormat } from "jsbeeb/src/disc.js";
+import { Disc, DiscConfig } from "jsbeeb/src/disc.js";
+import { IbmDiscFormat } from "jsbeeb/src/disc-format.js";
 import { discFor } from "jsbeeb/src/fdc.js";
 import { dfsCatalogue } from "../../tools/registry/dfs.js";
 import {

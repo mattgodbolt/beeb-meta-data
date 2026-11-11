@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { environmentWithoutGit } from "../../tools/symbols/baron-build.js";
 import {
     attempt,
     exitCode,
@@ -22,6 +23,7 @@ const commits = {};
 const git = (...args) =>
     execFileSync("git", ["-C", repository, "-c", "user.name=t", "-c", "user.email=t@example.com", ...args], {
         encoding: "utf8",
+        env: environmentWithoutGit(),
     }).trim();
 
 function commit(name, files) {
