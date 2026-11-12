@@ -786,16 +786,15 @@ game's turn times out stops the typing early.
 
 Monsters, Cyborg Warriors, Kix, Frak, Zalaga, Dare Devil Denis, Bug Eyes II, Omega Orb, Myorem, Project Thesius, The
 Last Ninja, The Sentinel, Contraption, Skirmish, Elixir, Future Shock, Kissin' Kousins, Eagle's Wing, Nightshade, Sabre
-Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR,
-Robotron 2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee, Exile, 3D Pool, Atic Atac,
-Bonecruncher, Castle Quest, Citadel, Codename Droid, Doctor Who and the Mines of Terror, Doctor Who and the Warlord,
-Escape from Enthar Seven, Firetrack, Fortress, Killer Gorilla, Knight Lore, Lode Runner, Moon Raider, Palace of Magic,
-Ravenskull, Rick Hanson, Shark, Sim, Space Agent Zelda Meets the Bug Eyes, Space Hi-way, Spy Hunter, Star Wars,
-Starquake, Stryker's Run, The Hunt, The Way of the Exploding Fist, Vindaloo, Quest, Spellbinder and Warlord were added
-that way, with Hopper, Super
-Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus check
-meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last Ninja 2's
-disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
+Wulf, Sphere of Destiny, Psycastria, Wizadore, Twin Kingdom Valley, Yie Ar Kung Fu, By Fair Means or Foul, XOR, Robotron
+2084, Jet Set Willy, Boffin, Spy vs Spy, Impossible Mission, Bruce Lee, Exile, 3D Pool, Atic Atac, Bonecruncher, Castle
+Quest, Citadel, Codename Droid, Doctor Who and the Mines of Terror, Doctor Who and the Warlord, Escape from Enthar
+Seven, Firetrack, Fortress, Killer Gorilla, Knight Lore, Lode Runner, Moon Raider, Palace of Magic, Ravenskull, Rick
+Hanson, Shark, Sim, Space Agent Zelda Meets the Bug Eyes, Space Hi-way, Spy Hunter, Star Wars, Starquake, Stryker's Run,
+The Hunt, The Way of the Exploding Fist, Vindaloo, Quest, Spellbinder and Warlord were added that way, with Hopper,
+Super Invaders, Arcadians, Starship Command and Syncron before them. Where a set's file loads where it runs, the corpus
+check meets it on its own disc, its cheat discs and compilations (Fab Four, Smash 7, the Rick Hanson Trilogy). Last
+Ninja 2's disc holds the half of The Last Ninja's `page9` that is pixel tables, identically, so that region's anchor
 `avoid`s that half and sits in the weapon tables, which Last Ninja 2 doesn't share. Zalaga has no region for its
 run-once loader, which a cheat disc patches by a tenth while keeping its anchors.
 
@@ -809,18 +808,18 @@ disc version has moved, so that part (`page4`) is checked on the tape, and the d
 Enthar Seven's added code begins with Rick Hanson's, byte for byte, so its anchor `avoid`s that.
 
 Spellbinder's loader asks for five keys and then "ARE YOU SURE ? (Y/N)", which takes a key still held from the fifth as
-N and starts again, so its check presses the fifth briefly (`RETURN:0.1`) and then Y. Its `page3` is the code that
-moves the screen into place, which the loader copies there with an indexed store, so the set names that copy in
-`moves`; the text and sprites after it are left out, since the file's sprite labels carry a word after the name
+N and starts again, so its check presses the fifth briefly (`RETURN:0.1`) and then Y. Its `page3` is the code that moves
+the screen into place, which the loader copies there with an indexed store, so the set names that copy in `moves`; the
+text and sprites after it are left out, since the file's sprite labels carry a word after the name
 (`; enemy_4_frame_0_sprite WATCHER`), which `level7-text.js` doesn't read as a label, and the `unused` label before
 them then covers them all.
 
 Warlord's file is of the two Acorn User discs, August's with overlays 1 to 3 and September's with 4 to 6. Stairway to
-Hell has only August's (its Games Disc, on the second side), so the config boots that, from the disc's menu, and has a set for
-each of its overlays, which all load at &1B00. `W.I1` holds a copy of overlay 1 that differs from `W.S1` only where
-both are `unused`, so `overlay1` is two regions that leave those out and match either. The check walks to the western
-gatehouse for overlay 2 and back for overlay 1, then sets `cubix_state` (&04B6) to 2 and walks into the Cubix for
-overlay 3: opening it fairly takes most of the first part of the game.
+Hell has only August's (its Games Disc, on the second side), so the config boots that, from the disc's menu, and has a
+set for each of its overlays, which all load at &1B00. `W.I1` holds a copy of overlay 1 that differs from `W.S1` only
+where both are `unused`, so `overlay1` is two regions that leave those out and match either. The check walks to the
+western gatehouse for overlay 2 and back for overlay 1, then sets `cubix_state` (&04B6) to 2 and walks into the Cubix
+for overlay 3: opening it fairly takes most of the first part of the game.
 
 In the first five, each `main` stops where the screen starts, and run-once loader code (Hopper's `startup`, Arcadians'
 `relocate`, Starship Command's `entry`) has a region of its own. Arcadians' main leaves out the pieces the file lists
