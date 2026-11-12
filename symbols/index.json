@@ -2390,6 +2390,29 @@
       }
     },
     {
+      "url": "sets/quest-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page1": {
+          "start": "0x0100",
+          "end": "0x01b0",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0168", "bytes": "875e414e4b2c" }]
+        },
+        "main": {
+          "start": "0x0400",
+          "end": "0x4180",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x0780", "bytes": "a90b8dfd378d8938" },
+            { "at": "0x1361", "bytes": "60a208e000f0f9" },
+            { "at": "0x2352", "bytes": "a50bf00320882b" },
+            { "at": "0x3245", "bytes": "a22fbd80099d0009" }
+          ]
+        }
+      }
+    },
+    {
       "url": "sets/ravenskull-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
@@ -2666,6 +2689,44 @@
             { "at": "0x16e8", "bytes": "dd3c09d039a001" },
             { "at": "0x1f03", "bytes": "ca30034c331e" },
             { "at": "0x2ce6", "bytes": "140104151602" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/spellbinder-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page1": {
+          "start": "0x0110",
+          "end": "0x019c",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0195", "bytes": "2f5350422e35" }]
+        },
+        "page3": {
+          "start": "0x0380",
+          "end": "0x03bc",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x03b2", "bytes": "bd80089dc057" }]
+        },
+        "main": {
+          "start": "0x08c0",
+          "end": "0x5800",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x098b", "bytes": "bd1657998e00" },
+            { "at": "0x1ca1", "bytes": "a90160a598c913" },
+            { "at": "0x3300", "bytes": "ae7634e8e007" },
+            { "at": "0x461c", "bytes": "20ce33a9008dd21b" }
+          ]
+        },
+        "text_strings": {
+          "start": "0x7740",
+          "end": "0x8000",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x7740", "bytes": "00004255524e" },
+            { "at": "0x7ba1", "bytes": "4245440d534f" }
           ]
         }
       }
@@ -3120,6 +3181,95 @@
             { "at": "0x13e0", "bytes": "f0f3f5b2d5a2" },
             { "at": "0x1bf4", "bytes": "a9018d2f1dad371d" },
             { "at": "0x25bb", "bytes": "a900856b8d6523" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/warlord-game.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "page8": {
+          "start": "0x0840",
+          "end": "0x0b00",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0840", "bytes": "532e5761722d" }]
+        },
+        "low": {
+          "start": "0x1100",
+          "end": "0x1b00",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x1106", "bytes": "ad800420b812" },
+            { "at": "0x1603", "bytes": "a900aaa09020bf12" }
+          ]
+        },
+        "high": {
+          "start": "0x3c00",
+          "end": "0x7c00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x3c09", "bytes": "0d34fcea5005" },
+            { "at": "0x4c0c", "bytes": "c1029856010e" },
+            { "at": "0x5c00", "bytes": "138204190735" },
+            { "at": "0x7ac0", "bytes": "000102030409" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/warlord-overlay1.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "descriptions": {
+          "start": "0x1b00",
+          "end": "0x25b1",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x1b01", "bytes": "00c7010d2f10" },
+            { "at": "0x2071", "bytes": "0d4243d93990" }
+          ]
+        },
+        "actions": {
+          "start": "0x2b00",
+          "end": "0x3981",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x2b01", "bytes": "0087010f4420" },
+            { "at": "0x32a2", "bytes": "cc26010d46fa" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/warlord-overlay2.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1b00",
+          "end": "0x3b00",
+          "minAnchors": 4,
+          "anchors": [
+            { "at": "0x1b00", "bytes": "cf010d424373" },
+            { "at": "0x230f", "bytes": "1c2d0d426dda" },
+            { "at": "0x2c11", "bytes": "8810010d4223" },
+            { "at": "0x33b9", "bytes": "863f9e3e8806" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/warlord-overlay3.json",
+      "licence": "LicenseRef-level7-educational",
+      "regions": {
+        "main": {
+          "start": "0x1b00",
+          "end": "0x3b00",
+          "minAnchors": 3,
+          "anchors": [
+            { "at": "0x1b00", "bytes": "0d426dda3946" },
+            { "at": "0x2b00", "bytes": "cc4401880802" },
+            { "at": "0x340f", "bytes": "444694460701" }
           ]
         }
       }
