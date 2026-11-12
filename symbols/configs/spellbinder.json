@@ -1,0 +1,66 @@
+{
+  "importer": "level7",
+  "id": "spellbinder",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/spellbinder-disassembly.txt",
+    "sha256": "5cd8deb800e384cde9d9a6371bf62bb88937fa65e65363f2d41291b0a7639590"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Spellbinder.zip",
+    "image": "Superior/Spellbinder.ssd",
+    "key": "f21d4ca57e90c43f1d127d4ec1f86ad1"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "spellbinder-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Spellbinder",
+      "moves": ["move_relocate_data_loop"],
+      "regions": [
+        { "name": "page1", "from": "&0110", "to": "&019C" },
+        { "name": "page3", "from": "&0380", "to": "&03BC" },
+        {
+          "name": "main",
+          "part": "Disassembly",
+          "from": "&08C0",
+          "to": "&5800",
+          "avoid": [
+            ["&1BD1", "&1BD2"],
+            ["&3339", "&3342"],
+            ["&348D", "&348E"],
+            ["&3CBA", "&3CBF"],
+            ["&3CF9", "&3CFA"],
+            ["&3EA8", "&3EAB"],
+            ["&4308", "&4318"],
+            ["&4C01", "&4C05"],
+            ["&4C2A", "&4C2B"],
+            ["&4C51", "&4C61"],
+            ["&4CCE", "&4CCF"],
+            ["&4D30", "&4D33"],
+            ["&4D6E", "&4D75"],
+            ["&4DAB", "&4DAF"],
+            ["&4E6A", "&4E6B"],
+            ["&4E9B", "&4EA3"],
+            ["&4EEA", "&4EEB"],
+            ["&4F24", "&4F25"],
+            ["&51DE", "&51EE"],
+            ["&53FE", "&53FF"]
+          ]
+        },
+        {
+          "name": "text_strings",
+          "from": "&7740",
+          "to": "&8000",
+          "avoid": [
+            ["&7AAA", "&7ABA"],
+            ["&7B58", "&7B82"],
+            ["&7F98", "&7F9B"]
+          ]
+        }
+      ]
+    }
+  ]
+}

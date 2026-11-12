@@ -1,0 +1,68 @@
+{
+  "importer": "level7",
+  "id": "quest",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/quest-disassembly.txt",
+    "sha256": "95a600f7231ff5dca25ec8eff43fbe7a3ce324a47e0c563da3cbdd2f57d88749"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/Superior/Quest.zip",
+    "image": "Superior/Quest.ssd",
+    "key": "fab85cf839dd95b0873f525da058b15d"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "quest-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Quest",
+      "regions": [
+        { "name": "page1", "part": "Game disassembly", "from": "&0100", "to": "&01B0" },
+        {
+          "name": "main",
+          "part": "Game disassembly",
+          "from": "&0400",
+          "to": "&4180",
+          "avoid": [
+            ["&0400", "&0401"],
+            ["&0810", "&0860"],
+            ["&0903", "&0904"],
+            ["&092C", "&0930"],
+            ["&09D3", "&09E9"],
+            ["&0B60", "&0B6F"],
+            ["&121D", "&124B"],
+            ["&17C7", "&17D0"],
+            ["&1A58", "&1A6C"],
+            ["&2226", "&2233"],
+            ["&32A0", "&32A7"],
+            ["&37FC", "&37FE"],
+            ["&3842", "&3843"],
+            ["&3888", "&388A"],
+            ["&390C", "&3913"],
+            ["&3945", "&3946"],
+            ["&397A", "&3984"],
+            ["&39D5", "&39DB"],
+            ["&3A11", "&3A12"],
+            ["&3A72", "&3A73"],
+            ["&3A87", "&3A96"],
+            ["&3AAF", "&3AB0"],
+            ["&3AC2", "&3ACC"],
+            ["&3AFC", "&3AFD"],
+            ["&3B6A", "&3B76"],
+            ["&3BFC", "&3BFD"],
+            ["&3C29", "&3C2A"],
+            ["&3C5E", "&3C60"],
+            ["&3C90", "&3CAF"],
+            ["&3CC1", "&3CDF"],
+            ["&3CF1", "&3DAF"],
+            ["&3F70", "&3F9F"],
+            ["&3FB0", "&402F"],
+            ["&4072", "&416E"]
+          ]
+        }
+      ]
+    }
+  ]
+}

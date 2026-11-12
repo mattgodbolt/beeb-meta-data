@@ -1,0 +1,86 @@
+{
+  "importer": "level7",
+  "id": "warlord",
+  "name": "Warlord",
+  "licence": "LicenseRef-level7-educational",
+  "source": {
+    "disassembly": "https://www.level7.org.uk/miscellany/warlord-disassembly.txt",
+    "sha256": "568bd6349c62096a929beb152736d5644c7907a86fa5ac07c2fbbd3a7f36268e"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/AcornUser/GamesDisc-AcornUser.zip",
+    "image": "AcornUser/GamesDisc-AcornUser.dsd",
+    "key": "919c34a754c8f36e3e0302a013c6322d"
+  },
+  "bytesPerAnchor": 2048,
+  "spreadAnchors": 4,
+  "check": "warlord-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Warlord",
+      "regions": [
+        {
+          "name": "page8",
+          "part": "W.I2",
+          "from": "&0840",
+          "to": "&0B00"
+        },
+        {
+          "name": "low",
+          "part": "W.I1",
+          "from": "&1100",
+          "to": "&1B00"
+        },
+        {
+          "name": "high",
+          "part": "W.I1",
+          "from": "&3C00",
+          "to": "&7C00"
+        }
+      ]
+    },
+    {
+      "id": "overlay1",
+      "title": "Warlord, overlay 1",
+      "regions": [
+        {
+          "name": "descriptions",
+          "part": "W.I1",
+          "from": "&1B00",
+          "to": "&25B1"
+        },
+        {
+          "name": "actions",
+          "part": "W.I1",
+          "from": "&2B00",
+          "to": "&3981"
+        }
+      ]
+    },
+    {
+      "id": "overlay2",
+      "title": "Warlord, overlay 2",
+      "regions": [
+        {
+          "name": "main",
+          "part": "W.S2",
+          "from": "&1B00",
+          "to": "&3B00"
+        }
+      ]
+    },
+    {
+      "id": "overlay3",
+      "title": "Warlord, overlay 3",
+      "regions": [
+        {
+          "name": "main",
+          "part": "W.S3",
+          "from": "&1B00",
+          "to": "&3B00"
+        }
+      ]
+    }
+  ]
+}
