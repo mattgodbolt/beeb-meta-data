@@ -50,7 +50,8 @@ by the mirror's directory (`.registry-corpus/sth-disc`).
 1. Find a source you can use. It needs a licence that allows reuse (not the GPL; see "Licensing" in [the design
    notes](media-registry-design-notes.md#licensing)), and you need to know whose names they are. Read the source's own
    import tools and history, not just its LICENSE: acornaeology's ADFS names were seeded partly from an
-   unlicensed disassembly, in ways its history can't separate, which is why there's no ADFS set.
+   unlicensed disassembly, in ways its history can't separate, which is why there's no ADFS set. Mark Moxon's repositories are a flat no, with the reason in
+   [the design notes](media-registry-design-notes.md#licensing).
 2. Find the bytes to check against. A disc in Stairway to Hell's archive (`.registry-corpus/sth-disc`), a ROM jsbeeb
    ships, or a ROM pinned by URL and key. `node tools/symbols/image-entry.js sth-disc/<path>.zip` prints a disc's
    `disc` entry for the config (its URL, image and key) and each file with where it loads and runs; `sth-tape/...`

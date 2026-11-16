@@ -405,6 +405,10 @@ software lists are CC0 and can be used directly, TOSEC's names and hashes are fa
 and any database without a stated licence is asked first and linked to meanwhile. Whether we mirror a disc
 image is a separate decision about that image.
 
+Mark Moxon's source-code repositories (bbcelite.com's Elite, Revs, Aviator, The Sentinel and Lander) can't be used
+for sets, stored or linked. His Revs README says there is intentionally no licence, and he has made clear elsewhere
+that his work can't be reused. The same goes for anything built on it.
+
 Acorn's documented interface (the MOS's entry points, vectors and workspace, as documented for programmers) is
 a published interface rather than anyone's disassembly, so sets of it can be ours from the start. We treat
 Acorn's ROMs and the sources Acorn has published (OS 1.20, BASIC 4 and DNFS 3.00) as effectively in the public
