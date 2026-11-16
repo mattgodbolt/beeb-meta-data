@@ -3,7 +3,7 @@
   "licence": "MIT",
   "source": {
     "repository": "https://github.com/acornaeology/bbc-basic",
-    "commit": "57b291c7fdfefc933c1a3f52dd97bac3de2ce06a",
+    "commit": "8a9e895c0253e2b271371320e1aa175ac79aa4d3",
     "licenceFile": "LICENSE"
   },
   "globals": [
