@@ -153,7 +153,7 @@ export function beebasmBuild({ listing, dump, saved, names, operandNames, defini
         }
         files.set(file, savedFile(file, data, start, inMemory, listedBefore, statements));
     }
-    return { files, unplaced, labels, constants, operandNames, definitions };
+    return { files, unplaced, labels, statements, constants, operandNames, definitions };
 }
 
 /** One saved file: where it runs, its bytes, and its statements and labels. */
@@ -190,6 +190,31 @@ function savedFile(name, data, start, inMemory, labels, allStatements) {
         };
     });
     return file;
+}
+
+/**
+ * The statements of a block assembled at its run address and copied into a saved file (`copyblock`),
+ * which the listing doesn't show and a CLEAR then evicts: those listed around the label `order` at
+ * `[start, end)`, in rising addresses, from where the run before it stops rising or leaves the range.
+ */
+function blockStatements(statements, order, start, end) {
+    const next = statements.findIndex((statement) => statement.order > order);
+    const after = next === -1 ? statements.length : next;
+    let first = after;
+    while (
+        first > 0 &&
+        statements[first - 1].address >= start &&
+        (first === after || statements[first - 1].address < statements[first].address)
+    )
+        first--;
+    let last = after;
+    while (
+        last < statements.length &&
+        statements[last].address < end &&
+        statements[last].address > statements[last - 1].address
+    )
+        last++;
+    return statements.slice(first, last);
 }
 
 /**
@@ -239,6 +264,7 @@ class Importer {
         this.errors = [];
         this.notes = [];
         this.reasons = [];
+        this.blocks = new Map();
         this.labelAddresses = new Set(build.labels.map(({ address }) => address));
         this.written = new Map(build.labels.map(({ name, written }) => [name, written]));
         const saved = new Set([...build.files.values()].flatMap((file) => file.labels));
@@ -282,11 +308,57 @@ class Importer {
         throw new Error(this.build.unplaced.get(name) ?? `Nothing is saved as ${name}`);
     }
 
+    /**
+     * A block a saved file holds where it loads but its loader copies to `runsAt` to run, as a file of its
+     * own there: the bytes from `from` to `to` in the saved file, with the statements and labels the source
+     * assembled at `runsAt` around the label `block`, any label in it.
+     */
+    relocated(regionSpec, find) {
+        const source = this.file(regionSpec.file);
+        const [from, to, runsAt] = ["from", "to", "runsAt"].map((key) => {
+            if (regionSpec[key] === undefined) throw new Error(`${regionSpec.name}: a relocated region needs ${key}`);
+            return evaluate(regionSpec[key], find);
+        });
+        const key = `${source.name}:${from}-${to}@${runsAt}:${regionSpec.block}`;
+        if (this.blocks.has(key)) return this.blocks.get(key);
+        if (from < source.start || to > source.end || from >= to)
+            throw new Error(`${regionSpec.name}: ${hex(from)}-${hex(to)} isn't inside ${source.name}`);
+        const first = this.build.labels.find((l) => !l.internal && l.name === regionSpec.block);
+        if (!first) throw new Error(`${regionSpec.name}: no label ${regionSpec.block} to start its block at`);
+        const end = runsAt + (to - from);
+        const data = source.data.subarray(from - source.start, to - source.start);
+        const statements = blockStatements(this.build.statements, first.order, runsAt, end);
+        if (!statements.every((statement) => agrees(statement, data, runsAt)))
+            throw new Error(`${regionSpec.name}: ${regionSpec.block}'s statements differ from ${source.name}`);
+        const before = this.build.statements.indexOf(statements[0]) - 1;
+        const firstOrder = before >= 0 ? this.build.statements[before].order + 1 : 0;
+        const lastOrder = Math.max(first.order, statements.at(-1)?.order ?? first.order);
+        const labels = this.build.labels.filter(
+            (l) => l.order >= firstOrder && l.order <= lastOrder && l.address >= runsAt && l.address < end,
+        );
+        const file = savedFile(
+            `${source.name}@${hex(runsAt)}`,
+            data,
+            runsAt,
+            statements,
+            labels,
+            this.build.statements,
+        );
+        this.images.push({
+            name: `file ${file.name}`,
+            memory: new Map([...data].map((byte, i) => [runsAt + i, byte])),
+            program: true,
+        });
+        this.blocks.set(key, file);
+        return file;
+    }
+
     region(spec, regionSpec) {
-        const file = this.file(regionSpec.file);
         const find = (name) => this.lookup(name);
-        const start = regionSpec.from === undefined ? file.start : evaluate(regionSpec.from, find);
-        const end = regionSpec.to === undefined ? file.end : evaluate(regionSpec.to, find);
+        const relocated = regionSpec.runsAt !== undefined;
+        const file = relocated ? this.relocated(regionSpec, find) : this.file(regionSpec.file);
+        const start = relocated || regionSpec.from === undefined ? file.start : evaluate(regionSpec.from, find);
+        const end = relocated || regionSpec.to === undefined ? file.end : evaluate(regionSpec.to, find);
         if (start < file.start || end > file.end || start >= end)
             throw new Error(`${spec.id}/${regionSpec.name}: ${hex(start)}-${hex(end)} isn't inside ${file.name}`);
         return {
@@ -423,10 +495,19 @@ class Importer {
         const definitions = new Map(every.map((name) => [name, this.placesOf(name)]));
         const places = isOnGitHub(this.config) ? onePlaceEach(spec.id, every, definitions, this.errors) : null;
 
-        const { stores } = storesIn(
-            files.flatMap((file) => file.statements),
-            { tableSizes: new Map(), moves: new Map() },
+        const moves = new Map(
+            (spec.moves ?? []).map((name) => {
+                const address = this.lookup(name);
+                if (address === undefined) throw new Error(`${spec.id}: a move names no label: ${name}`);
+                return [address, null];
+            }),
         );
+        const { stores, used } = storesIn(
+            files.flatMap((file) => file.statements),
+            { tableSizes: new Map(), moves },
+        );
+        const unused = [...moves.keys()].filter((address) => !used.has(address));
+        if (unused.length) throw new Error(`${spec.id}: a move matches no copy loop or store in its regions`);
         const spread = { bytesPerAnchor: this.config.bytesPerAnchor, spreadAnchors: this.config.spreadAnchors };
         for (const region of regions) {
             const { anchors, errors, notes, reasons } = chooseAnchors(region, stores, this.images, spread);

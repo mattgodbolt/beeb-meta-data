@@ -250,8 +250,16 @@ A beebasm title's config differs from a baron title's in a few ways.
   with `from` and `to`. beebasm has no sections; a SAVE writes whatever is in memory between two addresses.
 - `rom`, for a sideways ROM, is `{"file": ...}`, the saved file that is the ROM. Its key is the sets' `madeFrom`, the
   anchors tell it apart from every ROM jsbeeb has, and the in-memory check puts it in sideways RAM.
-- There's no `defines`, `stripScope`, `tableSizes`, `moves`, `globalsSections` or `leftToSystemSets` yet, as nothing
-  has needed them.
+- A region can instead be code the saved file holds where it loads but its loader copies to run, assembled at its run
+  address and copied into the file with `copyblock`, which the listing doesn't show and a CLEAR then evicts. It has
+  `file`, `from` and `to` (where the bytes are in the saved file), `runsAt` (where they run), and `block`, any label
+  in it, which says which of the blocks assembled at that address it is. Its names, statements and anchors are the
+  listing's at `runsAt`, and it is checked against the file's bytes.
+- A set's `moves` are labels of copy loops, as in the baron importer: their indexed stores don't keep anchors off
+  what they copy. Stores are read from the code of the files the set's regions cover, so a loader whose own code
+  isn't in a region keeps nothing off.
+- There's no `defines`, `stripScope`, `tableSizes`, `globalsSections` or `leftToSystemSets` yet, as nothing has
+  needed them.
 
 The build copies the checkout (a SAVE writes wherever its source says) and runs beebasm with `-v -dd -labels` on a
 wrapper that INCLUDEs the main source and then PRINTs each name the sources assign with `=`, since beebasm's dumps

@@ -499,6 +499,84 @@ describe("importBeebasm on a program with workspace it doesn't save, a macro, an
     });
 });
 
+// MAIN at &1900: a loader that copies the block stored at &1A00 to &0800, where it runs. The block was
+// assembled at &0800 and copied into the file (copyblock), so nothing saved lists it.
+const loaderBytes = [0xa2, 0x00, 0xbd, 0x00, 0x1a, 0x9d, 0x00, 0x08, 0xe8, 0xd0, 0xf7, 0x60];
+const blockBytes = [0xa9, 0x05, 0x85, 0x70, 0xa2, 0x10, 0xca, 0xd0, 0xfd, 0xa9, 0x07, 0x85, 0x71, 0x60];
+const mainBytes = [...loaderBytes, ...new Array(0x100 - loaderBytes.length).fill(0), ...blockBytes];
+const blockListing = [
+    ".loader",
+    instruction(0x1900, [0xa2, 0x00], "LDX #&00"),
+    ".copy",
+    instruction(0x1902, [0xbd, 0x00, 0x1a], "LDA &1A00,X"),
+    instruction(0x1905, [0x9d, 0x00, 0x08], "STA &0800,X"),
+    instruction(0x1908, [0xe8], "INX"),
+    instruction(0x1909, [0xd0, 0xf7], "BNE &1902"),
+    instruction(0x190b, [0x60], "RTS"),
+    ".core",
+    instruction(0x0800, [0xa9, 0x05], "LDA #&05"),
+    instruction(0x0802, [0x85, 0x70], "STA &70"),
+    ".core_loop",
+    instruction(0x0804, [0xa2, 0x10], "LDX #&10"),
+    instruction(0x0806, [0xca], "DEX"),
+    instruction(0x0807, [0xd0, 0xfd], "BNE &0806"),
+    instruction(0x0809, [0xa9, 0x07], "LDA #&07"),
+    instruction(0x080b, [0x85, 0x71], "STA &71"),
+    instruction(0x080d, [0x60], "RTS"),
+    "Saving file 'MAIN'",
+].join("\n");
+const blockBuild = () =>
+    beebasmBuild({
+        listing: blockListing,
+        dump: "[{'.loader':6400L,'.copy':6402L,'.core':2048L,'.core_loop':2052L}]",
+        saved: new Map([["MAIN", Uint8Array.from(mainBytes)]]),
+        names: [],
+        operandNames: new Map(),
+        definitions: new Map(),
+    });
+const loaderRegion = { name: "loader", file: "MAIN", from: "&1900", to: "&190c" };
+const relocatedRegion = {
+    name: "core",
+    file: "MAIN",
+    from: "&1a00",
+    to: "&1a0e",
+    runsAt: "&0800",
+    block: "core_loop",
+};
+
+describe("importBeebasm on a block a loader copies to where it runs", () => {
+    const imported = (spec = {}) => {
+        const demo = config([loaderRegion, relocatedRegion]);
+        demo.sets[0] = { ...demo.sets[0], ...spec };
+        return importBeebasm(demo, blockBuild(), { system });
+    };
+
+    it("names the block at its run address from the statements the listing shows there", () => {
+        const { sets, errors } = imported({ moves: ["copy"] });
+        expect(errors).toEqual([]);
+        const { regions } = sets[0].json;
+        expect(regions.loader.symbols).toEqual({ loader: "0x1900", copy: "0x1902" });
+        expect(regions.core.start).toBe("0x0800");
+        expect(regions.core.end).toBe("0x080e");
+        expect(regions.core.symbols).toEqual({ core: "0x0800", core_loop: "0x0804" });
+        expect(regions.core.anchors.every(({ at }) => parseInt(at, 16) < 0x80e)).toBe(true);
+    });
+
+    it("lets a move's copy loop keep the indexed stores that fill the block from vetoing its anchors", () => {
+        expect(imported().errors.length).toBeGreaterThan(0);
+        expect(imported({ moves: ["copy"] }).errors).toEqual([]);
+    });
+
+    it("refuses a move that names no label or matches no loop, and a block whose statements differ", () => {
+        expect(() => imported({ moves: ["nowhere"] })).toThrow(/a move names no label: nowhere/);
+        expect(() => imported({ moves: ["core"] })).toThrow(/matches no copy loop/);
+        const wrong = config([loaderRegion, { ...relocatedRegion, from: "&1a01", to: "&1a0f" }]);
+        expect(() => importBeebasm(wrong, blockBuild(), { system })).toThrow(/isn't inside|differ from/);
+        const missing = config([loaderRegion, { ...relocatedRegion, block: "nothing" }]);
+        expect(() => importBeebasm(missing, blockBuild(), { system })).toThrow(/no label nothing/);
+    });
+});
+
 describe("discFilesOf", () => {
     it("has nothing for a config that names no disc", () => {
         expect(discFilesOf(config(), "/nowhere")).toEqual([]);
