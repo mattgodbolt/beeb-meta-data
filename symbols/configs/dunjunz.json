@@ -1,0 +1,72 @@
+{
+  "id": "dunjunz",
+  "name": "Dunjunz",
+  "licence": "LicenseRef-smallshire-public-domain",
+  "notice": "The names are from acornaeology's Dunjunz disassembly by Robert Smallshire. Dunjunz was written by Julian Avis and is copyright Bug-Byte 1986. Robert Smallshire's statement, at https://stardot.org.uk/forums/viewtopic.php?p=497505#p497505, says: \"The annotations and the revisions mine, but I won't be enforcing any claim over them; consider them to be in the public domain.\" The repository itself has no LICENSE file; its pyproject.toml declares MIT.",
+  "home": "https://github.com/acornaeology/dunjunz",
+  "source": {
+    "repository": "https://github.com/acornaeology/dunjunz",
+    "commit": "900c5ec1358b54de61a8e64e8258d837ba37aa65",
+    "assembler": "beebasm",
+    "assemble": "versions/dunjunz-disc/output/dunjunz-disc.asm",
+    "directory": "versions/dunjunz-disc/output"
+  },
+  "disc": {
+    "url": "https://bbc.xania.org/archive/sth/diskimages/BugByte/Dunjunz.zip",
+    "image": "BugByte/Dunjunz.dsd",
+    "key": "e7c92c2312f39b2e60e736494798c26a"
+  },
+  "bytesPerAnchor": 512,
+  "spreadAnchors": 12,
+  "check": "dunjunz-check.js",
+  "sets": [
+    {
+      "id": "game",
+      "title": "Dunjunz",
+      "regions": [
+        {
+          "name": "upper",
+          "file": "Dun1",
+          "from": "&2000",
+          "to": "&3000"
+        },
+        {
+          "name": "core",
+          "file": "Dun1",
+          "from": "&3000",
+          "to": "&4740",
+          "runsAt": "&08c0",
+          "block": "plot_sprite"
+        },
+        {
+          "name": "images",
+          "file": "Dun1",
+          "from": "&51b0",
+          "to": "&54b5",
+          "runsAt": "&0400",
+          "block": "add_thousand_points"
+        },
+        {
+          "name": "heroes",
+          "file": "Dun1",
+          "from": "&6e80",
+          "to": "&8000"
+        }
+      ]
+    },
+    {
+      "id": "joystick",
+      "title": "Dunjunz (joystick)",
+      "regions": [
+        {
+          "name": "handler",
+          "file": "Dun1",
+          "from": "&5930",
+          "to": "&59b0",
+          "runsAt": "&0780",
+          "block": "joystick_bytev"
+        }
+      ]
+    }
+  ]
+}

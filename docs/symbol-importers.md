@@ -717,6 +717,25 @@ M7VPLAY, which runs where it loads. The repository's discs are put together by a
 encoded video, so the config boots `badappl/disks/badappl_disk1.ssd`, whose M7VPLAY is what the source builds. The
 video has no region. The in-memory check plays the first part of it.
 
+## Dunjunz
+
+`symbols/configs/dunjunz.json` makes two sets from [acornaeology's Dunjunz](https://github.com/acornaeology/dunjunz)
+disassembly of the official 1987 disc's Model B side, whose listing saves `Dun1`, the whole game, with the level
+loader `Coder` inside it. `upper` (`&2000-&2FFF`) and `heroes` (`&6E80-&7FFF`) run where they load. `core` is
+`&3000-&473F` of the file, which Coder copies to `&08C0-&1FFF`, so it's a relocated region (`runsAt`, and `block`, a
+label inside it). Page `&04-&07` holds one of two images, and the `images` region is the part of them (`&0400-&0704`)
+that is the same, since a region for the keyboard image would match the joystick image too and neither would be
+shown; the `joystick` set is only its handler (`&0780-&07FF`). The images' menu text, Coder, which runs in screen RAM,
+and the other programs on the disc have no names yet. The licence is the author's statement on StarDot, quoted in the
+`notice`, since the repository has no LICENSE file.
+
+The config boots Stairway to Hell's `BugByte/Dunjunz.zip`, whose Model B side has the same files, loads and lengths as
+the repository's. jsbeeb reads a centred joystick, so the in-memory check has the game load its joystick image: it goes
+from the title screen through the load to the hero menu and on into random play of four heroes. The corpus check finds
+this code in the Master disc, the sideways RAM hack and the Model B disc's other side, byte for byte for `upper` and
+`heroes`, which are the same game; `core` was 87% identical to the Master's `Dunj4` until `bytesPerAnchor` asked for
+more anchors, which put some in the part that differs.
+
 ## level7's disassemblies
 
 [level7](https://www.level7.org.uk/miscellany/) has disassemblies of many games as plain text, by an author who doesn't

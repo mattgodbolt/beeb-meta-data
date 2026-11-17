@@ -1049,6 +1049,81 @@
       }
     },
     {
+      "url": "sets/dunjunz-game.json",
+      "licence": "LicenseRef-smallshire-public-domain",
+      "regions": {
+        "upper": {
+          "start": "0x2000",
+          "end": "0x3000",
+          "minAnchors": 8,
+          "anchors": [
+            { "at": "0x2009", "bytes": "ded01be8ec000d" },
+            { "at": "0x23fb", "bytes": "000333230213" },
+            { "at": "0x24b0", "bytes": "00153f2a050a" },
+            { "at": "0x2660", "bytes": "003c3c280011" },
+            { "at": "0x2930", "bytes": "030302021350" },
+            { "at": "0x2a64", "bytes": "0c0c08040800" },
+            { "at": "0x2cc0", "bytes": "003f3a00003e" },
+            { "at": "0x2fa0", "bytes": "11220f000303" }
+          ]
+        },
+        "core": {
+          "start": "0x08c0",
+          "end": "0x2000",
+          "minAnchors": 11,
+          "anchors": [
+            { "at": "0x0a4d", "bytes": "283900143c33" },
+            { "at": "0x0ac0", "bytes": "2a0000020500" },
+            { "at": "0x0ecf", "bytes": "bd800f9d200b" },
+            { "at": "0x110a", "bytes": "18a58f658d858f" },
+            { "at": "0x1446", "bytes": "205004a9188d2516" },
+            { "at": "0x1460", "bytes": "a94c8d8702a9b5" },
+            { "at": "0x16a0", "bytes": "a258a019a908" },
+            { "at": "0x1878", "bytes": "3c00143c2828" },
+            { "at": "0x1a93", "bytes": "001535202a3f" },
+            { "at": "0x1db2", "bytes": "caf0034cd81c" },
+            { "at": "0x1e28", "bytes": "bde522f008a900" }
+          ]
+        },
+        "images": {
+          "start": "0x0400",
+          "end": "0x0705",
+          "minAnchors": 2,
+          "anchors": [
+            { "at": "0x046b", "bytes": "a570c9b0d0e9" },
+            { "at": "0x05c9", "bytes": "a203bdb408f006" }
+          ]
+        },
+        "heroes": {
+          "start": "0x6e80",
+          "end": "0x8000",
+          "minAnchors": 8,
+          "anchors": [
+            { "at": "0x6e80", "bytes": "a200bd1a0dd010" },
+            { "at": "0x7075", "bytes": "a915857aad060d" },
+            { "at": "0x7266", "bytes": "bdd00d8571a945" },
+            { "at": "0x7464", "bytes": "68aa60a9ff99207f" },
+            { "at": "0x7650", "bytes": "a0039848202172" },
+            { "at": "0x783e", "bytes": "a915857a200009" },
+            { "at": "0x7a42", "bytes": "20eb7bbd007e" },
+            { "at": "0x7c20", "bytes": "a9009dcd7ea9ff" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "sets/dunjunz-joystick.json",
+      "licence": "LicenseRef-smallshire-public-domain",
+      "regions": {
+        "handler": {
+          "start": "0x0780",
+          "end": "0x0800",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x0780", "bytes": "c981d065e098" }]
+        }
+      }
+    },
+    {
       "url": "sets/eagles-wing-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {

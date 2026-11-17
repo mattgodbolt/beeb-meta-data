@@ -1,0 +1,40 @@
+{
+  "format": 1,
+  "title": "Dunjunz (joystick)",
+  "licence": "LicenseRef-smallshire-public-domain",
+  "source": "https://github.com/acornaeology/dunjunz/tree/900c5ec1358b54de61a8e64e8258d837ba37aa65",
+  "notice": "The names are from acornaeology's Dunjunz disassembly by Robert Smallshire. Dunjunz was written by Julian Avis and is copyright Bug-Byte 1986. Robert Smallshire's statement, at https://stardot.org.uk/forums/viewtopic.php?p=497505#p497505, says: \"The annotations and the revisions mine, but I won't be enforcing any claim over them; consider them to be in the public domain.\" The repository itself has no LICENSE file; its pyproject.toml declares MIT.",
+  "home": "https://github.com/acornaeology/dunjunz",
+  "nameLink": "https://github.com/acornaeology/dunjunz/blob/900c5ec1358b54de61a8e64e8258d837ba37aa65/{place}",
+  "regions": {
+    "handler": {
+      "start": "0x0780",
+      "end": "0x0800",
+      "minAnchors": 1,
+      "anchors": [{ "at": "0x0780", "bytes": "c981d065e098" }],
+      "symbols": {
+        "joystick_bytev": "0x0780",
+        "joystick_left": "0x079b",
+        "joystick_right": "0x07a9",
+        "joystick_up": "0x07b8",
+        "joystick_down": "0x07c6",
+        "joystick_fire": "0x07d5",
+        "joystick_not_pressed": "0x07e6",
+        "joystick_pass_on": "0x07e9",
+        "boot_filename_joystick": "0x07f0"
+      }
+    }
+  },
+  "globals": {},
+  "places": {
+    "boot_filename_joystick": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4842",
+    "joystick_bytev": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4768",
+    "joystick_down": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4811",
+    "joystick_fire": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4821",
+    "joystick_left": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4783",
+    "joystick_not_pressed": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4832",
+    "joystick_pass_on": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4836",
+    "joystick_right": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4792",
+    "joystick_up": "versions/dunjunz-disc/output/dunjunz-disc.asm#L4802"
+  }
+}
