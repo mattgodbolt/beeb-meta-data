@@ -5,6 +5,7 @@ import { checkSet, readMosSets } from "../../tools/symbols/build-index.js";
 import { romKey } from "../../tools/symbols/rom-images.js";
 import {
     beebasmBuild,
+    blockStatements,
     discFilesOf,
     importBeebasm,
     osBlockTargets,
@@ -574,6 +575,33 @@ describe("importBeebasm on a block a loader copies to where it runs", () => {
         expect(() => importBeebasm(wrong, blockBuild(), { system })).toThrow(/isn't inside|differ from/);
         const missing = config([loaderRegion, { ...relocatedRegion, block: "nothing" }]);
         expect(() => importBeebasm(missing, blockBuild(), { system })).toThrow(/no label nothing/);
+    });
+});
+
+describe("blockStatements", () => {
+    // Two images assembled at &0800 one after the other, with a statement at &1900 listed before, between and after.
+    const at = (order, address) => ({ order, address });
+    const statements = [
+        at(1, 0x1900),
+        at(3, 0x0800),
+        at(4, 0x0803),
+        at(5, 0x0806),
+        at(7, 0x1a00),
+        at(9, 0x0800),
+        at(10, 0x0804),
+        at(11, 0x0807),
+        at(13, 0x1a40),
+    ];
+    const addresses = (order) =>
+        blockStatements(statements, order, 0x0800, 0x0900).map((statement) => statement.address);
+
+    it("takes the rising run of statements around a label, from the first one at its start", () => {
+        expect(addresses(4)).toEqual([0x0800, 0x0803, 0x0806]);
+        expect(addresses(10)).toEqual([0x0800, 0x0804, 0x0807]);
+    });
+
+    it("doesn't take the previous block's end for a label that starts its block", () => {
+        expect(addresses(8)).toEqual([0x0800, 0x0804, 0x0807]);
     });
 });
 

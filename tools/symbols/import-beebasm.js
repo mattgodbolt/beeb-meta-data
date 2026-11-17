@@ -197,21 +197,21 @@ function savedFile(name, data, start, inMemory, labels, allStatements) {
  * which the listing doesn't show and a CLEAR then evicts: those listed around the label `order` at
  * `[start, end)`, in rising addresses, from where the run before it stops rising or leaves the range.
  */
-function blockStatements(statements, order, start, end) {
+export function blockStatements(statements, order, start, end) {
     const next = statements.findIndex((statement) => statement.order > order);
     const after = next === -1 ? statements.length : next;
     let first = after;
     while (
         first > 0 &&
         statements[first - 1].address >= start &&
-        (first === after || statements[first - 1].address < statements[first].address)
+        (first === statements.length || statements[first - 1].address < statements[first].address)
     )
         first--;
     let last = after;
     while (
         last < statements.length &&
         statements[last].address < end &&
-        statements[last].address > statements[last - 1].address
+        (last === first || statements[last].address > statements[last - 1].address)
     )
         last++;
     return statements.slice(first, last);
@@ -337,7 +337,7 @@ class Importer {
             (l) => l.order >= firstOrder && l.order <= lastOrder && l.address >= runsAt && l.address < end,
         );
         const file = savedFile(
-            `${source.name}@${hex(runsAt)}`,
+            `${source.name}:${hex(from)}@${hex(runsAt)}`,
             data,
             runsAt,
             statements,
@@ -532,6 +532,8 @@ class Importer {
 export function importBeebasm(config, build, { discFiles = [], system = systemAddresses(), otherRoms } = {}) {
     if (config.licence === undefined) throw new Error(`${config.id}: the config gives no licence, so it makes no sets`);
     const importer = new Importer(config, build, discFiles, system, otherRoms);
+    for (const regionSpec of config.sets.flatMap((spec) => spec.regions))
+        if (regionSpec.runsAt !== undefined) importer.relocated(regionSpec, (name) => importer.lookup(name));
     const sets = config.sets.map((spec) => ({
         id: spec.id,
         file: `${config.id}-${spec.id}.json`,

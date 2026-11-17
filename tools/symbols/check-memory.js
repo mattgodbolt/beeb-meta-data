@@ -12,7 +12,8 @@
  * scenario wants by its name (see startMachine and scenarioMedia), and `titles`, other titles whose sets are checked
  * alongside (otherTitlesSets). They boot `source.disc`, the original disc in the source repository, with the title
  * built as its importer builds it, for the scenarios that read its files; or `disc`, a disc image in a zip the config
- * names by its URL, its path in the zip and its key; or `tape`, a tape image named the same way, by its tape key; or
+ * names by its URL, its path in the zip and its key (an assembled title with no `source.disc` boots that too); or
+ * `tape`, a tape image named the same way, by its tape key; or
  * no disc, for a ROM's config. A ROM jsbeeb doesn't have, which the config's `rom` gives by URL and key, or as the
  * `file` an assembled title's build saves, is put in sideways RAM; for an acornaeology config, the ROM of the version
  * a scenario's machine names in `sideways`. An assembled title's scenario can boot another `disc` or `rom` of its
@@ -317,16 +318,25 @@ export async function fetchTape({ url, image, key }) {
  */
 async function withTitleDisc(config, options, use) {
     if (isAssembled(config)) {
-        if (config.source.disc === undefined && config.rom === undefined)
-            throw new Error("The config names no disc to boot in source.disc, and no rom");
-        return withTitleSource(config, options, ({ sourceDir, filesDir, saved }) =>
-            use({
-                disc: config.source.disc === undefined ? null : path.join(sourceDir, config.source.disc),
-                sourceDir,
-                filesDir,
-                saved,
-            }),
-        );
+        if (config.source.disc === undefined && config.disc === undefined && config.rom === undefined)
+            throw new Error("The config names no disc to boot, in source.disc or disc, and no rom");
+        return withTitleSource(config, options, async ({ sourceDir, filesDir, saved }) => {
+            if (config.source.disc !== undefined || config.disc === undefined)
+                return use({
+                    disc: config.source.disc === undefined ? null : path.join(sourceDir, config.source.disc),
+                    sourceDir,
+                    filesDir,
+                    saved,
+                });
+            const temp = mkdtempSync(path.join(tmpdir(), "symbols-disc-"));
+            try {
+                const disc = path.join(temp, path.basename(config.disc.image));
+                writeFileSync(disc, await fetchDisc(config.disc));
+                return await use({ disc, sourceDir, filesDir, saved });
+            } finally {
+                rmSync(temp, { recursive: true, force: true });
+            }
+        });
     }
     const tape = config.tape === undefined ? null : { name: config.tape.image, data: await fetchTape(config.tape) };
     if (config.disc === undefined) {
