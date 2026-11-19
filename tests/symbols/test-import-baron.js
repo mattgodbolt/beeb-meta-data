@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkSet, readMosSets, SymbolsDir } from "../../tools/symbols/build-index.js";
 import { BuildLayout } from "../../tools/symbols/baron-build.js";
+import { romKey } from "../../tools/symbols/rom-images.js";
 import {
     baronBuild,
     evaluate,
@@ -307,6 +308,60 @@ describe("importBaron", () => {
     it("refuses a listing whose labels the symbol dump disagrees with", () => {
         const moved = { "src/prog.6502": { ...progSymbols["src/prog.6502"], "prog.loop": 0x1910 } };
         expect(() => baronBuild(new Map([["prog", listing]]), moved, [])).toThrow("prog.loop");
+    });
+});
+
+describe("importBaron's ROM", () => {
+    const code = [
+        0xa9, 0x00, 0x85, 0x70, 0x20, 0xee, 0xff, 0x8d, 0x00, 0x09, 0xa2, 0x05, 0xa0, 0x07, 0xe8, 0xb9, 0x00, 0x09,
+        0x99, 0x80, 0x09, 0xc6, 0x70, 0xce, 0x15, 0x19, 0xd0, 0xf3, 0x60,
+    ];
+    const romConfig = { ...config(), madeFrom: ["f".repeat(32)], rom: { file: "PROG" }, spreadAnchors: 1 };
+    const romBuild = () =>
+        baronBuild(
+            new Map([["prog", listing]]),
+            progSymbols,
+            [{ name: "PROG", load: 0x1900, data: Uint8Array.from(code) }],
+            progPlaces,
+        );
+
+    it("gives a ROM's set the ROM's key and no globals", () => {
+        const { sets, errors } = importBaron(romConfig, romBuild(), { otherRoms: [] });
+        expect(errors).toEqual([]);
+        const [{ file, json, dropped }] = sets;
+        expect(checkSet(json, { file: `sets/${file}`, mosSets: [] })).toEqual([]);
+        expect(json.madeFrom).toEqual([romKey(Uint8Array.from(code))]);
+        expect(json.globals).toEqual({});
+        expect(json.regions.main.symbols).toEqual({ start: "0x1900", loop: "0x190f", patch: "0x1915" });
+        expect(dropped).toContainEqual(["counter", 0x70, "a ROM's set keeps no globals"]);
+        expect(dropped).toContainEqual(["buffer", 0x900, "a ROM's set keeps no globals"]);
+    });
+
+    it("tells the ROM apart from every other ROM of its size, as the ROM sits where it loads", () => {
+        const { anchors } = importBaron(romConfig, romBuild(), { otherRoms: [] }).sets[0].regions[0];
+        const anchored = (i) => anchors.some(({ at, data }) => i >= at - 0x1900 && i < at - 0x1900 + data.length);
+        const copy = Uint8Array.from(code, (byte, i) => (anchored(i) ? byte : byte ^ 0xff));
+        const { reasons, errors } = importBaron(romConfig, romBuild(), {
+            otherRoms: [{ name: "copy.rom", bytes: copy }],
+        });
+        expect(errors).toEqual([]);
+        expect(reasons).toEqual([expect.stringContaining("copy.rom")]);
+        const same = importBaron(romConfig, romBuild(), {
+            otherRoms: [{ name: "same.rom", bytes: Uint8Array.from(code) }],
+        });
+        expect(same.reasons).toEqual([]);
+    });
+
+    it("refuses a rom the build doesn't make", () => {
+        expect(() => importBaron({ ...romConfig, rom: { file: "OTHER" } }, romBuild())).toThrow(
+            "The build makes no OTHER",
+        );
+    });
+
+    it("keeps a program's globals, and its own madeFrom, when the config names no rom", () => {
+        const [{ json }] = importBaron({ ...romConfig, rom: undefined }, romBuild()).sets;
+        expect(json.madeFrom).toEqual(["f".repeat(32)]);
+        expect(json.globals).toEqual({ counter: "0x0070", buffer: "0x0900" });
     });
 });
 

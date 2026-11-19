@@ -124,6 +124,15 @@ describe("withTitleSource", () => {
         }
     });
 
+    it("gives a baron title's ROM, the built file its `rom` names, among its saved files", async () => {
+        const baron = stub("baron", StubBaron);
+        const config = { ...pinned(undefined, ["main.6502"]), rom: { file: "main" } };
+        const { saved } = await withTitleSource(config, { baron }, (found) => found);
+        expect([...saved]).toEqual([["main", Buffer.from("X")]]);
+        const absent = { ...config, rom: { file: "other" } };
+        expect((await withTitleSource(absent, { baron }, (found) => found)).saved).toBeNull();
+    });
+
     it("builds a beebasm title with beebasm, and gives its saved files instead of a files directory", async () => {
         const beebasm = stub("beebasm", StubBeebasm);
         const made = await withTitleSource(pinned("beebasm", "main.asm"), { beebasm }, (found) => found);
