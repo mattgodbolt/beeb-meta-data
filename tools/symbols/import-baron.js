@@ -32,6 +32,7 @@ import {
 } from "./baron-build.js";
 import { parseBaronListing, sectionNamed } from "./baron-listing.js";
 import { checkSet, formatJson, isPlace, readMosSets, SymbolsDir } from "./build-index.js";
+import { otherRomsThan, romImages, romKey } from "./rom-images.js";
 
 const AddressLimit = 0x10000;
 const IoAddressMask = 0xffff;
@@ -289,7 +290,7 @@ export function readBaronBuild(buildDir) {
  * Everything the build puts in memory, at the addresses it occupies: each section where it runs, and
  * each file where it loads.
  */
-function buildImages({ sources, files }, programSources) {
+function buildImages({ sources, files }, programSources, rom, otherRoms) {
     const images = [];
     for (const source of sources.values())
         for (const section of source.listing.sections) {
@@ -307,6 +308,7 @@ function buildImages({ sources, files }, programSources) {
             memory: new Map([...data].map((byte, i) => [load + i, byte])),
             program: false,
         });
+    if (rom) images.push(...romImages(otherRoms ?? otherRomsThan(null, rom.data.length), rom.load, rom.data.length));
     return images;
 }
 
@@ -425,8 +427,16 @@ export function scopedNames(globalsNamed, inRegion) {
 }
 
 class Importer {
-    constructor(config, build) {
-        this.config = config;
+    /**
+     * @param {{name: string, bytes: Uint8Array}[] | undefined} otherRoms - for a ROM's config, the ROMs its
+     *     anchors tell it apart from: every one jsbeeb has, unless given
+     */
+    constructor(config, build, otherRoms) {
+        if (config.rom !== undefined && typeof config.rom.file !== "string")
+            throw new Error('A baron config\'s rom is {"file": ...}, the file its build makes');
+        const rom = config.rom === undefined ? null : build.files.find(({ name }) => name === config.rom.file);
+        if (config.rom !== undefined && !rom) throw new Error(`The build makes no ${config.rom.file}, which rom names`);
+        this.config = rom ? { ...config, madeFrom: [romKey(rom.data)] } : config;
         this.build = build;
         this.errors = [];
         this.notes = [];
@@ -442,7 +452,7 @@ class Importer {
         const programSources = new Set(
             config.sets.flatMap((spec) => [...spec.sources, ...spec.regions.map((r) => r.source).filter(Boolean)]),
         );
-        this.images = buildImages(build, programSources);
+        this.images = buildImages(build, programSources, rom, otherRoms);
         this.osBlocks = new Map();
         this.onGitHub = isOnGitHub(config);
     }
@@ -545,6 +555,11 @@ class Importer {
             if (!names.has(address)) names.set(address, []);
             names.get(address).push(candidate);
         };
+        // jsbeeb shows a ROM set's globals whenever the ROM is merely paged in (jsbeeb#1252).
+        const addGlobal = (address, candidate) =>
+            this.config.rom
+                ? dropped.push([candidate.name, address, "a ROM's set keeps no globals"])
+                : add(globalsNamed, address, candidate);
         const entry = (source, name, rank) => ({ name: shown(name), place: source.places[name], rank });
         const holds = (region, address) => address >= region.start && address < region.end;
         const runs = (region, statement) => statement.section === region.section && holds(region, statement.address);
@@ -617,7 +632,7 @@ class Importer {
                     else if (!uses && !mentioned.get(source).has(label.name))
                         dropped.push([shown(label.name), label.address, "workspace no statement mentions"]);
                     else
-                        add(globalsNamed, label.address, {
+                        addGlobal(label.address, {
                             ...entry(source, label.name, [uses, label.order]),
                             useRanges: (operandUses.get(source).get(label.name) ?? []).map((statement) =>
                                 useRange(source, statement),
@@ -627,7 +642,7 @@ class Importer {
                 }
                 if (section && globalsSections.has(section.name)) {
                     if (label.address >= section.org && label.address < section.end)
-                        add(globalsNamed, label.address, entry(source, label.name, [0, label.order]));
+                        addGlobal(label.address, entry(source, label.name, [0, label.order]));
                     else dropped.push([shown(label.name), label.address, "past its section's end"]);
                     continue;
                 }
@@ -661,7 +676,7 @@ class Importer {
                         entry(source, name, [-assigns.get(name).length - 1, order.get(name)]),
                     );
                 else
-                    add(globalsNamed, address, {
+                    addGlobal(address, {
                         ...entry(source, name, [statements.length, order.get(name)]),
                         useRanges: statements.map((statement) => useRange(source, statement)),
                     });
@@ -738,12 +753,15 @@ class Importer {
 }
 
 /**
- * A title's sets from its baron build, as its config describes them.
+ * A title's sets from its baron build, as its config describes them. For a ROM's config, whose `rom` names the
+ * built `file` that is the ROM, that gives the sets' `madeFrom`, the anchors tell it apart from other ROMs, and
+ * the sets keep no globals.
+ * @param {{otherRoms?: {name: string, bytes: Uint8Array}[]}} context
  * @returns {{sets: {id: string, file: string, json: object, regions: object[], dropped: [string, number, string][]}[],
  *     errors: string[], notes: string[], reasons: string[]}}
  */
-export function importBaron(config, build) {
-    const importer = new Importer(config, build);
+export function importBaron(config, build, { otherRoms } = {}) {
+    const importer = new Importer(config, build, otherRoms);
     const sets = config.sets.map((spec) => ({
         id: spec.id,
         file: `${config.id}-${spec.id}.json`,

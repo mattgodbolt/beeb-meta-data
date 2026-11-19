@@ -5,7 +5,7 @@
  * disassembly, of which `--source` is then a local copy.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import * as baron from "./baron-build.js";
@@ -67,7 +67,8 @@ export function importTitle(configPath, options) {
 
 /**
  * Runs `use` with the checkout of the config's commit and, for a baron title, the directory of its
- * built files, or for a beebasm one, whose SAVEs go where its source says, each file by its SAVE's name.
+ * built files (and the one the config's `rom` names, by its name), or for a beebasm one, whose SAVEs go where
+ * its source says, each file by its SAVE's name.
  * @param {(made: {sourceDir: string, filesDir: string | null, saved: Map<string, Uint8Array> | null}) => any} use
  */
 export function withTitleSource(config, options, use) {
@@ -75,7 +76,10 @@ export function withTitleSource(config, options, use) {
         return beebasm.withBeebasmBuild(config, options, ({ sourceDir, build }) =>
             use({ sourceDir, filesDir: null, saved: build.saved }),
         );
-    return baron.withBaronBuild(config, options, ({ sourceDir, buildDir }) =>
-        use({ sourceDir, filesDir: path.join(buildDir, baron.BuildLayout.files), saved: null }),
-    );
+    return baron.withBaronBuild(config, options, ({ sourceDir, buildDir }) => {
+        const filesDir = path.join(buildDir, baron.BuildLayout.files);
+        const rom = config.rom?.file === undefined ? undefined : path.join(filesDir, config.rom.file);
+        const saved = rom && existsSync(rom) ? new Map([[config.rom.file, readFileSync(rom)]]) : null;
+        return use({ sourceDir, filesDir, saved });
+    });
 }
