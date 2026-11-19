@@ -141,6 +141,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
   - Acorn ANFS 4.26, names from [acornaeology.uk](https://acornaeology.uk/acorn-nfs/4.26.html)
 - **Acornsoft LISP 4.06**, names from [TobyLobster/lisp](https://github.com/TobyLobster/lisp) (MIT)
 - **BBC BASIC II**, names from [acornaeology.uk](https://acornaeology.uk/bbc-basic/2.html) (MIT)
+- **VDFS**, names from [mattgodbolt/jsbeeb](https://github.com/mattgodbolt/jsbeeb/tree/6b8fa12f4f5cd2e9bdb44759f1847c654954efca) (CC0-1.0)
 - **XMOS**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
 - **XMOS (1992)**, names from [mattgodbolt/xmos](https://github.com/mattgodbolt/xmos) (MIT)
 
