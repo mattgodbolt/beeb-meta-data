@@ -82,7 +82,7 @@ The programs, ROMs and operating systems whose code jsbeeb's debugger can name f
 - **Rick Hanson (Saga of a Spy - The Rick Hanson Trilogy, Part 1)**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/rick-hanson-disassembly.txt) (level7-educational)
 - **Robotron 2084**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/robotron-2084-disassembly.txt) (level7-educational)
 - **Sabre Wulf**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/sabrewulf-disassembly.txt) (level7-educational)
-- **Scorched Earth**, names from [mattgodbolt/beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth/tree/124b65c9e02edd09aeccad63e6fd41070aa1d3bb) (MIT)
+- **Scorched Earth**, names from [mattgodbolt/beeb-scorched-earth](https://github.com/mattgodbolt/beeb-scorched-earth/tree/9131183cfcbb53022a0d35ab72ae0374a4a3ead2) (MIT)
 - **Shark**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/shark-disassembly.txt) (level7-educational)
 - **Sim**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/sim-disassembly.txt) (level7-educational)
 - **Skirmish**, names from [level7.org.uk](https://www.level7.org.uk/miscellany/skirmish-disassembly.txt) (level7-educational)
