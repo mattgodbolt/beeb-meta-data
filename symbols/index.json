@@ -3169,6 +3169,18 @@
       }
     },
     {
+      "url": "sets/vdfs-rom.json",
+      "licence": "CC0-1.0",
+      "regions": {
+        "rom": {
+          "start": "0x8000",
+          "end": "0xc000",
+          "minAnchors": 1,
+          "anchors": [{ "at": "0x8037", "bytes": "48ad60fc293f" }]
+        }
+      }
+    },
+    {
       "url": "sets/vindaloo-game.json",
       "licence": "LicenseRef-level7-educational",
       "regions": {
