@@ -432,6 +432,8 @@ class Importer {
      *     anchors tell it apart from: every one jsbeeb has, unless given
      */
     constructor(config, build, otherRoms) {
+        if (config.rom !== undefined && typeof config.rom.file !== "string")
+            throw new Error('A baron config\'s rom is {"file": ...}, the file its build makes');
         const rom = config.rom === undefined ? null : build.files.find(({ name }) => name === config.rom.file);
         if (config.rom !== undefined && !rom) throw new Error(`The build makes no ${config.rom.file}, which rom names`);
         this.config = rom ? { ...config, madeFrom: [romKey(rom.data)] } : config;

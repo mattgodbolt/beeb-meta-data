@@ -358,6 +358,13 @@ describe("importBaron's ROM", () => {
         );
     });
 
+    it.each([
+        ["a path", "PROG.rom"],
+        ["a fetched ROM", { url: "https://example.com/PROG.rom", key: "f".repeat(32) }],
+    ])("refuses a rom that is %s, which baron has no use for", (_, rom) => {
+        expect(() => importBaron({ ...romConfig, rom }, romBuild())).toThrow('{"file": ...}');
+    });
+
     it("keeps a program's globals, and its own madeFrom, when the config names no rom", () => {
         const [{ json }] = importBaron({ ...romConfig, rom: undefined }, romBuild()).sets;
         expect(json.madeFrom).toEqual(["f".repeat(32)]);
@@ -415,6 +422,28 @@ describe("importBaron's virtual sections", () => {
     it("makes globals of a virtual section's labels, naming each address as most instructions do", () => {
         expect(set.json.globals).toEqual({ ptr: "0x0070", count: "0x0072", pool_end: "0x0084" });
         expect(set.dropped).toContainEqual(["spare", 0x0070, "the globals call it ptr"]);
+    });
+
+    it("leaves a ROM's set no globals, saying so of a virtual section's labels", () => {
+        const data = Uint8Array.from([
+            0x85,
+            0x70,
+            0xe6,
+            0x70,
+            0xc6,
+            0x72,
+            0x60,
+            0x70,
+            0x00,
+            0xc5,
+            0x84,
+            ...new TextEncoder().encode("unmentioned"),
+        ]);
+        const romWork = { ...workConfig, madeFrom: ["f".repeat(32)], rom: { file: "WORK" }, spreadAnchors: 1 };
+        const build = baronBuild(new Map([["work", workListing]]), workSymbols, [{ name: "WORK", load: 0x1900, data }]);
+        const [{ json, dropped }] = importBaron(romWork, build, { otherRoms: [] }).sets;
+        expect(json.globals).toEqual({});
+        expect(dropped).toContainEqual(["ptr", 0x70, "a ROM's set keeps no globals"]);
     });
 
     it("leaves out workspace no statement mentions outside a string, and the label that only marks its end", () => {
@@ -521,6 +550,20 @@ describe("importBaron's names", () => {
                 ["first", 0x1910, "a calls it second"],
             ]),
         );
+    });
+
+    it("leaves a ROM's set no globals, saying so of a globalsSections label", () => {
+        const data = Uint8Array.from([
+            0xa9, 0x01, 0x85, 0x70, 0xe6, 0x72, 0xc6, 0x72, 0xa5, 0x72, 0x8d, 0x05, 0x19, 0xad, 0x1a, 0x19, 0xa2, 0x05,
+            0xa0, 0x09, 0x8e, 0x00, 0x30, 0x60, 0xa5, 0x70, 0xa2, 0x03, 0xa0, 0x04, 0x8d, 0x00, 0x31, 0x60,
+        ]);
+        const romNames = { ...namingConfig, madeFrom: ["f".repeat(32)], rom: { file: "NAMES" }, spreadAnchors: 1 };
+        const build = baronBuild(new Map([["names", namingListing]]), namingSymbols, [
+            { name: "NAMES", load: 0x1900, data },
+        ]);
+        const [{ json, dropped }] = importBaron(romNames, build, { otherRoms: [] }).sets;
+        expect(json.globals).toEqual({});
+        expect(dropped).toContainEqual(["zp_ptr", 0, "a ROM's set keeps no globals"]);
     });
 
     it("names an address another way in a scope over the code that uses that name", () => {

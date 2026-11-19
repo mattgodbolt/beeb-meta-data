@@ -119,8 +119,9 @@ theirs differ.
     boots. Where the config lists `madeFrom`, its image key has to be one of them; where it doesn't, its key is the
     sets' `madeFrom`, which suits a disc the repository rebuilds as it changes.
 - `rom`, for a sideways ROM, is `{"file": ...}`, the file the build makes that is the ROM (its SECTION's `filename`).
-  Its key is the sets' `madeFrom`, whatever else says, the anchors tell it apart from every ROM jsbeeb has (a copy of
-  it among them is the same image, so isn't one to tell apart), and the in-memory check puts it in sideways RAM. Its
+  Its key replaces any `madeFrom` in the config and is the sets' `madeFrom`. The anchors tell it apart from every ROM
+  jsbeeb has (a copy of it among them is the same image, so isn't one to tell apart), and the in-memory check puts it
+  in sideways RAM. Its
   sets keep no globals, since jsbeeb shows a set's globals whenever the ROM is merely paged in (jsbeeb#1252): what
   would be one is left out, which `--verbose` says.
 - `leftToSystemSets` lists INCLUDEd files whose names the MOS's set already gives as globals. The listing doesn't mark
