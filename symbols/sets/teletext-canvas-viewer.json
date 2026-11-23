@@ -2,10 +2,10 @@
   "format": 1,
   "title": "Teletext Canvas",
   "licence": "MIT",
-  "source": "https://github.com/kieranhj/teletext-canvas/tree/0f8cdac9fcde605cc90598e213d6d5bef377f102",
+  "source": "https://github.com/kieranhj/teletext-canvas/tree/6adebb8eadbdf5c8d86be300adfbfb7244411335",
   "notice": "The names are teletext-canvas's, under this licence:\n\nMIT License\n\nCopyright (c) 2020 Kieran Connell\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
   "madeFrom": ["481d90c8bfd96e9425fae67948c82b80"],
-  "nameLink": "https://github.com/kieranhj/teletext-canvas/blob/0f8cdac9fcde605cc90598e213d6d5bef377f102/{place}",
+  "nameLink": "https://github.com/kieranhj/teletext-canvas/blob/6adebb8eadbdf5c8d86be300adfbfb7244411335/{place}",
   "regions": {
     "code": {
       "start": "0x1900",

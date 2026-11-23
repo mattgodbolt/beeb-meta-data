@@ -5,7 +5,7 @@
   "notice": "The names are the labels of jsbeeb's VDFS ROM source (roms-src/vdfs), which Matt Godbolt wrote for jsbeeb and dedicated to the public domain under CC0 1.0 (github.com/mattgodbolt/jsbeeb#1898; roms-src/vdfs/LICENSE).",
   "source": {
     "repository": "https://github.com/mattgodbolt/jsbeeb",
-    "commit": "6b8fa12f4f5cd2e9bdb44759f1847c654954efca",
+    "commit": "85235789c9b71c5dee3c7a80b3240ccfa2210d18",
     "assemble": ["roms-src/vdfs/vdfs.6502"]
   },
   "rom": {

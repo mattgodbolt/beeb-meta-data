@@ -2,10 +2,10 @@
   "format": 1,
   "title": "Teletext Slojd",
   "licence": "MIT",
-  "source": "https://github.com/kieranhj/teletext-slojd/tree/2b265e7fbd2bfcdf232631ae41384eba984df7ef",
+  "source": "https://github.com/kieranhj/teletext-slojd/tree/a9edad4142043650d7164473502983f3a8f1d1e4",
   "notice": "The names are teletext-slojd's, under this licence:\n\nMIT License\n\nCopyright (c) 2020 Kieran Connell\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
   "madeFrom": ["d0d7e1b97ae6205ca328f9ff488adf58"],
-  "nameLink": "https://github.com/kieranhj/teletext-slojd/blob/2b265e7fbd2bfcdf232631ae41384eba984df7ef/{place}",
+  "nameLink": "https://github.com/kieranhj/teletext-slojd/blob/a9edad4142043650d7164473502983f3a8f1d1e4/{place}",
   "regions": {
     "code": {
       "start": "0x1900",
