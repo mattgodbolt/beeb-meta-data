@@ -2,10 +2,10 @@
   "format": 1,
   "title": "VDFS",
   "licence": "CC0-1.0",
-  "source": "https://github.com/mattgodbolt/jsbeeb/tree/6b8fa12f4f5cd2e9bdb44759f1847c654954efca",
+  "source": "https://github.com/mattgodbolt/jsbeeb/tree/85235789c9b71c5dee3c7a80b3240ccfa2210d18",
   "notice": "The names are the labels of jsbeeb's VDFS ROM source (roms-src/vdfs), which Matt Godbolt wrote for jsbeeb and dedicated to the public domain under CC0 1.0 (github.com/mattgodbolt/jsbeeb#1898; roms-src/vdfs/LICENSE).",
   "madeFrom": ["c9d8e225aac76dd7067a73e5feed89d7"],
-  "nameLink": "https://github.com/mattgodbolt/jsbeeb/blob/6b8fa12f4f5cd2e9bdb44759f1847c654954efca/{place}",
+  "nameLink": "https://github.com/mattgodbolt/jsbeeb/blob/85235789c9b71c5dee3c7a80b3240ccfa2210d18/{place}",
   "regions": {
     "rom": {
       "start": "0x8000",
